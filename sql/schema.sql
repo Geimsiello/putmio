@@ -110,6 +110,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_items` (
   `poster_url` VARCHAR(512) NULL,
   `tmdb_id` INT UNSIGNED NULL,
   `tmdb_type` ENUM('movie','tv') NULL,
+  `imdb_id` VARCHAR(20) NULL,
   `duration_sec` INT UNSIGNED NULL,
   `classification_status` ENUM('unclassified','classified','ignored') NOT NULL DEFAULT 'unclassified',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -191,4 +192,29 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}stream_daily_stats` (
   `peak_concurrent` INT UNSIGNED NOT NULL DEFAULT 0,
   `stream_count` INT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}media_subtitles` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `media_id` INT UNSIGNED NOT NULL,
+  `language` VARCHAR(10) NOT NULL,
+  `label` VARCHAR(80) NOT NULL,
+  `source` ENUM('opensubtitles') NOT NULL DEFAULT 'opensubtitles',
+  `source_file_id` VARCHAR(64) NOT NULL,
+  `file_path` VARCHAR(255) NOT NULL,
+  `downloaded_by` INT UNSIGNED NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_media_source_file` (`media_id`, `source`, `source_file_id`),
+  KEY `idx_media` (`media_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}user_subtitle_prefs` (
+  `user_id` INT UNSIGNED NOT NULL,
+  `media_id` INT UNSIGNED NOT NULL,
+  `subtitle_id` INT UNSIGNED NULL,
+  `offset_ms` INT NOT NULL DEFAULT 0,
+  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `media_id`),
+  KEY `idx_subtitle` (`subtitle_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -8,6 +8,7 @@ use PutMio\Auth\Session;
 use PutMio\CatalogService;
 use PutMio\Config;
 use PutMio\Database;
+use PutMio\OpenSubtitles\SubtitleService;
 use PutMio\PutIO\Client;
 use PutMio\Stream\StreamProxy;
 use PutMio\View;
@@ -107,6 +108,11 @@ final class PlayerController
             ];
         }
 
+        $subtitleService = new SubtitleService();
+        $availableSubtitles = putmio_subtitle_payload_list($subtitleService->listForMedia($id), $appUrl);
+        $subtitlePrefs = $subtitleService->userPrefs($userId, $id);
+        $subtitlesConfigured = $subtitleService->isConfigured();
+
         View::render('player/show', [
             'title' => $displayTitle,
             'media' => $media,
@@ -130,7 +136,10 @@ final class PlayerController
             'playbackFormat' => $playbackFormat,
             'extraHead' => '<link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet">',
             'extraScripts' => '<script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>'
-                . '<script src="' . putmio_e($appUrl) . '/public/assets/player.js" defer></script>',
+                . '<script src="' . putmio_e($appUrl) . '/public/assets/player.js" defer></script>'
+                . '<script src="' . putmio_e($appUrl) . '/public/assets/subtitles.js" defer></script>',
+            'subtitlesConfigured' => $subtitlesConfigured,
+            'isAdmin' => Session::isAdmin(),
             'putmioExtra' => [
                 'putioId' => (int) $media['putio_id'],
                 'mediaId' => $id,
@@ -147,6 +156,33 @@ final class PlayerController
                     'playNow' => putmio_lang('player_play_next'),
                     'autoPlayIn' => putmio_lang('player_autoplay_in'),
                     'dismiss' => putmio_lang('player_next_dismiss'),
+                ],
+                'subtitlesConfigured' => $subtitlesConfigured,
+                'isAdmin' => Session::isAdmin(),
+                'availableSubtitles' => $availableSubtitles,
+                'activeSubtitleId' => $subtitlePrefs['subtitle_id'],
+                'offsetMs' => $subtitlePrefs['offset_ms'],
+                'subtitleLabels' => [
+                    'off' => putmio_lang('subtitles_off'),
+                    'manage' => putmio_lang('subtitles_manage'),
+                    'title' => putmio_lang('subtitles_title'),
+                    'available' => putmio_lang('subtitles_available'),
+                    'search' => putmio_lang('subtitles_search'),
+                    'searching' => putmio_lang('subtitles_searching'),
+                    'searchEmpty' => putmio_lang('subtitles_search_empty'),
+                    'download' => putmio_lang('subtitles_download'),
+                    'downloaded' => putmio_lang('subtitles_downloaded'),
+                    'use' => putmio_lang('subtitles_use'),
+                    'delete' => putmio_lang('subtitles_delete'),
+                    'downloadError' => putmio_lang('subtitles_download_error'),
+                    'notConfigured' => Session::isAdmin()
+                        ? putmio_lang('subtitles_not_configured_admin')
+                        : putmio_lang('subtitles_not_configured'),
+                    'offsetLabel' => putmio_lang('subtitles_offset_label'),
+                    'offsetReset' => putmio_lang('subtitles_offset_reset'),
+                    'attribution' => putmio_lang('subtitles_attribution'),
+                    'tmdbHint' => putmio_lang('subtitles_tmdb_hint'),
+                    'label' => putmio_lang('player_subtitle_label'),
                 ],
             ],
         ]);

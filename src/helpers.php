@@ -529,3 +529,57 @@ function putmio_stream_bitrate_label(int $bytesSent, ?string $startedAt): string
     }
     return round($mbps, 1) . ' Mbps';
 }
+
+/** Etichetta lingua sottotitoli da codice ISO 639-1. */
+function putmio_subtitle_language_label(string $code): string
+{
+    $code = strtolower(trim($code));
+    $map = [
+        'it' => 'Italiano',
+        'en' => 'English',
+        'es' => 'Español',
+        'fr' => 'Français',
+        'de' => 'Deutsch',
+        'pt' => 'Português',
+        'pt-br' => 'Português (BR)',
+        'ru' => 'Русский',
+        'ja' => '日本語',
+        'ko' => '한국어',
+        'zh' => '中文',
+        'zh-cn' => '中文 (简体)',
+        'zh-tw' => '中文 (繁體)',
+        'ar' => 'العربية',
+        'nl' => 'Nederlands',
+        'pl' => 'Polski',
+        'sv' => 'Svenska',
+        'no' => 'Norsk',
+        'da' => 'Dansk',
+        'fi' => 'Suomi',
+        'el' => 'Ελληνικά',
+        'tr' => 'Türkçe',
+        'ro' => 'Română',
+        'hu' => 'Magyar',
+        'cs' => 'Čeština',
+        'und' => 'Sconosciuta',
+    ];
+
+    return $map[$code] ?? strtoupper($code);
+}
+
+/** @return list<array<string, mixed>> */
+function putmio_subtitle_payload_list(array $rows, string $appUrl): array
+{
+    $list = [];
+    foreach ($rows as $row) {
+        $list[] = [
+            'id' => (int) $row['id'],
+            'language' => (string) ($row['language'] ?? ''),
+            'label' => (string) ($row['label'] ?? ''),
+            'serveUrl' => $appUrl . '/subtitles/serve?id=' . (int) $row['id'],
+            'downloadedBy' => (string) ($row['downloaded_by_name'] ?? ''),
+            'createdAt' => (string) ($row['created_at'] ?? ''),
+        ];
+    }
+
+    return $list;
+}

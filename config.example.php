@@ -40,4 +40,10 @@ return [
         'api_key' => '',
         'language' => 'it-IT',
     ],
+    'opensubtitles' => [
+        'api_key' => '',
+        'username' => '',
+        'password' => '',
+        'user_agent' => 'PutMio v1.0',
+    ],
 ];

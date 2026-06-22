@@ -26,6 +26,7 @@ Media center personale su [put.io](https://put.io) — catalogo stile Plex, stre
    - Redirect URI da registrare: `https://tuodominio.it/putmio/admin/oauth/putio/callback`
    - Clic **Collega account put.io**
    - (Opzionale) Configura **SMTP** per gli inviti famiglia via email
+   - (Opzionale) Configura **OpenSubtitles** in Impostazioni (API key + account) per i sottotitoli
    - **Sincronizza ora**
 6. Classifica i titoli in **Admin → Classificazione**: manualmente oppure con **Scansione TMDB** per proporre associazioni automatiche da confermare con checkbox.
 
@@ -54,7 +55,7 @@ La sync aggiorna il catalogo da put.io e **rimuove** i titoli eliminati sul clou
 - Catalogo film / serie / animazione con classificazione manuale
 - Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file)
 - TMDB on-demand (admin)
-- Player **Video.js** con proxy streaming Range HTTP
+- Player **Video.js** con proxy streaming Range HTTP e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
 - Tema light / dark per utente
 - Dashboard admin streaming (banda, sessioni attive)
@@ -98,6 +99,7 @@ Via FTP elimina `config.php` e `storage/.installed`, poi ricarica `/putmio/` per
 | Video senza audio / barra a 0:00 | Seleziona **MP4 put.io** nel player; per MKV/AC3 apri il file su put.io per generare la conversione |
 | Errore 429 sullo stream | Sessioni stream bloccate: attendi 3 minuti o svuota `stream_sessions` (active=0); in `config.php` puoi alzare `max_concurrent_streams_per_ip` |
 | Sync fallisce | Token scaduto → ricollega put.io in Impostazioni |
+| Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni (API key, username, password) |
 | Invito email non parte | Verifica SMTP in Admin → Impostazioni; controlla `storage/logs/app.log` |
 
 ### Dipendenze PHP

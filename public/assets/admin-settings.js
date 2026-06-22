@@ -122,4 +122,42 @@
       }
     });
   }
+
+  const osTestBtn = document.getElementById('opensubtitles-test-btn');
+  if (osTestBtn) {
+    osTestBtn.addEventListener('click', async function () {
+      if (osTestBtn.disabled) return;
+      osTestBtn.disabled = true;
+
+      if (window.pmToast) {
+        window.pmToast(settings.toastSubtitlesTesting || 'Verifica connessione…', 'info', 2000);
+      }
+
+      try {
+        const body = new URLSearchParams();
+        body.set('_csrf', window.PUTMIO.csrf);
+        const response = await fetch(window.PUTMIO.baseUrl + '/api/opensubtitles/test', {
+          method: 'POST',
+          body: body,
+        });
+        const data = await response.json().catch(function () {
+          return { ok: false };
+        });
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.error || 'test failed');
+        }
+
+        if (window.pmToast) {
+          window.pmToast(data.message || settings.toastSubtitlesTestOk || 'Connessione riuscita', 'success');
+        }
+      } catch (e) {
+        if (window.pmToast) {
+          window.pmToast(e.message || settings.toastSubtitlesTestError || 'Verifica fallita', 'error', 6000);
+        }
+      } finally {
+        osTestBtn.disabled = false;
+      }
+    });
+  }
 })();

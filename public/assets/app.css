@@ -369,6 +369,37 @@ input.pm-input:focus {
   transform: scale(0.98);
 }
 
+.pm-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: transparent;
+  color: #c0c1ff;
+  border: 1px solid rgba(128, 131, 255, 0.55);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s, opacity 0.2s;
+}
+
+.pm-btn-outline:hover:not(:disabled) {
+  background-color: rgba(128, 131, 255, 0.12);
+  border-color: #8083ff;
+  transform: scale(1.02);
+}
+
+.pm-btn-outline:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.pm-btn-outline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .pm-btn-outline-danger {
   display: inline-flex;
   align-items: center;

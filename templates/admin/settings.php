@@ -19,6 +19,10 @@ if (!empty($lastSync)) {
 
 $hasTmdbKey = !empty($tmdbKey);
 $hasPutioSecret = !empty(Config::get('putio.client_secret'));
+$opensubtitlesConfigured = $opensubtitlesConfigured ?? false;
+$hasOpensubtitlesKey = $hasOpensubtitlesKey ?? false;
+$hasOpensubtitlesPassword = $hasOpensubtitlesPassword ?? false;
+$opensubtitlesUsername = $opensubtitlesUsername ?? '';
 $adminCrumbLabel = putmio_lang('settings');
 $adminPageTitle = putmio_lang('settings');
 $adminTitleAccent = true;
@@ -206,6 +210,57 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
     <p class="text-label-sm font-label-sm text-on-surface-variant ml-1">
       Necessaria per recuperare poster e metadati cinematografici.
     </p>
+  </fieldset>
+
+  <fieldset class="space-y-4">
+    <legend class="flex items-center gap-2 text-headline-md font-headline-md text-on-surface mb-2">
+      <span class="material-symbols-outlined text-primary text-[22px]">subtitles</span>
+      OpenSubtitles
+    </legend>
+    <?php if ($opensubtitlesConfigured): ?>
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-success/15 border border-success/30 px-3 py-1 text-label-sm font-label-sm text-success">
+      <span class="w-1.5 h-1.5 rounded-full bg-success" aria-hidden="true"></span>
+      <?= putmio_e(putmio_lang('subtitles_settings_configured')) ?>
+    </span>
+    <?php else: ?>
+    <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 border border-warning/30 px-3 py-1 text-label-sm font-label-sm text-warning">
+      <?= putmio_e(putmio_lang('subtitles_settings_not_configured')) ?>
+    </span>
+    <?php endif; ?>
+    <p class="text-label-sm font-label-sm text-on-surface-variant ml-1 max-w-2xl">
+      <?= putmio_e(putmio_lang('subtitles_settings_desc')) ?>
+      <a href="https://www.opensubtitles.com/en/consumers" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">opensubtitles.com</a>.
+    </p>
+    <div class="rounded-xl border border-outline-variant/30 bg-surface-container-high p-4 md:p-5 space-y-4">
+      <div class="space-y-1.5">
+        <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="opensubtitles_api_key"><?= putmio_e(putmio_lang('subtitles_settings_api_key')) ?></label>
+        <input class="pm-input" type="password" id="opensubtitles_api_key" name="opensubtitles_api_key" placeholder="<?= $hasOpensubtitlesKey ? '••••••••••••' : 'API key OpenSubtitles' ?>" autocomplete="off">
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="opensubtitles_username"><?= putmio_e(putmio_lang('subtitles_settings_username')) ?></label>
+          <input class="pm-input" type="text" id="opensubtitles_username" name="opensubtitles_username" value="<?= putmio_e($opensubtitlesUsername) ?>" autocomplete="username">
+        </div>
+        <div class="space-y-1.5">
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="opensubtitles_password"><?= putmio_e(putmio_lang('subtitles_settings_password')) ?></label>
+          <input class="pm-input" type="password" id="opensubtitles_password" name="opensubtitles_password" placeholder="<?= $hasOpensubtitlesPassword ? '••••••••••••' : '' ?>" autocomplete="new-password">
+        </div>
+      </div>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 mt-1 border-t border-outline-variant/25">
+        <p class="font-label-sm text-label-sm text-on-surface-variant max-w-md">
+          <?= putmio_e(putmio_lang('subtitles_settings_test_hint')) ?>
+        </p>
+        <button
+          type="button"
+          id="opensubtitles-test-btn"
+          class="pm-btn-primary px-6 py-3 text-body-md shadow-lg shadow-primary/20 shrink-0 w-full sm:w-auto disabled:opacity-50 disabled:pointer-events-none disabled:shadow-none"
+          <?= $opensubtitlesConfigured ? '' : 'disabled title="' . putmio_e(putmio_lang('subtitles_settings_not_configured')) . '"' ?>
+        >
+          <span class="material-symbols-outlined text-[20px]">verified</span>
+          <?= putmio_e(putmio_lang('subtitles_settings_test')) ?>
+        </button>
+      </div>
+    </div>
   </fieldset>
 
   <fieldset class="space-y-4">

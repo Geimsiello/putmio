@@ -14,6 +14,7 @@ use PutMio\Controllers\CatalogController;
 use PutMio\Controllers\CronController;
 use PutMio\Controllers\HomeController;
 use PutMio\Controllers\PlayerController;
+use PutMio\Controllers\SubtitleController;
 use PutMio\Install\InstallGate;
 
 final class Router
@@ -68,6 +69,9 @@ final class Router
                 '/api/tmdb/details' => [ApiController::class, 'tmdbDetails'],
                 '/api/tmdb/classify-suggest' => [ApiController::class, 'tmdbClassifySuggest'],
                 '/api/catalog/items' => [ApiController::class, 'catalogItems'],
+                '/api/subtitles' => [SubtitleController::class, 'list'],
+                '/api/subtitles/search' => [SubtitleController::class, 'search'],
+                '/subtitles/serve' => [SubtitleController::class, 'serve'],
                 '/poster' => [CatalogController::class, 'poster'],
             ],
             'POST' => [
@@ -81,6 +85,10 @@ final class Router
                 '/api/tmdb/classify-apply' => [ApiController::class, 'tmdbClassifyApplyBulk'],
                 '/api/putio/sync-friends' => [ApiController::class, 'putioSyncFriends'],
                 '/api/putio/sync' => [ApiController::class, 'putioSync'],
+                '/api/subtitles/download' => [SubtitleController::class, 'download'],
+                '/api/subtitles/preference' => [SubtitleController::class, 'preference'],
+                '/api/subtitles/delete' => [SubtitleController::class, 'delete'],
+                '/api/opensubtitles/test' => [SubtitleController::class, 'testOpenSubtitles'],
                 '/admin/impostazioni' => [AdminController::class, 'saveSettings'],
                 '/admin/sync' => [AdminController::class, 'sync'],
                 '/admin/refresh-putio-friends' => [AdminController::class, 'refreshPutioFriends'],

@@ -7,6 +7,7 @@ namespace PutMio\Controllers;
 use PutMio\Auth\Session;
 use PutMio\CatalogService;
 use PutMio\Config;
+use PutMio\OpenSubtitles\SubtitleService;
 use PutMio\View;
 
 final class CatalogController
@@ -81,6 +82,14 @@ final class CatalogController
         $isLinked = putmio_media_is_linked($media);
         $genres = $isLinked ? $this->catalog->mediaGenreNames($id) : [];
 
+        $subtitleService = new SubtitleService();
+        $subtitleCount = 0;
+        $availableSubtitles = [];
+        if (!$isSeries) {
+            $availableSubtitles = putmio_subtitle_payload_list($subtitleService->listForMedia($id), rtrim(Config::get('app.url'), '/'));
+            $subtitleCount = count($availableSubtitles);
+        }
+
         View::render('catalog/show', [
             'title' => $media['title'],
             'media' => $media,
@@ -93,6 +102,37 @@ final class CatalogController
             'episodesBySeason' => $episodesBySeason,
             'episodeProgress' => $episodeProgress,
             'catalogReturnUrl' => putmio_catalog_return_url($_GET['from'] ?? null),
+            'subtitleCount' => $subtitleCount,
+            'availableSubtitles' => $availableSubtitles,
+            'subtitlesConfigured' => $subtitleService->isConfigured(),
+            'extraScripts' => !$isSeries
+                ? '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/subtitles.js', ENT_QUOTES, 'UTF-8') . '" defer></script>'
+                : '',
+            'putmioExtra' => !$isSeries ? [
+                'mediaId' => $id,
+                'subtitlesConfigured' => $subtitleService->isConfigured(),
+                'isAdmin' => Session::isAdmin(),
+                'availableSubtitles' => $availableSubtitles,
+                'subtitleLabels' => [
+                    'off' => putmio_lang('subtitles_off'),
+                    'manage' => putmio_lang('subtitles_manage'),
+                    'title' => putmio_lang('subtitles_title'),
+                    'available' => putmio_lang('subtitles_available'),
+                    'search' => putmio_lang('subtitles_search'),
+                    'searching' => putmio_lang('subtitles_searching'),
+                    'searchEmpty' => putmio_lang('subtitles_search_empty'),
+                    'download' => putmio_lang('subtitles_download'),
+                    'downloaded' => putmio_lang('subtitles_downloaded'),
+                    'use' => putmio_lang('subtitles_use'),
+                    'delete' => putmio_lang('subtitles_delete'),
+                    'downloadError' => putmio_lang('subtitles_download_error'),
+                    'notConfigured' => Session::isAdmin()
+                        ? putmio_lang('subtitles_not_configured_admin')
+                        : putmio_lang('subtitles_not_configured'),
+                    'attribution' => putmio_lang('subtitles_attribution'),
+                    'tmdbHint' => putmio_lang('subtitles_tmdb_hint'),
+                ],
+            ] : [],
         ]);
     }
 

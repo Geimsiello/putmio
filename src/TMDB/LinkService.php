@@ -24,7 +24,7 @@ final class LinkService
             $tmdbType = 'movie';
         }
 
-        $details = $this->client->details($tmdbType, $tmdbId);
+        $details = $this->client->details($tmdbType, $tmdbId, ['external_ids']);
 
         $title = (string) ($details['title'] ?? $details['name'] ?? '');
         $original = $details['original_title'] ?? $details['original_name'] ?? null;
@@ -43,17 +43,22 @@ final class LinkService
         }
         $durationSec = $runtime !== null ? (int) $runtime * 60 : null;
         $mediaType = putmio_media_type_from_tmdb($tmdbType, $details['genres'] ?? []) ?? 'altro';
+        $imdbId = null;
+        if (!empty($details['external_ids']['imdb_id'])) {
+            $imdbId = (string) $details['external_ids']['imdb_id'];
+        }
 
         $pdo = Database::pdo();
         $pdo->prepare(
             'UPDATE `' . Config::table('media_items') . '`
              SET title = ?, original_title = ?, year = ?, synopsis = ?,
                  poster_local_path = ?, poster_url = ?, tmdb_id = ?, tmdb_type = ?,
+                 imdb_id = ?,
                  media_type = ?,
                  duration_sec = COALESCE(?, duration_sec),
                  classification_status = \'classified\', updated_at = NOW()
              WHERE id = ?'
-        )->execute([$title, $original, $year, $synopsis, $posterPath, $posterUrl, $tmdbId, $tmdbType, $mediaType, $durationSec, $mediaId]);
+        )->execute([$title, $original, $year, $synopsis, $posterPath, $posterUrl, $tmdbId, $tmdbType, $imdbId, $mediaType, $durationSec, $mediaId]);
 
         $catalog = new CatalogService();
         $catalog->syncMediaGenres($mediaId, $details['genres'] ?? []);

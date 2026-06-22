@@ -143,6 +143,12 @@ final class Installer
                 'api_key' => '',
                 'language' => 'it-IT',
             ],
+            'opensubtitles' => [
+                'api_key' => '',
+                'username' => '',
+                'password' => '',
+                'user_agent' => 'PutMio v1.0',
+            ],
         ];
 
         $export = var_export($config, true);

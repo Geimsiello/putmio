@@ -69,6 +69,30 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
           class="bg-surface-container-high border border-outline-variant/40 rounded-lg px-3 py-1.5 font-label-sm text-label-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
         ></select>
       </div>
+      <div id="player-subtitle-controls" class="flex flex-wrap items-center gap-2">
+        <span class="material-symbols-outlined text-sm text-on-surface-variant">subtitles</span>
+        <label for="player-subtitle-select" class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_lang('player_subtitle_label') ?></label>
+        <select
+          id="player-subtitle-select"
+          class="bg-surface-container-high border border-outline-variant/40 rounded-lg px-3 py-1.5 font-label-sm text-label-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
+        >
+          <option value=""><?= putmio_e(putmio_lang('subtitles_off')) ?></option>
+        </select>
+        <button type="button" id="player-subtitle-manage" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-high font-label-sm text-label-sm text-on-surface hover:border-primary/40 hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-sm">tune</span>
+          <?= putmio_e(putmio_lang('subtitles_manage')) ?>
+        </button>
+      </div>
+      <div id="player-subtitle-offset" class="hidden flex flex-wrap items-center gap-2 w-full">
+        <span class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_e(putmio_lang('subtitles_offset_label')) ?></span>
+        <button type="button" data-pm-offset="-500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">−0.5s</button>
+        <button type="button" data-pm-offset="-100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">−0.1s</button>
+        <input type="number" id="player-subtitle-offset-input" step="0.1" class="w-24 bg-surface-container-high border border-outline-variant/40 rounded-lg px-2 py-1 font-label-sm text-label-sm text-on-surface text-center" value="0">
+        <span class="font-label-sm text-label-sm text-on-surface-variant">s</span>
+        <button type="button" data-pm-offset="100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">+0.1s</button>
+        <button type="button" data-pm-offset="500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">+0.5s</button>
+        <button type="button" id="player-subtitle-offset-reset" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface-variant hover:text-primary"><?= putmio_e(putmio_lang('subtitles_offset_reset')) ?></button>
+      </div>
     </div>
     <?php if (!empty($audioWarning)): ?>
     <div class="mt-3 flex items-start gap-2 rounded-lg border border-secondary/40 bg-secondary-container/20 px-4 py-3">
@@ -206,6 +230,12 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
   </footer>
   <?php endif; ?>
 </div>
+
+<?php
+$subtitleModalMediaId = $mediaId;
+$subtitleModalAutoOpen = false;
+require putmio_base_path() . '/templates/partials/subtitle-modal.php';
+?>
 
 <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
   <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-container/10 blur-[120px] rounded-full"></div>

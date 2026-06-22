@@ -41,8 +41,61 @@ final class Migrator
             }
 
             self::runPutioFriendsMigration($pdo);
+            self::runSubtitlesMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
+        }
+    }
+
+    private static function runSubtitlesMigration(\PDO $pdo): void
+    {
+        $mediaTable = Config::table('media_items');
+        if (!self::columnExists($pdo, $mediaTable, 'imdb_id')) {
+            $pdo->exec(
+                'ALTER TABLE `' . $mediaTable . '`
+                 ADD COLUMN `imdb_id` VARCHAR(20) NULL AFTER `tmdb_type`'
+            );
+        }
+
+        $subtitlesTable = Config::table('media_subtitles');
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$subtitlesTable]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec(
+                'CREATE TABLE `' . $subtitlesTable . '` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `media_id` INT UNSIGNED NOT NULL,
+                    `language` VARCHAR(10) NOT NULL,
+                    `label` VARCHAR(80) NOT NULL,
+                    `source` ENUM(\'opensubtitles\') NOT NULL DEFAULT \'opensubtitles\',
+                    `source_file_id` VARCHAR(64) NOT NULL,
+                    `file_path` VARCHAR(255) NOT NULL,
+                    `downloaded_by` INT UNSIGNED NULL,
+                    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `uq_media_source_file` (`media_id`, `source`, `source_file_id`),
+                    KEY `idx_media` (`media_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+            );
+        }
+
+        $prefsTable = Config::table('user_subtitle_prefs');
+        $stmt->execute([$prefsTable]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec(
+                'CREATE TABLE `' . $prefsTable . '` (
+                    `user_id` INT UNSIGNED NOT NULL,
+                    `media_id` INT UNSIGNED NOT NULL,
+                    `subtitle_id` INT UNSIGNED NULL,
+                    `offset_ms` INT NOT NULL DEFAULT 0,
+                    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`user_id`, `media_id`),
+                    KEY `idx_subtitle` (`subtitle_id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+            );
         }
     }
 

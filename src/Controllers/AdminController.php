@@ -77,6 +77,10 @@ final class AdminController
             'cronToken' => Config::get('app.cron_token'),
             'putioClientId' => Config::get('putio.client_id'),
             'tmdbKey' => Config::get('tmdb.api_key'),
+            'opensubtitlesConfigured' => (new \PutMio\OpenSubtitles\Client())->isConfigured(),
+            'hasOpensubtitlesKey' => trim((string) Config::get('opensubtitles.api_key', '')) !== '',
+            'hasOpensubtitlesPassword' => trim((string) Config::get('opensubtitles.password', '')) !== '',
+            'opensubtitlesUsername' => (string) Config::get('opensubtitles.username', ''),
             'smtpEnabled' => (bool) Config::get('smtp.enabled'),
             'smtpHost' => (string) Config::get('smtp.host', ''),
             'smtpPort' => (int) Config::get('smtp.port', 587),
@@ -97,6 +101,9 @@ final class AdminController
                     'toastSaved' => putmio_lang('putio_friends_saved'),
                     'toastSaveError' => putmio_lang('putio_friends_save_error'),
                     'toastSyncRunning' => putmio_lang('putio_sync_running'),
+                    'toastSubtitlesTesting' => putmio_lang('subtitles_test_running'),
+                    'toastSubtitlesTestOk' => putmio_lang('subtitles_test_ok'),
+                    'toastSubtitlesTestError' => putmio_lang('subtitles_test_error'),
                 ],
             ],
             'extraScripts' => '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/admin-settings.js', ENT_QUOTES, 'UTF-8') . '" defer></script>',
@@ -123,6 +130,31 @@ final class AdminController
             $config['tmdb']['api_key'] = $tmdbKey;
         }
 
+        if (!isset($config['opensubtitles']) || !is_array($config['opensubtitles'])) {
+            $config['opensubtitles'] = [
+                'api_key' => '',
+                'username' => '',
+                'password' => '',
+                'user_agent' => 'PutMio v1.0',
+            ];
+        }
+        $osKey = trim((string) ($_POST['opensubtitles_api_key'] ?? ''));
+        if ($osKey !== '') {
+            $config['opensubtitles']['api_key'] = $osKey;
+        }
+        $osUser = trim((string) ($_POST['opensubtitles_username'] ?? ''));
+        if ($osUser !== '') {
+            $config['opensubtitles']['username'] = $osUser;
+        }
+        $osPass = trim((string) ($_POST['opensubtitles_password'] ?? ''));
+        if ($osPass !== '') {
+            $config['opensubtitles']['password'] = $osPass;
+        }
+        $osAgent = trim((string) ($_POST['opensubtitles_user_agent'] ?? ''));
+        if ($osAgent !== '') {
+            $config['opensubtitles']['user_agent'] = $osAgent;
+        }
+
         if (!empty($_POST['smtp_enable'])) {
             $config['smtp']['enabled'] = true;
         } else {
@@ -141,6 +173,7 @@ final class AdminController
         }
 
         $this->writeConfig($config);
+        @unlink(putmio_base_path() . '/storage/.opensubtitles_token');
         Config::load();
 
         $_SESSION['flash_success'] = 'Impostazioni salvate.';

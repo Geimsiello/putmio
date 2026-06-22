@@ -21,6 +21,10 @@ if ($runtimeSec <= 0 && !empty($progress['duration_sec'])) {
 $runtimeLabel = putmio_format_runtime_label($runtimeSec > 0 ? $runtimeSec : null);
 $mediaId = (int) $media['id'];
 $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
+/** @var int $subtitleCount */
+/** @var bool $subtitlesConfigured */
+$subtitleCount = $subtitleCount ?? 0;
+$subtitlesConfigured = $subtitlesConfigured ?? false;
 ?>
 <a href="<?= putmio_e($catalogReturnUrl) ?>" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-8 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
@@ -78,6 +82,37 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
       $tmdbTriggerLabel = 'Riassegna metadati TMDB';
       require putmio_base_path() . '/templates/partials/tmdb-link-modal.php';
       ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if (!$isSeries): ?>
+    <div class="rounded-xl border border-outline-variant/30 bg-surface-container-high p-4 md:p-5 mb-8">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="font-headline-md text-headline-md text-on-surface mb-1"><?= putmio_e(putmio_lang('subtitles_title')) ?></h2>
+          <p class="font-label-sm text-label-sm text-on-surface-variant">
+            <?= $subtitleCount > 0
+              ? putmio_e(putmio_lang('subtitles_count', ['count' => (string) $subtitleCount]))
+              : putmio_e(putmio_lang('subtitles_count_none')) ?>
+          </p>
+          <?php if (!$subtitlesConfigured): ?>
+          <p class="font-label-sm text-label-sm text-warning/90 mt-2">
+            <?= putmio_e(\PutMio\Auth\Session::isAdmin() ? putmio_lang('subtitles_not_configured_admin') : putmio_lang('subtitles_not_configured')) ?>
+          </p>
+          <?php elseif (!putmio_media_is_linked($media)): ?>
+          <p class="font-label-sm text-label-sm text-on-surface-variant mt-2"><?= putmio_e(putmio_lang('subtitles_tmdb_hint')) ?></p>
+          <?php endif; ?>
+        </div>
+        <button
+          type="button"
+          id="catalog-subtitle-manage"
+          data-media-id="<?= $mediaId ?>"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant/40 bg-surface-container font-label-sm text-label-sm text-on-surface hover:border-primary/40 hover:text-primary transition-colors"
+        >
+          <span class="material-symbols-outlined text-[18px]">subtitles</span>
+          <?= putmio_e(putmio_lang('subtitles_manage')) ?>
+        </button>
+      </div>
     </div>
     <?php endif; ?>
 
@@ -145,6 +180,14 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
   });
 })();
 </script>
+<?php endif; ?>
+
+<?php if (!$isSeries): ?>
+<?php
+$subtitleModalMediaId = $mediaId;
+$subtitleModalAutoOpen = false;
+require putmio_base_path() . '/templates/partials/subtitle-modal.php';
+?>
 <?php endif; ?>
 
 <?php if (\PutMio\Auth\Session::isAdmin()): ?>
