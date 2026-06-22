@@ -136,9 +136,32 @@ html:not(.dark) .glass-header {
   width: 100%;
 }
 
+.putmio-player-poster-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  transform: scale(1.08);
+  filter: blur(16px);
+  opacity: 0.5;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.putmio-player-wrap--playing .putmio-player-poster-bg {
+  opacity: 0;
+}
+
 .putmio-player-wrap .video-js {
+  position: relative;
+  z-index: 1;
   width: 100%;
   background-color: #060e20;
+}
+
+.putmio-player-wrap .video-js .vjs-poster img {
+  object-fit: cover;
 }
 
 .putmio-player-wrap .video-js.vjs-fluid {
@@ -167,6 +190,116 @@ html:not(.dark) .glass-header {
   line-height: 3.5rem;
   margin-top: -1.75rem;
   margin-left: -1.75rem;
+}
+
+/* Sottotitoli Video.js: posizione in basso (aspetto via impostazioni native CC) */
+.putmio-player-wrap .video-js .vjs-text-track-display {
+  inset: auto 0 3.75rem 0 !important;
+  height: auto !important;
+  max-height: 42%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  pointer-events: none;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-display > div {
+  position: static !important;
+  inset: auto !important;
+  width: 92%;
+  max-width: 56rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-cue {
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  width: 100%;
+  text-align: center;
+}
+
+/* Modale impostazioni sottotitoli Video.js — contrasto vs Tailwind forms */
+.putmio-player-wrap .video-js .vjs-text-track-settings,
+.putmio-player-wrap .video-js .vjs-modal-dialog.vjs-text-track-settings {
+  color: #dae2fd;
+  background-color: rgba(11, 19, 38, 0.97);
+  border: 1px solid #464554;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-modal-dialog-content,
+.putmio-player-wrap .video-js .vjs-text-track-settings fieldset {
+  color: #dae2fd;
+  border-color: #464554;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings legend,
+.putmio-player-wrap .video-js .vjs-text-track-settings label,
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-label {
+  color: #c7c4d7;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings select {
+  appearance: auto;
+  background-color: #222a3d !important;
+  color: #dae2fd !important;
+  border: 1px solid #464554 !important;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  box-shadow: none !important;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings select:focus {
+  outline: 2px solid rgba(128, 131, 255, 0.45);
+  outline-offset: 1px;
+  border-color: #8083ff !important;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings select option {
+  background-color: #171f33;
+  color: #dae2fd;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-default-button,
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-done-button {
+  background-color: #222a3d;
+  color: #dae2fd;
+  border: 1px solid #464554;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-done-button {
+  background-color: #8083ff;
+  color: #0d0096;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-default-button:hover,
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-done-button:hover {
+  filter: brightness(1.08);
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-close-button {
+  color: #c7c4d7;
+}
+
+.putmio-player-wrap .video-js .vjs-text-track-settings .vjs-close-button:hover {
+  color: #dae2fd;
 }
 
 .pm-next-episode {

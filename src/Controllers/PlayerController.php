@@ -113,6 +113,14 @@ final class PlayerController
         $subtitlePrefs = $subtitleService->userPrefs($userId, $id);
         $subtitlesConfigured = $subtitleService->isConfigured();
 
+        $posterLocal = $media['poster_local_path'] ?? null;
+        $posterRemote = $media['poster_url'] ?? null;
+        if (empty($posterLocal) && empty($posterRemote) && $series) {
+            $posterLocal = $series['poster_local_path'] ?? null;
+            $posterRemote = $series['poster_url'] ?? null;
+        }
+        $posterUrl = $catalog->posterWebPath($posterLocal, $posterRemote);
+
         View::render('player/show', [
             'title' => $displayTitle,
             'media' => $media,
@@ -134,6 +142,7 @@ final class PlayerController
             'mp4Available' => $mp4Available,
             'showSourcePicker' => $mp4Available && $isOriginalNonMp4,
             'playbackFormat' => $playbackFormat,
+            'posterUrl' => $posterUrl,
             'extraHead' => '<link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet">',
             'extraScripts' => '<script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>'
                 . '<script src="' . putmio_e($appUrl) . '/public/assets/player.js" defer></script>'

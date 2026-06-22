@@ -102,6 +102,7 @@
   function teardownPlayer() {
     if (leaving) return;
     leaving = true;
+    setPlayerPlayingState(false);
     saveProgressBeacon();
     try {
       player.pause();
@@ -215,11 +216,30 @@
     }
   });
 
+  const playerWrap = document.querySelector('.putmio-player-wrap');
+
+  function setPlayerPlayingState(isPlaying) {
+    if (!playerWrap) return;
+    playerWrap.classList.toggle('putmio-player-wrap--playing', isPlaying);
+  }
+
   player.on('play', function () {
     if (!started && !loading) {
       player.pause();
       begin(defaultStartAt());
+      return;
     }
+    setPlayerPlayingState(true);
+  });
+
+  player.on('pause', function () {
+    if (!player.currentTime() || player.currentTime() <= 0) {
+      setPlayerPlayingState(false);
+    }
+  });
+
+  player.on('ended', function () {
+    setPlayerPlayingState(false);
   });
 
   if (player.audioTracks) {
@@ -582,6 +602,44 @@
     return !findTextTrackBySubtitleId(subtitleState.list[0].id);
   }
 
+  function initSubtitleAppearanceSettings() {
+    const tts = player.textTrackSettings;
+    if (!tts || typeof tts.setValues !== 'function') return;
+
+    const defaults = {
+      backgroundColor: '#060e20',
+      backgroundOpacity: '1',
+      color: '#FFF',
+      edgeStyle: 'uniform',
+      fontFamily: 'proportionalSansSerif',
+      fontPercent: 1.75,
+      textOpacity: '1',
+      windowColor: '#000',
+      windowOpacity: '0',
+    };
+
+    let hasSaved = false;
+    try {
+      hasSaved = !!localStorage.getItem('vjs-text-track-settings');
+    } catch (e) {}
+
+    if (hasSaved && typeof tts.restoreSettings === 'function') {
+      tts.restoreSettings();
+    } else {
+      if (typeof tts.setDefaults === 'function') {
+        tts.setDefaults();
+      }
+      tts.setValues(defaults);
+      if (typeof tts.saveSettings === 'function') {
+        tts.saveSettings();
+      }
+    }
+
+    if (typeof tts.updateDisplay === 'function') {
+      tts.updateDisplay();
+    }
+  }
+
   function hookTextTrackChanges() {
     const tracks = player.textTracks();
     if (!tracks || !tracks.addEventListener) return;
@@ -626,6 +684,7 @@
   };
 
   player.ready(function () {
+    initSubtitleAppearanceSettings();
     hookTextTrackChanges();
     const initialList = window.PUTMIO.availableSubtitles || [];
     if (initialList.length > 0) {

@@ -206,5 +206,4 @@ return [
     'subtitles_tmdb_hint' => 'Collega i metadati TMDB per risultati di ricerca migliori.',
     'player_subtitle_label' => 'Sottotitoli',
     'player_subtitle_native_hint' => 'Seleziona la traccia dal menu CC del player',
-    'player_subtitle_sync_hint' => 'Sync non nativo in Video.js: usa i pulsanti sotto o i tasti G / H (−/+ 0,1 s, Shift per 0,5 s)',
 ];
