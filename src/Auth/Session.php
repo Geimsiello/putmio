@@ -28,6 +28,12 @@ final class Session
         session_name('putmio_session');
 
         if (@session_start()) {
+            if (!self::userId()) {
+                $user = RememberMe::attempt();
+                if ($user) {
+                    self::login($user);
+                }
+            }
             return;
         }
 

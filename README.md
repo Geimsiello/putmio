@@ -51,7 +51,7 @@ La sync aggiorna il catalogo da put.io e **rimuove** i titoli eliminati sul clou
 ## Funzionalità
 
 - Wizard installazione su `/putmio/` (senza URL `/install` dedicato)
-- Login, inviti famiglia via email (SMTP + PHPMailer), reset password (SMTP)
+- Login, inviti famiglia via email (SMTP + PHPMailer), reset password (SMTP), «Ricordami» (sessione persistente 30 giorni)
 - Catalogo film / serie / animazione con classificazione manuale
 - Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file)
 - TMDB on-demand (admin)

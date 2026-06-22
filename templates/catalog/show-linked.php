@@ -90,7 +90,7 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="font-headline-md text-headline-md text-on-surface mb-1"><?= putmio_e(putmio_lang('subtitles_title')) ?></h2>
-          <p class="font-label-sm text-label-sm text-on-surface-variant">
+          <p id="catalog-subtitle-count" class="font-label-sm text-label-sm text-on-surface-variant">
             <?= $subtitleCount > 0
               ? putmio_e(putmio_lang('subtitles_count', ['count' => (string) $subtitleCount]))
               : putmio_e(putmio_lang('subtitles_count_none')) ?>

@@ -6,7 +6,19 @@
 
   let player = videojs.getPlayer('putmio-player');
   if (!player) {
-    player = videojs('putmio-player', { responsive: true, fluid: true });
+    player = videojs('putmio-player', {
+      responsive: true,
+      fluid: true,
+      aspectRatio: '16:9'
+    });
+  }
+
+  function syncPlayerAspectRatio() {
+    const vw = player.videoWidth();
+    const vh = player.videoHeight();
+    if (vw > 0 && vh > 0) {
+      player.aspectRatio(vw + ':' + vh);
+    }
   }
 
   const startAt = window.PUTMIO.startAt || 0;
@@ -429,101 +441,206 @@
     });
   }
 
-  let subtitleTrackEl = null;
-  let subtitleOffsetMs = window.PUTMIO.offsetMs || 0;
-  let subtitleBaseCues = [];
+  let subtitleSyncing = false;
+  let subtitleState = {
+    list: [],
+    activeId: null,
+    offsetMs: 0,
+  };
 
-  function findSubtitleMeta(id, list) {
-    if (!id || !list) return null;
-    for (let i = 0; i < list.length; i++) {
-      if (list[i].id === id) return list[i];
-    }
-    return null;
+  function subtitleTrackId(subtitleId) {
+    return 'pm-sub-' + subtitleId;
   }
 
-  function removeSubtitleTrack() {
-    if (subtitleTrackEl && subtitleTrackEl.parentNode) {
-      subtitleTrackEl.parentNode.removeChild(subtitleTrackEl);
-    }
-    subtitleTrackEl = null;
-    subtitleBaseCues = [];
-    const tracks = player.remoteTextTracks ? player.remoteTextTracks() : null;
-    if (tracks) {
-      for (let i = tracks.length - 1; i >= 0; i--) {
-        player.removeRemoteTextTrack(tracks[i]);
+  function parseSubtitleIdFromTrack(track) {
+    if (!track || !track.id || track.id.indexOf('pm-sub-') !== 0) return null;
+    const id = parseInt(track.id.slice(7), 10);
+    return isFinite(id) ? id : null;
+  }
+
+  function emitSubtitleChange(subtitleId) {
+    window.dispatchEvent(new CustomEvent('putmio:subtitlechange', {
+      detail: { subtitleId: subtitleId },
+    }));
+  }
+
+  function subtitleServeUrl(meta) {
+    const url = new URL(meta.serveUrl, window.location.origin);
+    const offset = subtitleState.activeId === meta.id ? (subtitleState.offsetMs || 0) : 0;
+    url.searchParams.set('offset_ms', String(offset));
+    url.searchParams.set('_', String(Date.now()));
+    return url.toString();
+  }
+
+  function clearSubtitleTracks() {
+    const remote = player.remoteTextTracks ? player.remoteTextTracks() : null;
+    if (remote) {
+      for (let i = remote.length - 1; i >= 0; i--) {
+        player.removeRemoteTextTrack(remote[i]);
       }
     }
   }
 
-  function applyCueOffset(track, offsetSec) {
-    if (!track || !track.cues) return;
-    for (let i = 0; i < track.cues.length; i++) {
-      const base = subtitleBaseCues[i];
-      if (!base) continue;
-      track.cues[i].startTime = Math.max(0, base.start + offsetSec);
-      track.cues[i].endTime = Math.max(track.cues[i].startTime, base.end + offsetSec);
-    }
-  }
-
-  function captureBaseCues(track) {
-    subtitleBaseCues = [];
-    if (!track || !track.cues) return;
-    for (let i = 0; i < track.cues.length; i++) {
-      subtitleBaseCues.push({
-        start: track.cues[i].startTime,
-        end: track.cues[i].endTime,
-      });
-    }
-  }
-
-  function activateSubtitleTrack(track) {
+  function findTextTrackBySubtitleId(subtitleId) {
+    const want = subtitleTrackId(subtitleId);
     const tracks = player.textTracks();
     for (let i = 0; i < tracks.length; i++) {
-      tracks[i].mode = tracks[i] === track ? 'showing' : 'disabled';
+      if (tracks[i].id === want) return tracks[i];
+    }
+    return null;
+  }
+
+  function setShowingTrack(textTrack) {
+    const tracks = player.textTracks();
+    subtitleSyncing = true;
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i];
+      if (track.kind === 'subtitles' || track.kind === 'captions') {
+        track.mode = track === textTrack ? 'showing' : 'disabled';
+      }
+    }
+    subtitleSyncing = false;
+  }
+
+  function disableAllSubtitleTracks() {
+    subtitleSyncing = true;
+    const tracks = player.textTracks();
+    for (let i = 0; i < tracks.length; i++) {
+      const track = tracks[i];
+      if (track.kind === 'subtitles' || track.kind === 'captions') {
+        track.mode = 'disabled';
+      }
+    }
+    subtitleSyncing = false;
+  }
+
+  function activateSubtitleTrack(subtitleId) {
+    subtitleState.activeId = subtitleId || null;
+    if (!subtitleId) {
+      disableAllSubtitleTracks();
+      emitSubtitleChange(null);
+      return;
+    }
+
+    const track = findTextTrackBySubtitleId(subtitleId);
+    if (!track) return;
+    setShowingTrack(track);
+    emitSubtitleChange(subtitleId);
+  }
+
+  function attachTrackLoadHandler(textTrack, subtitleId) {
+    textTrack.addEventListener('load', function onLoad() {
+      textTrack.removeEventListener('load', onLoad);
+      if (subtitleState.activeId === subtitleId) {
+        setShowingTrack(textTrack);
+      }
+    });
+  }
+
+  function subtitleListSignature(list) {
+    return (list || []).map(function (item) { return String(item.id); }).join(',');
+  }
+
+  function ensureSubtitleTracks(list, activeId, offsetMs) {
+    const nextList = (list || []).slice();
+    const previousActiveId = subtitleState.activeId;
+    subtitleState.list = nextList;
+    subtitleState.activeId = activeId || null;
+    subtitleState.offsetMs = offsetMs || 0;
+
+    clearSubtitleTracks();
+
+    nextList.forEach(function (meta) {
+      if (!meta.serveUrl || !meta.id) return;
+      const remote = player.addRemoteTextTrack({
+        kind: 'subtitles',
+        src: subtitleServeUrl(meta),
+        srclang: meta.language || 'und',
+        label: meta.label || meta.language || 'Subtitles',
+        id: subtitleTrackId(meta.id),
+      }, false);
+      if (remote && remote.track) {
+        attachTrackLoadHandler(remote.track, meta.id);
+      }
+    });
+
+    const trackToShow = subtitleState.activeId || previousActiveId;
+    if (trackToShow) {
+      activateSubtitleTrack(trackToShow);
+    } else {
+      disableAllSubtitleTracks();
     }
   }
 
-  function loadSubtitleTrack(subtitleId, offsetMs, list) {
-    removeSubtitleTrack();
-    if (!subtitleId) return;
+  function setSubtitleOffset(offsetMs) {
+    subtitleState.offsetMs = offsetMs || 0;
+    ensureSubtitleTracks(subtitleState.list, subtitleState.activeId, subtitleState.offsetMs);
+  }
 
-    const meta = findSubtitleMeta(subtitleId, list || window.PUTMIO.availableSubtitles || []);
-    if (!meta || !meta.serveUrl) return;
+  function tracksNeedReload() {
+    if (subtitleState.list.length === 0) return false;
+    return !findTextTrackBySubtitleId(subtitleState.list[0].id);
+  }
 
-    subtitleOffsetMs = offsetMs || 0;
-    const offsetSec = subtitleOffsetMs / 1000;
+  function hookTextTrackChanges() {
+    const tracks = player.textTracks();
+    if (!tracks || !tracks.addEventListener) return;
+    tracks.addEventListener('change', function () {
+      if (subtitleSyncing) return;
 
-    subtitleTrackEl = document.createElement('track');
-    subtitleTrackEl.kind = 'subtitles';
-    subtitleTrackEl.src = meta.serveUrl;
-    subtitleTrackEl.srclang = meta.language || 'und';
-    subtitleTrackEl.label = meta.label || 'Subtitles';
-    subtitleTrackEl.default = true;
+      let showing = null;
+      for (let i = 0; i < tracks.length; i++) {
+        if (tracks[i].mode === 'showing') {
+          showing = tracks[i];
+          break;
+        }
+      }
 
-    subtitleTrackEl.addEventListener('load', function () {
-      const track = subtitleTrackEl.track;
-      if (!track) return;
-      captureBaseCues(track);
-      applyCueOffset(track, offsetSec);
-      activateSubtitleTrack(track);
+      const subtitleId = showing ? parseSubtitleIdFromTrack(showing) : null;
+      if (subtitleId !== subtitleState.activeId) {
+        ensureSubtitleTracks(subtitleState.list, subtitleId, subtitleState.offsetMs);
+        return;
+      }
+      subtitleState.activeId = subtitleId;
+      emitSubtitleChange(subtitleId);
     });
-
-    player.el().appendChild(subtitleTrackEl);
   }
 
   window.PutMioPlayerSubtitles = {
-    apply: function (subtitleId, offsetMs, list) {
-      loadSubtitleTrack(subtitleId, offsetMs, list);
+    loadTracks: ensureSubtitleTracks,
+    activate: activateSubtitleTrack,
+    setOffset: setSubtitleOffset,
+    apply: function (activeId, offsetMs, list) {
+      const nextList = list || subtitleState.list;
+      const listChanged = subtitleListSignature(nextList) !== subtitleListSignature(subtitleState.list);
+      const offsetChanged = (offsetMs || 0) !== subtitleState.offsetMs;
+      if (list && (listChanged || offsetChanged)) {
+        ensureSubtitleTracks(nextList, activeId, offsetMs);
+        return;
+      }
+      if (activeId !== subtitleState.activeId) {
+        subtitleState.offsetMs = offsetMs || 0;
+        activateSubtitleTrack(activeId);
+      }
     },
   };
 
-  if (window.PUTMIO.activeSubtitleId) {
-    player.ready(function () {
-      loadSubtitleTrack(
-        window.PUTMIO.activeSubtitleId,
-        window.PUTMIO.offsetMs || 0,
-        window.PUTMIO.availableSubtitles || []
+  player.ready(function () {
+    hookTextTrackChanges();
+    const initialList = window.PUTMIO.availableSubtitles || [];
+    if (initialList.length > 0) {
+      ensureSubtitleTracks(
+        initialList,
+        window.PUTMIO.activeSubtitleId || null,
+        window.PUTMIO.offsetMs || 0
       );
-    });
-  }
+    }
+  });
+
+  player.on('loadedmetadata', function () {
+    syncPlayerAspectRatio();
+    if (tracksNeedReload()) {
+      ensureSubtitleTracks(subtitleState.list, subtitleState.activeId, subtitleState.offsetMs);
+    }
+  });
 })();

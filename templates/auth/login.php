@@ -75,17 +75,27 @@ $brandUseIcon = false;
         </div>
       </div>
 
+      <div class="flex items-center justify-between gap-3">
+        <label class="inline-flex items-center gap-2.5 cursor-pointer select-none" for="login-remember">
+          <input
+            type="checkbox"
+            id="login-remember"
+            name="remember"
+            value="1"
+            class="auth-checkbox"
+          >
+          <span class="font-label-md text-label-md text-on-surface-variant"><?= putmio_lang('remember_me') ?></span>
+        </label>
+        <a href="<?= putmio_e($appUrl) ?>/forgot-password" class="font-label-md text-label-md text-primary hover:text-primary-fixed-dim transition-colors border-b border-transparent hover:border-primary-fixed-dim shrink-0">
+          <?= putmio_lang('forgot_password') ?>
+        </a>
+      </div>
+
       <div class="pt-1">
         <button type="submit" class="auth-btn-primary w-full py-3.5 px-6 flex items-center justify-center gap-2">
           <span><?= putmio_lang('login') ?></span>
           <span class="material-symbols-outlined text-[18px]">login</span>
         </button>
-      </div>
-
-      <div class="text-center pt-1">
-        <a href="<?= putmio_e($appUrl) ?>/forgot-password" class="font-label-md text-label-md text-primary hover:text-primary-fixed-dim transition-colors border-b border-transparent hover:border-primary-fixed-dim inline-block">
-          <?= putmio_lang('forgot_password') ?>
-        </a>
       </div>
     </form>
   </div>

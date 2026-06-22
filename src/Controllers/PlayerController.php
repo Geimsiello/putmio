@@ -171,6 +171,8 @@ final class PlayerController
                     'searching' => putmio_lang('subtitles_searching'),
                     'searchEmpty' => putmio_lang('subtitles_search_empty'),
                     'download' => putmio_lang('subtitles_download'),
+                    'downloading' => putmio_lang('subtitles_downloading'),
+                    'downloadOk' => putmio_lang('subtitles_download_ok'),
                     'downloaded' => putmio_lang('subtitles_downloaded'),
                     'use' => putmio_lang('subtitles_use'),
                     'delete' => putmio_lang('subtitles_delete'),

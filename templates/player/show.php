@@ -33,10 +33,10 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
 
 <div class="max-w-[1200px] mx-auto space-y-6 relative">
   <section class="relative group">
-    <div class="putmio-player-wrap aspect-video w-full relative bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 shadow-2xl">
+    <div class="putmio-player-wrap w-full relative bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 shadow-2xl">
       <video
         id="putmio-player"
-        class="video-js vjs-big-play-centered w-full h-full"
+        class="video-js vjs-big-play-centered"
         controls
         preload="none"
         playsinline
@@ -70,28 +70,22 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
         ></select>
       </div>
       <div id="player-subtitle-controls" class="flex flex-wrap items-center gap-2">
-        <span class="material-symbols-outlined text-sm text-on-surface-variant">subtitles</span>
-        <label for="player-subtitle-select" class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_lang('player_subtitle_label') ?></label>
-        <select
-          id="player-subtitle-select"
-          class="bg-surface-container-high border border-outline-variant/40 rounded-lg px-3 py-1.5 font-label-sm text-label-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
-        >
-          <option value=""><?= putmio_e(putmio_lang('subtitles_off')) ?></option>
-        </select>
         <button type="button" id="player-subtitle-manage" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-high font-label-sm text-label-sm text-on-surface hover:border-primary/40 hover:text-primary transition-colors">
-          <span class="material-symbols-outlined text-sm">tune</span>
+          <span class="material-symbols-outlined text-sm">subtitles</span>
           <?= putmio_e(putmio_lang('subtitles_manage')) ?>
         </button>
+        <span class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_e(putmio_lang('player_subtitle_native_hint')) ?></span>
       </div>
       <div id="player-subtitle-offset" class="hidden flex flex-wrap items-center gap-2 w-full">
         <span class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_e(putmio_lang('subtitles_offset_label')) ?></span>
-        <button type="button" data-pm-offset="-500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">−0.5s</button>
-        <button type="button" data-pm-offset="-100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">−0.1s</button>
+        <button type="button" data-pm-offset="-500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30" title="Shift+G">−0.5s</button>
+        <button type="button" data-pm-offset="-100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30" title="G">−0.1s</button>
         <input type="number" id="player-subtitle-offset-input" step="0.1" class="w-24 bg-surface-container-high border border-outline-variant/40 rounded-lg px-2 py-1 font-label-sm text-label-sm text-on-surface text-center" value="0">
         <span class="font-label-sm text-label-sm text-on-surface-variant">s</span>
-        <button type="button" data-pm-offset="100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">+0.1s</button>
-        <button type="button" data-pm-offset="500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30">+0.5s</button>
+        <button type="button" data-pm-offset="100" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30" title="H">+0.1s</button>
+        <button type="button" data-pm-offset="500" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface hover:bg-surface-variant/30" title="Shift+H">+0.5s</button>
         <button type="button" id="player-subtitle-offset-reset" class="px-2 py-1 rounded-lg border border-outline-variant/40 text-label-sm font-label-sm text-on-surface-variant hover:text-primary"><?= putmio_e(putmio_lang('subtitles_offset_reset')) ?></button>
+        <span class="font-label-sm text-label-sm text-on-surface-variant/80"><?= putmio_e(putmio_lang('player_subtitle_sync_hint')) ?></span>
       </div>
     </div>
     <?php if (!empty($audioWarning)): ?>

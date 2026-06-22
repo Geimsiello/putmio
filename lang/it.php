@@ -190,6 +190,8 @@ return [
     'subtitles_searching' => 'Ricerca in corso…',
     'subtitles_search_empty' => 'Nessun risultato trovato.',
     'subtitles_download' => 'Scarica',
+    'subtitles_downloading' => 'Scaricamento…',
+    'subtitles_download_ok' => 'Sottotitolo scaricato',
     'subtitles_downloaded' => 'Già scaricato',
     'subtitles_use' => 'Usa',
     'subtitles_delete' => 'Elimina',
@@ -203,4 +205,6 @@ return [
     'subtitles_count_none' => 'Nessun sottotitolo scaricato',
     'subtitles_tmdb_hint' => 'Collega i metadati TMDB per risultati di ricerca migliori.',
     'player_subtitle_label' => 'Sottotitoli',
+    'player_subtitle_native_hint' => 'Seleziona la traccia dal menu CC del player',
+    'player_subtitle_sync_hint' => 'Sync non nativo in Video.js: usa i pulsanti sotto o i tasti G / H (−/+ 0,1 s, Shift per 0,5 s)',
 ];

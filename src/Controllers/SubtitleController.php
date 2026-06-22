@@ -135,15 +135,43 @@ final class SubtitleController
             exit('ID non valido');
         }
 
-        $path = (new SubtitleService())->servePath($id);
+        $service = new SubtitleService();
+        $row = $service->findById($id);
+        if ($row === null) {
+            http_response_code(404);
+            exit('Sottotitolo non trovato');
+        }
+
+        $path = $service->servePath($id);
         if ($path === null) {
             http_response_code(404);
             exit('Sottotitolo non trovato');
         }
 
+        $userId = (int) Session::userId();
+        $mediaId = (int) ($row['media_id'] ?? 0);
+        $prefs = $service->userPrefs($userId, $mediaId);
+
+        $offsetMs = 0;
+        if (isset($_GET['offset_ms']) && $_GET['offset_ms'] !== '') {
+            $offsetMs = max(-600_000, min(600_000, (int) $_GET['offset_ms']));
+        } elseif ($prefs['subtitle_id'] === $id) {
+            $offsetMs = max(-600_000, min(600_000, $prefs['offset_ms']));
+        }
+
+        $vtt = file_get_contents($path);
+        if ($vtt === false) {
+            http_response_code(500);
+            exit('Errore lettura sottotitolo');
+        }
+
+        if ($offsetMs !== 0) {
+            $vtt = \PutMio\OpenSubtitles\VttOffset::apply($vtt, $offsetMs);
+        }
+
         header('Content-Type: text/vtt; charset=utf-8');
-        header('Cache-Control: private, max-age=3600');
-        readfile($path);
+        header('Cache-Control: private, no-cache');
+        echo $vtt;
         exit;
     }
 

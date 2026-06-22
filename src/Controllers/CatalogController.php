@@ -122,6 +122,8 @@ final class CatalogController
                     'searching' => putmio_lang('subtitles_searching'),
                     'searchEmpty' => putmio_lang('subtitles_search_empty'),
                     'download' => putmio_lang('subtitles_download'),
+                    'downloading' => putmio_lang('subtitles_downloading'),
+                    'downloadOk' => putmio_lang('subtitles_download_ok'),
                     'downloaded' => putmio_lang('subtitles_downloaded'),
                     'use' => putmio_lang('subtitles_use'),
                     'delete' => putmio_lang('subtitles_delete'),
@@ -131,6 +133,8 @@ final class CatalogController
                         : putmio_lang('subtitles_not_configured'),
                     'attribution' => putmio_lang('subtitles_attribution'),
                     'tmdbHint' => putmio_lang('subtitles_tmdb_hint'),
+                    'count' => putmio_lang('subtitles_count', ['count' => ':count']),
+                    'countNone' => putmio_lang('subtitles_count_none'),
                 ],
             ] : [],
         ]);

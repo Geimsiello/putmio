@@ -6,6 +6,7 @@ namespace PutMio\Controllers;
 
 use PutMio\Auth\AuthService;
 use PutMio\Auth\Csrf;
+use PutMio\Auth\RememberMe;
 use PutMio\Auth\Session;
 use PutMio\Config;
 use PutMio\Database;
@@ -42,6 +43,9 @@ final class AuthController
             putmio_redirect('login');
         }
         Session::login($user);
+        if (!empty($_POST['remember'])) {
+            RememberMe::issue((int) $user['id']);
+        }
         setcookie('putmio_theme', $user['theme'] ?? 'dark', [
             'expires' => time() + 86400 * 365,
             'path' => '/',
@@ -54,6 +58,7 @@ final class AuthController
 
     public function logout(): void
     {
+        RememberMe::forget();
         Session::logout();
         putmio_redirect('login');
     }

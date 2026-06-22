@@ -12,7 +12,6 @@
 
   const modalRoot = document.getElementById('subtitle-modal-root');
   const manageBtn = document.getElementById('player-subtitle-manage');
-  const subtitleSelect = document.getElementById('player-subtitle-select');
   const offsetPanel = document.getElementById('player-subtitle-offset');
   const offsetInput = document.getElementById('player-subtitle-offset-input');
   const offsetResetBtn = document.getElementById('player-subtitle-offset-reset');
@@ -26,6 +25,7 @@
 
   let prefTimer = null;
   let currentModalMediaId = mediaId;
+  let downloadedFileIds = new Set();
 
   function esc(text) {
     const el = document.createElement('span');
@@ -43,6 +43,68 @@
     if (!modalNotice) return;
     modalNotice.classList.add('hidden');
     modalNotice.textContent = '';
+  }
+
+  function isSearchFileDownloaded(fileId) {
+    return downloadedFileIds.has(String(fileId));
+  }
+
+  function rememberDownloadedFileIds(results) {
+    (results || []).forEach(function (item) {
+      if (item.cached && item.file_id) {
+        downloadedFileIds.add(String(item.file_id));
+      }
+    });
+  }
+
+  function searchDownloadActionHtml(fileId, language, label, state) {
+    const id = esc(fileId);
+    const lang = esc(language || '');
+    const itemLabel = esc(label || '');
+
+    if (state === 'downloaded' || isSearchFileDownloaded(fileId)) {
+      return (
+        '<button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-success/40 bg-success/10 font-label-sm text-label-sm text-success cursor-not-allowed">' +
+          '<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: \'FILL\' 1;">check_circle</span>' +
+          esc(labels.downloaded || 'Già scaricato') +
+        '</button>'
+      );
+    }
+
+    if (state === 'downloading') {
+      return (
+        '<button type="button" disabled class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container font-label-sm text-label-sm text-on-surface-variant cursor-wait opacity-80">' +
+          '<span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>' +
+          esc(labels.downloading || 'Scaricamento…') +
+        '</button>'
+      );
+    }
+
+    return (
+      '<button type="button" class="pm-btn-primary px-3 py-1.5 text-label-sm" data-pm-sub-dl="' + id + '" data-lang="' + lang + '" data-label="' + itemLabel + '">' +
+        esc(labels.download || 'Scarica') +
+      '</button>'
+    );
+  }
+
+  function setSearchResultState(fileId, state) {
+    if (!searchList || !fileId) return;
+    const row = searchList.querySelector('[data-pm-sub-file-id="' + CSS.escape(String(fileId)) + '"]');
+    if (!row) return;
+    const action = row.querySelector('[data-pm-sub-action]');
+    if (!action) return;
+    const lang = row.getAttribute('data-pm-sub-lang') || '';
+    const label = row.getAttribute('data-pm-sub-label') || '';
+    action.innerHTML = searchDownloadActionHtml(fileId, lang, label, state);
+  }
+
+  function updateCatalogSubtitleCount() {
+    const el = document.getElementById('catalog-subtitle-count');
+    if (!el) return;
+    const n = availableSubtitles.length;
+    const countLabel = labels.count || ':count tracce disponibili';
+    const noneLabel = labels.countNone || 'Nessun sottotitolo scaricato';
+    el.textContent = n > 0 ? countLabel.replace(':count', String(n)) : noneLabel;
   }
 
   function openModal(forMediaId) {
@@ -91,19 +153,12 @@
     }, 400);
   }
 
-  function renderSelectOptions() {
-    if (!subtitleSelect) return;
-    const current = activeSubtitleId == null ? '' : String(activeSubtitleId);
-    subtitleSelect.innerHTML = '<option value="">' + esc(labels.off || 'Off') + '</option>';
-    availableSubtitles.forEach(function (sub) {
-      const opt = document.createElement('option');
-      opt.value = String(sub.id);
-      opt.textContent = sub.label + (sub.language ? ' (' + sub.language + ')' : '');
-      opt.selected = current === String(sub.id);
-      subtitleSelect.appendChild(opt);
-    });
-    subtitleSelect.value = current;
+  function syncPlayerSubtitles(activeId, nextOffsetMs, list) {
+    if (!window.PutMioPlayerSubtitles) return;
+    window.PutMioPlayerSubtitles.apply(activeId, nextOffsetMs, list || availableSubtitles);
+  }
 
+  function updateOffsetPanel() {
     if (offsetPanel) {
       offsetPanel.classList.toggle('hidden', !activeSubtitleId);
     }
@@ -148,10 +203,8 @@
       availableSubtitles = data.subtitles || [];
       if (data.activeSubtitleId !== undefined) activeSubtitleId = data.activeSubtitleId;
       if (data.offsetMs !== undefined) offsetMs = data.offsetMs;
-      renderSelectOptions();
-      if (window.PutMioPlayerSubtitles) {
-        window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
-      }
+      updateOffsetPanel();
+      syncPlayerSubtitles(activeSubtitleId, offsetMs, availableSubtitles);
     }
     if ((currentModalMediaId || mediaId) === id) {
       availableSubtitles = data.subtitles || availableSubtitles;
@@ -176,27 +229,31 @@
         throw new Error(data.error || 'Errore ricerca');
       }
       const results = data.results || [];
+      rememberDownloadedFileIds(results);
       if (searchStatus) {
         searchStatus.textContent = results.length ? '' : (labels.searchEmpty || 'Nessun risultato');
         searchStatus.classList.toggle('hidden', results.length > 0);
       }
       results.forEach(function (item) {
         if (!searchList) return;
+        const fileId = String(item.file_id || '');
         const li = document.createElement('li');
         li.className = 'rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3 space-y-2';
+        li.setAttribute('data-pm-sub-file-id', fileId);
+        li.setAttribute('data-pm-sub-lang', item.language || '');
+        li.setAttribute('data-pm-sub-label', item.label || item.language || '');
         const meta = [
           item.language || '',
           item.release || '',
           item.download_count ? item.download_count + ' dl' : '',
           item.uploader || '',
         ].filter(Boolean).join(' · ');
+        const downloaded = item.cached || isSearchFileDownloaded(fileId);
         li.innerHTML =
           '<p class="font-label-md text-label-md text-on-surface">' + esc(item.label || item.language) + '</p>' +
           '<p class="font-label-sm text-label-sm text-on-surface-variant line-clamp-2">' + esc(meta) + '</p>' +
-          '<div class="flex justify-end">' +
-            (item.cached
-              ? '<span class="text-label-sm font-label-sm text-success">' + esc(labels.downloaded || 'Già scaricato') + '</span>'
-              : '<button type="button" class="pm-btn-primary px-3 py-1.5 text-label-sm" data-pm-sub-dl="' + esc(item.file_id) + '" data-lang="' + esc(item.language) + '" data-label="' + esc(item.label) + '">' + esc(labels.download || 'Scarica') + '</button>') +
+          '<div class="flex justify-end" data-pm-sub-action>' +
+            searchDownloadActionHtml(fileId, item.language, item.label, downloaded ? 'downloaded' : 'ready') +
           '</div>';
         searchList.appendChild(li);
       });
@@ -213,6 +270,7 @@
   async function downloadSubtitle(fileId, language, label) {
     const id = currentModalMediaId || mediaId;
     if (!id) return;
+    setSearchResultState(fileId, 'downloading');
     const body = new URLSearchParams({
       _csrf: window.PUTMIO.csrf,
       media_id: String(id),
@@ -226,22 +284,26 @@
     });
     const data = await response.json().catch(function () { return {}; });
     if (!response.ok || !data.ok) {
+      setSearchResultState(fileId, 'ready');
       throw new Error(data.error || labels.downloadError || 'Errore download');
     }
+    downloadedFileIds.add(String(fileId));
+    setSearchResultState(fileId, 'downloaded');
     await reloadSubtitles(id);
     if (id === mediaId && data.subtitle) {
       activeSubtitleId = data.subtitle.id;
       scheduleSavePreference();
-      renderSelectOptions();
-      if (window.PutMioPlayerSubtitles) {
-        window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
-      }
+      updateOffsetPanel();
+      syncPlayerSubtitles(activeSubtitleId, offsetMs, availableSubtitles);
     }
     refreshCachedList();
-    if (!document.getElementById('putmio-player')) {
-      window.location.reload();
+    updateCatalogSubtitleCount();
+    if (window.pmToast) {
+      window.pmToast(labels.downloadOk || 'Sottotitolo scaricato', 'success');
     }
   }
+
+  async function deleteSubtitle(subId) {
     const body = new URLSearchParams({
       _csrf: window.PUTMIO.csrf,
       id: String(subId),
@@ -257,20 +319,17 @@
     if (activeSubtitleId === subId) {
       activeSubtitleId = null;
       scheduleSavePreference();
-      if (window.PutMioPlayerSubtitles) {
-        window.PutMioPlayerSubtitles.apply(null, offsetMs, availableSubtitles);
-      }
+      updateOffsetPanel();
+      syncPlayerSubtitles(null, offsetMs, availableSubtitles);
     }
     await reloadSubtitles(currentModalMediaId || mediaId);
   }
 
   function setActiveSubtitle(subId) {
     activeSubtitleId = subId ? parseInt(subId, 10) : null;
-    renderSelectOptions();
+    updateOffsetPanel();
     scheduleSavePreference();
-    if (window.PutMioPlayerSubtitles) {
-      window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
-    }
+    syncPlayerSubtitles(activeSubtitleId, offsetMs, availableSubtitles);
     closeModal();
   }
 
@@ -278,8 +337,10 @@
     offsetMs += deltaMs;
     if (offsetInput) offsetInput.value = String((offsetMs / 1000).toFixed(1));
     scheduleSavePreference();
-    if (window.PutMioPlayerSubtitles) {
-      window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
+    if (window.PutMioPlayerSubtitles && window.PutMioPlayerSubtitles.setOffset) {
+      window.PutMioPlayerSubtitles.setOffset(offsetMs);
+    } else {
+      syncPlayerSubtitles(activeSubtitleId, offsetMs, availableSubtitles);
     }
   }
 
@@ -324,25 +385,38 @@
   if (searchList) {
     searchList.addEventListener('click', function (evt) {
       const btn = evt.target.closest('[data-pm-sub-dl]');
-      if (!btn) return;
+      if (!btn || btn.disabled) return;
+      const fileId = btn.getAttribute('data-pm-sub-dl');
       btn.disabled = true;
       downloadSubtitle(
-        btn.getAttribute('data-pm-sub-dl'),
+        fileId,
         btn.getAttribute('data-lang'),
         btn.getAttribute('data-label')
       ).catch(function (e) {
         if (window.pmToast) window.pmToast(e.message, 'error');
-        btn.disabled = false;
       });
     });
   }
 
-  if (subtitleSelect) {
-    subtitleSelect.addEventListener('change', function () {
-      const val = subtitleSelect.value;
-      setActiveSubtitle(val || null);
+  window.addEventListener('putmio:subtitlechange', function (evt) {
+    if (!evt.detail || !mediaId) return;
+    activeSubtitleId = evt.detail.subtitleId;
+    updateOffsetPanel();
+    scheduleSavePreference();
+  });
+
+  if (mediaId) {
+    document.addEventListener('keydown', function (evt) {
+      if (!activeSubtitleId) return;
+      if (evt.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (evt.key === 'g' || evt.key === 'G') {
+        evt.preventDefault();
+        adjustOffset(evt.shiftKey ? -500 : -100);
+      } else if (evt.key === 'h' || evt.key === 'H') {
+        evt.preventDefault();
+        adjustOffset(evt.shiftKey ? 500 : 100);
+      }
     });
-    renderSelectOptions();
   }
 
   if (offsetPanel) {
@@ -358,8 +432,8 @@
       const sec = parseFloat(offsetInput.value);
       offsetMs = isFinite(sec) ? Math.round(sec * 1000) : 0;
       scheduleSavePreference();
-      if (window.PutMioPlayerSubtitles) {
-        window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
+      if (window.PutMioPlayerSubtitles && window.PutMioPlayerSubtitles.setOffset) {
+        window.PutMioPlayerSubtitles.setOffset(offsetMs);
       }
     });
   }
@@ -369,8 +443,8 @@
       offsetMs = 0;
       if (offsetInput) offsetInput.value = '0';
       scheduleSavePreference();
-      if (window.PutMioPlayerSubtitles) {
-        window.PutMioPlayerSubtitles.apply(activeSubtitleId, offsetMs, availableSubtitles);
+      if (window.PutMioPlayerSubtitles && window.PutMioPlayerSubtitles.setOffset) {
+        window.PutMioPlayerSubtitles.setOffset(0);
       }
     });
   }
@@ -380,6 +454,8 @@
       closeModal();
     }
   });
+
+  updateOffsetPanel();
 
   window.PutMioSubtitles = {
     open: openModal,

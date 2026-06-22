@@ -126,6 +126,7 @@ final class AuthService
                 ->execute([password_hash($password, PASSWORD_DEFAULT), (int) $row['user_id']]);
             $pdo->prepare('UPDATE `' . Config::table('password_resets') . '` SET used_at = NOW() WHERE id = ?')
                 ->execute([(int) $row['id']]);
+            RememberMe::revokeAllForUser((int) $row['user_id']);
             $pdo->commit();
             return true;
         } catch (\Throwable $e) {
