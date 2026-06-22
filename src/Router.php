@@ -32,6 +32,13 @@ final class Router
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
         $path = $this->path();
 
+        if ($path === '/index.php' || $path === '/front.php') {
+            $qs = $_SERVER['QUERY_STRING'] ?? '';
+            $base = rtrim(Config::get('app.url', putmio_detect_base_url()), '/');
+            header('Location: ' . $base . '/' . ($qs !== '' ? '?' . $qs : ''), true, 302);
+            exit;
+        }
+
         if ($method === 'GET' && ($path === '' || $path === '/')) {
             (new HomeController())->index();
             return;

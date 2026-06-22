@@ -14,47 +14,138 @@ body.install-wizard {
   background: rgba(45, 52, 73, 0.4);
 }
 
-.install-input {
+/* Specificità alta per battere @tailwindcss/forms ([type=email] imposta bg bianco) */
+.install-wizard input.install-input,
+.install-wizard textarea.install-input,
+.install-wizard select.install-input {
   width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
   background-color: #222a3d;
   border: 1px solid rgba(70, 69, 84, 0.4);
   border-radius: 0.75rem;
   padding: 0.75rem 1rem;
+  min-height: 3rem;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
   color: #dae2fd;
-  transition: all 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  color-scheme: dark;
 }
 
-.install-input:focus {
+/* Campi compatti (SMTP e simili) */
+.install-wizard input.install-input.install-input-sm {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: #171f33;
+  border-color: rgba(70, 69, 84, 0.2);
+  border-radius: 0.5rem;
+}
+
+.install-wizard input.install-input::placeholder {
+  color: #908fa0;
+  opacity: 1;
+}
+
+.install-wizard input.install-input:focus {
   border-color: #c0c1ff;
-  box-shadow: 0 0 0 1px rgba(192, 193, 255, 0.4);
+  box-shadow: 0 0 0 2px rgba(128, 131, 255, 0.3);
 }
 
-.install-btn-primary {
+.install-wizard input.install-input.install-input-match {
+  border-color: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+.install-wizard input.install-input.install-input-mismatch {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+}
+
+/* Autofill browser: evita sfondo bianco e testo illeggibile */
+.install-wizard input.install-input:-webkit-autofill,
+.install-wizard input.install-input:-webkit-autofill:hover,
+.install-wizard input.install-input:-webkit-autofill:focus,
+.install-wizard input.install-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #222a3d inset;
+  -webkit-text-fill-color: #dae2fd;
+  caret-color: #dae2fd;
+  border: 1px solid rgba(70, 69, 84, 0.4);
+  transition: background-color 9999s ease-out 0s;
+}
+
+.install-wizard input.install-input.install-input-sm:-webkit-autofill,
+.install-wizard input.install-input.install-input-sm:-webkit-autofill:hover,
+.install-wizard input.install-input.install-input-sm:-webkit-autofill:focus,
+.install-wizard input.install-input.install-input-sm:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #171f33 inset;
+}
+
+.install-wizard input.install-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  background-color: #222a3d;
+  border: 1px solid rgba(70, 69, 84, 0.5);
+  border-radius: 0.25rem;
+  color-scheme: dark;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.install-wizard input.install-checkbox:checked {
+  background-color: #8083ff;
+  border-color: #8083ff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230d0096'%3E%3Cpath d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+  background-size: 100% 100%;
+}
+
+.install-wizard input.install-checkbox:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(128, 131, 255, 0.3);
+}
+
+.install-wizard .install-btn-primary,
+.install-wizard a.install-btn-primary {
   background-color: #8083ff;
   color: #0d0096;
   font-weight: 700;
   border-radius: 0.75rem;
-  transition: all 0.2s;
+  transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
+  text-decoration: none;
 }
 
-.install-btn-primary:hover {
+.install-wizard .install-btn-primary:hover,
+.install-wizard a.install-btn-primary:hover {
   filter: brightness(1.1);
   transform: scale(1.02);
 }
 
-.install-btn-primary:active {
+.install-wizard .install-btn-primary:active,
+.install-wizard a.install-btn-primary:active {
   transform: scale(0.98);
 }
 
-.install-btn-secondary {
+.install-wizard .install-btn-primary:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.install-wizard .install-btn-secondary {
+  background-color: rgba(34, 42, 61, 0.35);
   border: 1px solid rgba(70, 69, 84, 0.5);
   color: #dae2fd;
   border-radius: 0.75rem;
   transition: all 0.2s;
 }
 
-.install-btn-secondary:hover {
+.install-wizard .install-btn-secondary:hover {
   background: rgba(34, 42, 61, 0.8);
   transform: scale(1.02);
 }

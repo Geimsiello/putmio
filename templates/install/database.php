@@ -4,32 +4,32 @@
   <p class="font-body-md text-body-md text-on-surface-variant"><?= putmio_lang('install_database_help') ?></p>
 </div>
 
-<form method="post" class="space-y-5"><?= $csrf ?>
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-    <div class="space-y-2">
-      <label class="font-label-md text-label-md text-on-surface-variant px-1" for="db_host"><?= putmio_lang('db_host') ?></label>
-      <input class="install-input" id="db_host" name="db_host" value="<?= putmio_e($db['host']) ?>" placeholder="localhost" required>
+<form method="post" class="space-y-6"><?= $csrf ?>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="space-y-1.5">
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="db_host"><?= putmio_lang('db_host') ?></label>
+      <input class="install-input" type="text" id="db_host" name="db_host" value="<?= putmio_e($db['host']) ?>" placeholder="localhost" required autocomplete="off">
     </div>
-    <div class="space-y-2">
-      <label class="font-label-md text-label-md text-on-surface-variant px-1" for="db_prefix"><?= putmio_lang('db_prefix') ?></label>
-      <input class="install-input" id="db_prefix" name="db_prefix" value="<?= putmio_e($db['prefix']) ?>" placeholder="pm_">
+    <div class="space-y-1.5">
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="db_prefix"><?= putmio_lang('db_prefix') ?></label>
+      <input class="install-input" type="text" id="db_prefix" name="db_prefix" value="<?= putmio_e($db['prefix']) ?>" placeholder="pm_" autocomplete="off">
     </div>
   </div>
 
-  <div class="space-y-2">
-    <label class="font-label-md text-label-md text-on-surface-variant px-1" for="db_name"><?= putmio_lang('db_name') ?></label>
-    <input class="install-input" id="db_name" name="db_name" value="<?= putmio_e($db['name']) ?>" placeholder="es. putmio_media" required>
+  <div class="space-y-1.5">
+    <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="db_name"><?= putmio_lang('db_name') ?></label>
+    <input class="install-input" type="text" id="db_name" name="db_name" value="<?= putmio_e($db['name']) ?>" placeholder="es. putmio_media" required autocomplete="off">
   </div>
 
-  <div class="space-y-2">
-    <label class="font-label-md text-label-md text-on-surface-variant px-1" for="db_user"><?= putmio_lang('db_user') ?></label>
-    <input class="install-input" id="db_user" name="db_user" value="<?= putmio_e($db['user']) ?>" placeholder="<?= putmio_e(putmio_lang('db_user')) ?>" required>
+  <div class="space-y-1.5">
+    <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="db_user"><?= putmio_lang('db_user') ?></label>
+    <input class="install-input" type="text" id="db_user" name="db_user" value="<?= putmio_e($db['user']) ?>" placeholder="<?= putmio_e(putmio_lang('db_user')) ?>" required autocomplete="off">
   </div>
 
-  <div class="space-y-2">
-    <label class="font-label-md text-label-md text-on-surface-variant px-1" for="db_pass"><?= putmio_lang('db_pass') ?></label>
+  <div class="space-y-1.5">
+    <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="db_pass"><?= putmio_lang('db_pass') ?></label>
     <div class="relative">
-      <input class="install-input pr-12" type="password" id="db_pass" name="db_pass" value="<?= putmio_e($db['pass']) ?>" placeholder="••••••••">
+      <input class="install-input pr-12" type="password" id="db_pass" name="db_pass" value="<?= putmio_e($db['pass']) ?>" placeholder="••••••••" autocomplete="new-password">
       <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors" data-toggle-password="db_pass" aria-label="Mostra password">
         <span class="material-symbols-outlined text-[20px]">visibility</span>
       </button>
@@ -48,6 +48,13 @@
   </div>
 </form>
 
-<p class="mt-8 text-center font-body-md text-body-md text-outline/60">
+<p class="mt-8 text-center font-label-sm text-label-sm text-outline">
   <?= putmio_lang('install_database_hint') ?>
 </p>
+
+<div class="mt-8 flex justify-start">
+  <a href="?step=2" class="flex items-center gap-2 font-label-md text-label-md text-on-surface-variant hover:text-primary transition-colors">
+    <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+    <?= putmio_lang('back') ?>
+  </a>
+</div>

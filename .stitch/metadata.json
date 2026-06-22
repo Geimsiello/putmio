@@ -1,0 +1,91 @@
+{
+  "project": {
+    "id": "17123330330363684222",
+    "title": "PutMio Media Center Design"
+  },
+  "screens": {
+    "7c2ecf7d1edf4305bfbbb733a0731db9": {
+      "title": "Installazione PutMio: Benvenuto (Step 1/6)",
+      "slug": "install-welcome",
+      "step": 1,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-welcome/screenshot.png",
+        "code": "screens/install-welcome/code.html"
+      }
+    },
+    "eaef9539b9874c1bb4e15c0b26546ecb": {
+      "title": "Installazione PutMio: Requisiti (Step 2/6)",
+      "slug": "install-requirements",
+      "step": 2,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-requirements/screenshot.png",
+        "code": "screens/install-requirements/code.html"
+      }
+    },
+    "6142845c96dc4c41b0d9a917bbecac72": {
+      "title": "Installazione PutMio: Database (Step 3/6)",
+      "slug": "install-database",
+      "step": 3,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-database/screenshot.png",
+        "code": "screens/install-database/code.html"
+      }
+    },
+    "3ff0780149c441c0ba0d21bed7d70b6e": {
+      "title": "Installazione PutMio: Installazione (Step 4/6)",
+      "slug": "install-run",
+      "step": 4,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-run/screenshot.png",
+        "code": "screens/install-run/code.html"
+      }
+    },
+    "c57d0b5bd8e647fa8b1d315270176ab1": {
+      "title": "Installazione PutMio: Account Admin (Step 5/6)",
+      "slug": "install-admin",
+      "step": 5,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-admin/screenshot.png",
+        "code": "screens/install-admin/code.html"
+      }
+    },
+    "0f285c6003b64389bdfa1011be0aa0ef": {
+      "title": "Installazione PutMio: Fine (Step 6/6)",
+      "slug": "install-complete",
+      "step": 6,
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/install-complete/screenshot.png",
+        "code": "screens/install-complete/code.html"
+      }
+    },
+    "e641a225b2f24438ae8b9aee4304cbdc": {
+      "title": "Login PutMio (Dark)",
+      "slug": "login-putmio-dark",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/login-putmio-dark/screenshot.png",
+        "code": "screens/login-putmio-dark/code.html"
+      }
+    }
+  }
+}

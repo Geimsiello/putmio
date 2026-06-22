@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="PutMio">
+  <rect width="32" height="32" rx="8" fill="#c0c1ff"/>
+  <circle cx="16" cy="16" r="9" fill="#0d0096" opacity="0.15"/>
+  <path d="M13.2 10.4v11.2L21.6 16z" fill="#0d0096"/>
+</svg>

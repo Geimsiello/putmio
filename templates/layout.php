@@ -15,6 +15,8 @@ $pageTitle = putmio_e($title ?? 'PutMio');
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title><?= $pageTitle ?> — PutMio</title>
+  <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg">
   <script>
     (function(){var t=localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>';if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();
   </script>
@@ -28,7 +30,10 @@ $pageTitle = putmio_e($title ?? 'PutMio');
 <?php if (Session::userId()): ?>
 <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-40">
   <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
-    <a href="<?= putmio_e($appUrl) ?>/" class="font-bold text-lg text-indigo-500">PutMio</a>
+    <a href="<?= putmio_e($appUrl) ?>/" class="flex items-center gap-2 group font-bold text-lg text-indigo-500 hover:opacity-90 transition-opacity">
+      <img src="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" alt="" width="32" height="32" class="w-8 h-8 rounded-lg shadow-md shadow-indigo-500/20 transition-transform duration-300 group-hover:scale-110">
+      PutMio
+    </a>
     <nav class="flex items-center gap-3 text-sm flex-wrap">
       <a href="<?= putmio_e($appUrl) ?>/" class="hover:text-indigo-400"><?= putmio_lang('home') ?></a>
       <a href="<?= putmio_e($appUrl) ?>/catalogo" class="hover:text-indigo-400">Catalogo</a>

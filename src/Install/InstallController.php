@@ -125,14 +125,13 @@ final class InstallController
                     \PutMio\Config::load();
                     Database::reset();
                     Installer::createAdmin($db, $email, $name, $pass);
-                    Installer::finalizeInstall();
                 } catch (\Throwable $e) {
                     $_SESSION['install_error'] = $e->getMessage();
                     @unlink(putmio_config_path());
                     putmio_redirect('?step=5');
                 }
 
-                unset($_SESSION['install_db'], $_SESSION['install_step'], $_SESSION['install_error']);
+                unset($_SESSION['install_db'], $_SESSION['install_error']);
                 $_SESSION['install_step'] = 6;
                 putmio_redirect('?step=6');
                 break;
@@ -191,6 +190,9 @@ final class InstallController
                 View::renderInstall('install/admin', $data);
                 break;
             case 6:
+                if (!InstallGate::isInstalled()) {
+                    Installer::finalizeInstall();
+                }
                 View::renderInstall('install/complete', $data);
                 break;
             default:

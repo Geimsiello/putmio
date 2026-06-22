@@ -48,7 +48,7 @@ function putmio_redirect(string $path): void
         ? rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/')
         : rtrim(putmio_detect_base_url(), '/');
     if (str_starts_with($path, '?')) {
-        $target = $base . '/index.php' . $path;
+        $target = $base . '/' . $path;
     } elseif (str_starts_with($path, 'http')) {
         $target = $path;
     } else {

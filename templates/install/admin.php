@@ -11,22 +11,22 @@ use PutMio\Auth\Csrf;
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="space-y-1.5">
       <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="display_name"><?= putmio_lang('display_name') ?></label>
-      <input class="install-input" id="display_name" name="display_name" placeholder="es. Renato" required>
+      <input class="install-input" type="text" id="display_name" name="display_name" placeholder="es. Renato" required autocomplete="name">
     </div>
     <div class="space-y-1.5">
       <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="email"><?= putmio_lang('email') ?></label>
-      <input class="install-input" type="email" id="email" name="email" placeholder="admin@esempio.it" required>
+      <input class="install-input" type="email" id="email" name="email" placeholder="admin@esempio.it" required autocomplete="email">
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="space-y-1.5">
       <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="password"><?= putmio_lang('password') ?></label>
-      <input class="install-input border-outline-variant/30" type="password" id="password" name="password" minlength="10" placeholder="••••••••" required>
+      <input class="install-input" type="password" id="password" name="password" minlength="10" placeholder="••••••••" required autocomplete="new-password">
     </div>
     <div class="space-y-1.5">
       <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="password_confirm"><?= putmio_lang('password_confirm') ?></label>
-      <input class="install-input border-outline-variant/30" type="password" id="password_confirm" name="password_confirm" minlength="10" placeholder="••••••••" required>
+      <input class="install-input" type="password" id="password_confirm" name="password_confirm" minlength="10" placeholder="••••••••" required autocomplete="new-password">
     </div>
   </div>
 
@@ -40,32 +40,32 @@ use PutMio\Auth\Csrf;
     </summary>
     <div class="p-5 space-y-4 border-t border-outline-variant/10">
       <label class="flex items-center gap-2 font-body-md text-on-surface-variant cursor-pointer">
-        <input type="checkbox" name="smtp_enable" value="1" class="rounded border-outline-variant text-primary-container focus:ring-primary">
+        <input type="checkbox" name="smtp_enable" value="1" class="install-checkbox">
         <?= putmio_lang('install_smtp_enable') ?>
       </label>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2 space-y-1.5">
-          <label class="font-label-sm text-label-sm text-on-surface-variant">Host</label>
-          <input class="install-input py-2 text-sm" name="smtp_host" placeholder="smtp.gmail.com">
+          <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Host</label>
+          <input class="install-input install-input-sm" type="text" name="smtp_host" placeholder="smtp.gmail.com" autocomplete="off">
         </div>
         <div class="space-y-1.5">
-          <label class="font-label-sm text-label-sm text-on-surface-variant">Porta</label>
-          <input class="install-input py-2 text-sm" name="smtp_port" placeholder="587">
+          <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Porta</label>
+          <input class="install-input install-input-sm" type="text" name="smtp_port" placeholder="587" inputmode="numeric" autocomplete="off">
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-1.5">
-          <label class="font-label-sm text-label-sm text-on-surface-variant">Utente</label>
-          <input class="install-input py-2 text-sm" name="smtp_user">
+          <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Utente</label>
+          <input class="install-input install-input-sm" type="text" name="smtp_user" autocomplete="off">
         </div>
         <div class="space-y-1.5">
-          <label class="font-label-sm text-label-sm text-on-surface-variant">Password</label>
-          <input class="install-input py-2 text-sm" type="password" name="smtp_pass">
+          <label class="font-label-sm text-label-sm text-on-surface-variant ml-1">Password</label>
+          <input class="install-input install-input-sm" type="password" name="smtp_pass" autocomplete="new-password">
         </div>
       </div>
       <div class="space-y-1.5">
-        <label class="font-label-sm text-label-sm text-on-surface-variant"><?= putmio_lang('install_smtp_from') ?></label>
-        <input class="install-input py-2 text-sm" name="smtp_from" placeholder="noreply@tuodominio.it" type="email">
+        <label class="font-label-sm text-label-sm text-on-surface-variant ml-1"><?= putmio_lang('install_smtp_from') ?></label>
+        <input class="install-input install-input-sm" type="email" name="smtp_from" placeholder="noreply@tuodominio.it" autocomplete="email">
       </div>
     </div>
   </details>

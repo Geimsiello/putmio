@@ -9,6 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <?php $appUrl = rtrim(putmio_detect_base_url(), '/'); ?>
+  <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg">
   <link rel="stylesheet" href="<?= putmio_e($appUrl) ?>/public/assets/install.css">
   <script>
     tailwind.config = {
@@ -73,11 +75,11 @@ $isComplete = $currentStep === 6;
 
   <main class="relative w-full max-w-[560px] install-glass rounded-xl shadow-2xl overflow-hidden">
     <div class="px-6 md:px-8 pt-6 md:pt-8">
-      <div class="flex items-center justify-end mb-6">
-        <span class="font-label-md text-label-md text-on-surface-variant/70 uppercase tracking-widest">
-          <?= putmio_e(putmio_lang('install_title')) ?> — Step <?= $currentStep ?>/6
-        </span>
-      </div>
+      <?php
+      $brandSubtitle = putmio_lang('install_title') . ' — Step ' . $currentStep . '/6';
+      $brandAppUrl = $appUrl;
+      require putmio_base_path() . '/templates/partials/brand-header.php';
+      ?>
 
       <div class="flex gap-2 h-1.5 w-full mb-6" aria-label="Progresso installazione">
         <?php for ($i = 1; $i <= 6; $i++): ?>
@@ -98,13 +100,13 @@ $isComplete = $currentStep === 6;
       </div>
 
       <?php if (!empty($error)): ?>
-        <div class="mb-6 rounded-xl bg-error/10 border border-error/30 text-error px-4 py-3 text-sm flex items-start gap-2">
+        <div class="mb-6 rounded-xl bg-error/10 border border-error/30 text-error px-4 py-3 font-body-md flex items-start gap-2">
           <span class="material-symbols-outlined text-[18px] shrink-0">error</span>
           <span><?= putmio_e($error) ?></span>
         </div>
       <?php endif; ?>
       <?php if (!empty($success)): ?>
-        <div class="mb-6 rounded-xl bg-success/10 border border-success/30 text-success px-4 py-3 text-sm flex items-start gap-2">
+        <div class="mb-6 rounded-xl bg-success/10 border border-success/30 text-success px-4 py-3 font-body-md flex items-start gap-2">
           <span class="material-symbols-outlined filled text-[18px] shrink-0">check_circle</span>
           <span><?= putmio_e($success) ?></span>
         </div>

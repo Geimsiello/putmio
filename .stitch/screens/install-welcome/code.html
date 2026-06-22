@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="it"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PutMio Installation Wizard - Step 1</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#574500",
+                    "error-container": "#93000a",
+                    "surface-container-high": "#222a3d",
+                    "secondary-container": "#eec200",
+                    "on-primary-fixed": "#07006c",
+                    "surface-dim": "#0b1326",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "secondary-fixed-dim": "#eec200",
+                    "surface-container-low": "#131b2e",
+                    "on-secondary-fixed": "#231b00",
+                    "success": "#10b981",
+                    "background": "#0b1326",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "inverse-on-surface": "#283044",
+                    "twitter-blue": "#1da1f2",
+                    "surface-dark": "#161616",
+                    "on-error-container": "#ffdad6",
+                    "outline-variant": "#464554",
+                    "tertiary-fixed": "#ffdcc5",
+                    "on-tertiary-fixed": "#301400",
+                    "surface-container": "#171f33",
+                    "on-tertiary-container": "#452000",
+                    "on-primary": "#1000a9",
+                    "error": "#ef4444",
+                    "surface-tint": "#c0c1ff",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "primary-container": "#8083ff",
+                    "on-tertiary": "#4f2500",
+                    "inverse-primary": "#494bd6",
+                    "primary": "#c0c1ff",
+                    "surface-bright": "#31394d",
+                    "surface-slate": "#1e293b",
+                    "tertiary-container": "#d97721",
+                    "on-tertiary-fixed-variant": "#703700",
+                    "on-primary-container": "#0d0096",
+                    "secondary": "#ffe083",
+                    "on-background": "#dae2fd",
+                    "inverse-surface": "#dae2fd",
+                    "surface-container-highest": "#2d3449",
+                    "primary-fixed": "#e1e0ff",
+                    "tertiary": "#ffb783",
+                    "on-secondary": "#3c2f00",
+                    "on-surface-variant": "#c7c4d7",
+                    "on-error": "#690005",
+                    "outline": "#908fa0",
+                    "on-surface": "#dae2fd",
+                    "secondary-fixed": "#ffe083",
+                    "on-secondary-container": "#645000",
+                    "surface": "#0b1326",
+                    "surface-variant": "#2d3449",
+                    "surface-container-lowest": "#060e20",
+                    "warning": "#f59e0b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-md": ["JetBrains Mono"],
+                    "label-sm": ["JetBrains Mono"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #020617; /* Deep Slate-950 equivalent */
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-effect {
+            backdrop-filter: blur(16px);
+            background: rgba(23, 31, 51, 0.7);
+        }
+        .step-transition {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+<!-- Background Atmospheric Effect -->
+<div class="fixed inset-0 overflow-hidden pointer-events-none">
+<div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]"></div>
+</div>
+<!-- Main Wizard Card -->
+<main class="relative w-full max-w-[560px] glass-effect border border-outline-variant/20 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-700">
+<!-- Top Progress Bar (6 Steps) -->
+<div class="flex w-full h-1.5 gap-1.5 px-6 pt-6">
+<div class="flex-1 bg-primary rounded-full shadow-[0_0_8px_rgba(192,193,255,0.4)]"></div>
+<div class="flex-1 bg-surface-variant/40 rounded-full"></div>
+<div class="flex-1 bg-surface-variant/40 rounded-full"></div>
+<div class="flex-1 bg-surface-variant/40 rounded-full"></div>
+<div class="flex-1 bg-surface-variant/40 rounded-full"></div>
+<div class="flex-1 bg-surface-variant/40 rounded-full"></div>
+</div>
+<div class="p-8 md:p-12">
+<!-- Header Section -->
+<header class="flex items-center justify-between mb-10">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-on-primary-container" style="font-variation-settings: 'FILL' 1;">theater_comedy</span>
+</div>
+<span class="font-headline-md text-headline-md font-extrabold text-primary tracking-tight">PutMio</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant/60 uppercase">Step 1/6</span>
+</header>
+<!-- Hero Illustration Placeholder -->
+<div class="relative w-full aspect-video mb-10 rounded-xl overflow-hidden group shadow-inner">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" data-alt="A cinematic and high-end digital illustration of a stylized media server rack glowing with soft indigo and amber lights. The aesthetic is clean and futuristic, set against a dark, moody background with subtle lens flares and a shallow depth of field. The lighting highlights premium textures and precise engineering, conveying a sense of personal power and curated entertainment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDtqw2n6D_F7a-xB_ckClJDus9oxPprjIfWD0u_ixwAk8KKjI21h-zar2wcJNyTXXH2_bTWQ19j5wPAJyG3NPUbgx6Lq8gaoL1ytfYqA2VQoSXoFQcz409mV_QaLB4zlE8SEUQKZMJURn2NNFUTGDp_y0FMKIdsqyhl2XjvlqpcztIAmXYujxllBrwE3CtBn3L1g0-SjdhGOw1s_3cjyM5ae5M7Qd9Gvbqfe7eosIh9F3GI-7BkQoQ7ZLiRmbKSTQfmVA1vecyUjfOh"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container/80 to-transparent"></div>
+</div>
+<!-- Content Section -->
+<div class="space-y-4">
+<h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+                    Benvenuto
+                </h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    Il tuo media center personale su <span class="text-primary font-bold">put.io</span>. 
+                    Questa procedura configura database e account admin in pochi passaggi guidati.
+                </p>
+</div>
+<!-- Action Section -->
+<div class="mt-12 space-y-4">
+<button class="group relative w-full h-14 bg-primary text-on-primary font-headline-md text-headline-md rounded-xl overflow-hidden hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 shadow-[0_4px_20px_rgba(192,193,255,0.25)]">
+<span class="relative z-10">Inizia installazione</span>
+<div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+</button>
+<div class="flex justify-center items-center gap-2 py-4">
+<span class="material-symbols-outlined text-success text-[18px]" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant/50">Ambiente sicuro &amp; cifrato</span>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<footer class="px-8 pb-8 flex justify-between items-center opacity-40">
+<span class="font-label-sm text-label-sm text-on-surface-variant">v2.4.0-stable</span>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-help">help_outline</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">settings</span>
+</div>
+</footer>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const button = document.querySelector('button');
+            button.addEventListener('mousedown', () => {
+                button.classList.add('scale-95');
+            });
+            button.addEventListener('mouseup', () => {
+                button.classList.remove('scale-95');
+            });
+            
+            // Add a subtle subtle parallax to the background blobs based on mouse move
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                const blobs = document.querySelectorAll('.fixed > div');
+                blobs[0].style.transform = `translate(${x * 30}px, ${y * 30}px)`;
+                blobs[1].style.transform = `translate(${x * -30}px, ${y * -30}px)`;
+            });
+        });
+    </script>
+</body></html>

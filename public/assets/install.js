@@ -18,12 +18,11 @@
   if (pass && confirmPass) {
     var validatePass = function () {
       if (!pass.value || !confirmPass.value) {
-        confirmPass.classList.remove('border-error', 'border-success');
-        confirmPass.classList.add('border-outline-variant/30');
+        confirmPass.classList.remove('install-input-match', 'install-input-mismatch');
         return;
       }
-      confirmPass.classList.remove('border-outline-variant/30', 'border-success', 'border-error');
-      confirmPass.classList.add(pass.value === confirmPass.value ? 'border-success' : 'border-error');
+      confirmPass.classList.remove('install-input-match', 'install-input-mismatch');
+      confirmPass.classList.add(pass.value === confirmPass.value ? 'install-input-match' : 'install-input-mismatch');
     };
     pass.addEventListener('input', validatePass);
     confirmPass.addEventListener('input', validatePass);
