@@ -14,7 +14,7 @@
   ?>
   <div class="group">
     <a href="<?= putmio_e($appUrl) ?>/play?id=<?= (int)$item['id'] ?>" class="block">
-      <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-slate-800">
+      <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-slate-800 poster-card--with-progress">
         <img src="<?= putmio_e($poster) ?>" alt="" class="w-full h-full object-cover group-hover:scale-105 transition" loading="lazy">
         <?php require putmio_base_path() . '/templates/partials/poster-owner-badge.php'; ?>
         <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-700"><div class="h-full bg-indigo-500" style="width:<?= $pct ?>%"></div></div>

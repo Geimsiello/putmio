@@ -134,8 +134,21 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
 <?php
 $adminSection = putmio_admin_section();
 $isAdminShell = $adminSection !== null;
+$isAuthShell = !empty($authShell) && !Session::userId();
 ?>
-<?php if ($isAdminShell): ?>
+<?php if ($isAuthShell): ?>
+<div class="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+  <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
+  <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-tertiary/5 rounded-full blur-[120px]"></div>
+</div>
+<button type="button" id="theme-toggle" class="fixed top-6 right-6 md:top-8 md:right-8 z-50 p-3 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-variant transition-all active:scale-95 shadow-lg border border-outline-variant/20" title="<?= putmio_lang('theme_dark') ?>">
+  <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
+  <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
+</button>
+<main class="auth-shell min-h-screen flex items-center justify-center p-4 md:p-6">
+  <?= $content ?>
+</main>
+<?php elseif ($isAdminShell): ?>
 <?php require putmio_base_path() . '/templates/partials/admin-sidebar.php'; ?>
 <main class="pt-24 min-h-screen md:ml-64 bg-background">
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">

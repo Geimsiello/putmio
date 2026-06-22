@@ -28,6 +28,7 @@ final class AuthController
         View::render('auth/login', [
             'title' => putmio_lang('login'),
             'error' => $_SESSION['flash_error'] ?? null,
+            'authShell' => true,
         ]);
         unset($_SESSION['flash_error']);
     }

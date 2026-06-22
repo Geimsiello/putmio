@@ -186,21 +186,24 @@
       const candidates = candidatesForRow(row);
       const hasMatch = candidates.length > 0;
       const selectedIndex = selectedCandidateIndex.get(mediaId) ?? 0;
-      const disabled = !hasMatch || scanning || saving;
+      const disabled = !hasMatch || saving;
 
       const card = document.createElement('article');
       card.className = 'rounded-xl border border-outline-variant/30 bg-surface-container-high p-4';
       card.dataset.mediaId = String(mediaId);
 
-      const header = document.createElement('div');
-      header.className = 'flex gap-3 items-start mb-3';
+      const header = document.createElement('label');
+      header.className = 'flex gap-3 items-start mb-3 cursor-pointer';
 
       const checkbox = document.createElement('input');
       checkbox.type = 'checkbox';
-      checkbox.className = 'mt-1 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary/50 shrink-0';
+      checkbox.className = 'mt-1 h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary/50 shrink-0 cursor-pointer';
       checkbox.dataset.classifyTmdbItem = '1';
       checkbox.disabled = disabled;
       checkbox.checked = checkedItems.has(mediaId);
+      checkbox.addEventListener('click', function (event) {
+        event.stopPropagation();
+      });
       checkbox.addEventListener('change', function () {
         if (checkbox.checked) {
           checkedItems.add(mediaId);
@@ -349,6 +352,7 @@
     if (clearBtn) {
       clearBtn.disabled = false;
     }
+    renderList();
     setProgress(label('scan_done', 'Scansione completata.'));
     updateSummary();
   }
@@ -414,6 +418,7 @@
       }
       saving = false;
       scanBtn.disabled = false;
+      renderList();
       updateSummary();
       setProgress('');
     }

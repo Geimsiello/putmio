@@ -396,7 +396,7 @@ input.pm-input:focus {
 
 .poster-owner-badge {
   position: absolute;
-  top: 0.5rem;
+  bottom: 0.5rem;
   left: 50%;
   z-index: 10;
   transform: translateX(-50%);
@@ -418,6 +418,10 @@ input.pm-input:focus {
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
   pointer-events: none;
+}
+
+.poster-card--with-progress .poster-owner-badge {
+  bottom: 2.75rem;
 }
 
 .pm-friend-row:hover {
@@ -508,4 +512,72 @@ input.pm-input:focus {
   transform: translateY(-4px) scale(1.01);
   background-color: rgba(34, 42, 61, 0.9);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
+/* Auth (login) — allineato a install wizard */
+.auth-glass {
+  background: rgba(23, 31, 51, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(144, 143, 160, 0.2);
+}
+
+.auth-shell input.auth-input {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #060e20;
+  border: 1px solid rgba(70, 69, 84, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  min-height: 3rem;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: #dae2fd;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+  color-scheme: dark;
+}
+
+.auth-shell input.auth-input.auth-input-icon {
+  padding-left: 2.75rem;
+}
+
+.auth-shell input.auth-input::placeholder {
+  color: #908fa0;
+  opacity: 1;
+}
+
+.auth-shell input.auth-input:focus {
+  border-color: #c0c1ff;
+  box-shadow: 0 0 0 2px rgba(128, 131, 255, 0.3);
+}
+
+.auth-shell input.auth-input:-webkit-autofill,
+.auth-shell input.auth-input:-webkit-autofill:hover,
+.auth-shell input.auth-input:-webkit-autofill:focus,
+.auth-shell input.auth-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #060e20 inset;
+  -webkit-text-fill-color: #dae2fd;
+  caret-color: #dae2fd;
+  border: 1px solid rgba(70, 69, 84, 0.3);
+  transition: background-color 9999s ease-out 0s;
+}
+
+.auth-shell .auth-btn-primary {
+  background-color: #8083ff;
+  color: #0d0096;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(128, 131, 255, 0.2);
+  transition: filter 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.auth-shell .auth-btn-primary:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.auth-shell .auth-btn-primary:active {
+  transform: scale(0.98);
 }

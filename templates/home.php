@@ -37,7 +37,7 @@ $appUrl = rtrim(Config::get('app.url'), '/');
         $episodeLabel = !empty($item['series_title']) ? (string) $item['title'] : null;
       ?>
       <a href="<?= putmio_e($appUrl) ?>/play?id=<?= (int)$item['id'] ?>" class="flex-shrink-0 w-36 sm:w-44 snap-start group block">
-        <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-surface-container shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 poster-card">
+        <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-surface-container shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 poster-card poster-card--with-progress">
           <img src="<?= putmio_e($poster) ?>" alt="" class="w-full h-full object-cover" loading="lazy" draggable="false">
           <?php require putmio_base_path() . '/templates/partials/poster-owner-badge.php'; ?>
           <div class="absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-background/90 to-transparent">
