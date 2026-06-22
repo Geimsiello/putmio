@@ -1,0 +1,6 @@
+config.php
+storage/.installed
+storage/logs/*.log
+storage/posters/*
+!storage/posters/.gitkeep
+!storage/logs/.gitkeep
