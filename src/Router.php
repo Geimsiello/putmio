@@ -26,6 +26,7 @@ final class Router
 
         InstallGate::ensureInstalled();
         Config::load();
+        \PutMio\Database\Migrator::runPending();
         date_default_timezone_set(Config::get('app.timezone', 'Europe/Rome'));
         Session::start();
 
@@ -64,6 +65,9 @@ final class Router
                 '/stream' => [PlayerController::class, 'stream'],
                 '/cron/sync' => [CronController::class, 'sync'],
                 '/api/tmdb/search' => [ApiController::class, 'tmdbSearch'],
+                '/api/tmdb/details' => [ApiController::class, 'tmdbDetails'],
+                '/api/tmdb/classify-suggest' => [ApiController::class, 'tmdbClassifySuggest'],
+                '/api/catalog/items' => [ApiController::class, 'catalogItems'],
                 '/poster' => [CatalogController::class, 'poster'],
             ],
             'POST' => [
@@ -74,11 +78,16 @@ final class Router
                 '/api/preferences/theme' => [ApiController::class, 'theme'],
                 '/api/watch-progress' => [ApiController::class, 'watchProgress'],
                 '/api/tmdb/apply' => [ApiController::class, 'tmdbApply'],
+                '/api/tmdb/classify-apply' => [ApiController::class, 'tmdbClassifyApplyBulk'],
+                '/api/putio/sync-friends' => [ApiController::class, 'putioSyncFriends'],
+                '/api/putio/sync' => [ApiController::class, 'putioSync'],
                 '/admin/impostazioni' => [AdminController::class, 'saveSettings'],
                 '/admin/sync' => [AdminController::class, 'sync'],
+                '/admin/refresh-putio-friends' => [AdminController::class, 'refreshPutioFriends'],
                 '/admin/classificazione' => [AdminController::class, 'saveClassification'],
                 '/admin/inviti' => [AdminController::class, 'createInvite'],
                 '/admin/disconnect-putio' => [AdminController::class, 'disconnectPutio'],
+                '/admin/streaming/stop-all' => [AdminController::class, 'stopAllStreams'],
             ],
         ];
 

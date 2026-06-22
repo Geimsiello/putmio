@@ -43,4 +43,19 @@ final class View
     {
         self::render($template, $data, 'install/layout');
     }
+
+    public static function capture(string $template, array $data = []): string
+    {
+        $base = putmio_base_path() . '/templates';
+        $file = $base . '/' . $template . '.php';
+        if (!is_file($file)) {
+            return '';
+        }
+
+        extract($data, EXTR_SKIP);
+        ob_start();
+        require $file;
+
+        return (string) ob_get_clean();
+    }
 }

@@ -7,6 +7,7 @@ $appUrl = rtrim(Config::get('app.url', putmio_detect_base_url()), '/');
 $userTheme = $_SESSION['user_theme'] ?? $_COOKIE['putmio_theme'] ?? 'dark';
 $isDark = $userTheme === 'dark';
 $pageTitle = putmio_e($title ?? 'PutMio');
+$showFab = ($showSearchFab ?? false) && Session::userId();
 ?>
 <!DOCTYPE html>
 <html lang="it" class="<?= $isDark ? 'dark' : '' ?>">
@@ -20,47 +21,144 @@ $pageTitle = putmio_e($title ?? 'PutMio');
   <script>
     (function(){var t=localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>';if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
   <script>
-    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { surface: { DEFAULT: '#0f172a', light: '#f8fafc' }, accent: '#6366f1' } } } };
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#c0c1ff',
+            'on-primary': '#1000a9',
+            'primary-container': '#8083ff',
+            'on-primary-container': '#0d0096',
+            'primary-fixed-dim': '#c0c1ff',
+            secondary: '#ffe083',
+            tertiary: '#ffb783',
+            'tertiary-container': '#d97721',
+            'on-tertiary-container': '#452000',
+            surface: '#0b1326',
+            'surface-dim': '#0b1326',
+            'surface-container': '#171f33',
+            'surface-container-low': '#131b2e',
+            'surface-container-high': '#222a3d',
+            'surface-container-highest': '#2d3449',
+            'surface-container-lowest': '#060e20',
+            'surface-variant': '#2d3449',
+            'on-surface': '#dae2fd',
+            'on-surface-variant': '#c7c4d7',
+            outline: '#908fa0',
+            'outline-variant': '#464554',
+            background: '#0b1326',
+            warning: '#f59e0b',
+            success: '#10b981',
+            error: '#ef4444',
+            'surface-bright': '#31394d',
+            'on-tertiary': '#4f2500',
+          },
+          fontFamily: {
+            'display-lg': ['Hanken Grotesk', 'sans-serif'],
+            'display-lg-mobile': ['Hanken Grotesk', 'sans-serif'],
+            'headline-lg': ['Hanken Grotesk', 'sans-serif'],
+            'headline-md': ['Hanken Grotesk', 'sans-serif'],
+            'body-md': ['Hanken Grotesk', 'sans-serif'],
+            'body-lg': ['Hanken Grotesk', 'sans-serif'],
+            'label-md': ['JetBrains Mono', 'monospace'],
+            'label-sm': ['JetBrains Mono', 'monospace'],
+          },
+          fontSize: {
+            'display-lg': ['48px', { lineHeight: '56px', letterSpacing: '-0.02em', fontWeight: '800' }],
+            'display-lg-mobile': ['32px', { lineHeight: '40px', fontWeight: '800' }],
+            'headline-lg': ['32px', { lineHeight: '40px', fontWeight: '700' }],
+            'headline-md': ['24px', { lineHeight: '32px', fontWeight: '700' }],
+            'body-md': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+            'body-lg': ['18px', { lineHeight: '28px', fontWeight: '400' }],
+            'label-md': ['14px', { lineHeight: '20px', letterSpacing: '0.05em', fontWeight: '500' }],
+            'label-sm': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+          },
+          spacing: {
+            'margin-desktop': '2.5rem',
+            'margin-mobile': '1rem',
+          },
+          maxWidth: {
+            'container-max': '1440px',
+          },
+        },
+      },
+    };
   </script>
   <link rel="stylesheet" href="<?= putmio_e($appUrl) ?>/public/assets/app.css">
+  <?= $extraHead ?? '' ?>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-background dark:text-on-surface selection:bg-primary/30">
 <?php if (Session::userId()): ?>
-<header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-40">
-  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4 flex-wrap">
-    <a href="<?= putmio_e($appUrl) ?>/" class="flex items-center gap-2 group font-bold text-lg text-indigo-500 hover:opacity-90 transition-opacity">
-      <img src="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" alt="" width="32" height="32" class="w-8 h-8 rounded-lg shadow-md shadow-indigo-500/20 transition-transform duration-300 group-hover:scale-110">
-      PutMio
-    </a>
-    <nav class="flex items-center gap-3 text-sm flex-wrap">
-      <a href="<?= putmio_e($appUrl) ?>/" class="hover:text-indigo-400"><?= putmio_lang('home') ?></a>
-      <a href="<?= putmio_e($appUrl) ?>/catalogo" class="hover:text-indigo-400">Catalogo</a>
-      <a href="<?= putmio_e($appUrl) ?>/in-corso" class="hover:text-indigo-400"><?= putmio_lang('in_progress') ?></a>
-      <?php if (Session::isAdmin()): ?>
-      <a href="<?= putmio_e($appUrl) ?>/admin" class="hover:text-indigo-400"><?= putmio_lang('admin') ?></a>
-      <?php endif; ?>
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-margin-desktop h-16 glass-header border-b border-outline-variant/30 shadow-sm">
+  <div class="flex items-center gap-6 md:gap-8 min-w-0">
+    <a href="<?= putmio_e($appUrl) ?>/" class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim shrink-0">PutMio</a>
+    <nav class="hidden md:flex gap-6">
+      <?php
+      $navItems = [
+        ['/', putmio_lang('home')],
+        ['/catalogo', 'Catalogo'],
+        ['/in-corso', putmio_lang('in_progress')],
+      ];
+      if (Session::isAdmin()) {
+        $navItems[] = ['/admin', putmio_lang('admin')];
+      }
+      foreach ($navItems as [$href, $label]):
+        $active = putmio_nav_is_active($href);
+        $linkClass = $active
+          ? 'text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 text-label-md font-label-md'
+          : 'text-on-surface-variant hover:text-primary transition-colors text-label-md font-label-md';
+      ?>
+      <a href="<?= putmio_e($appUrl . ($href === '/' ? '/' : $href)) ?>" class="<?= $linkClass ?>"><?= putmio_e($label) ?></a>
+      <?php endforeach; ?>
     </nav>
-    <div class="ml-auto flex items-center gap-3">
-      <button type="button" id="theme-toggle" class="rounded-lg border border-slate-300 dark:border-slate-700 px-3 py-1 text-sm" title="Tema">
-        <span class="dark:hidden">🌙</span><span class="hidden dark:inline">☀️</span>
-      </button>
-      <span class="text-sm text-slate-500"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
-      <a href="<?= putmio_e($appUrl) ?>/logout" class="text-sm text-slate-500 hover:text-red-400"><?= putmio_lang('logout') ?></a>
+  </div>
+  <div class="flex items-center gap-3 md:gap-4 shrink-0">
+    <button type="button" id="theme-toggle" class="hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_lang('theme_dark') ?>">
+      <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
+      <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
+    </button>
+    <div class="flex items-center gap-2 px-3 py-1 bg-surface-container dark:bg-surface-container rounded-full border border-outline-variant/20">
+      <span class="text-label-md font-label-md text-on-surface hidden sm:inline"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
+      <a href="<?= putmio_e($appUrl) ?>/logout" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_lang('logout') ?>">
+        <span class="material-symbols-outlined text-base">logout</span>
+      </a>
     </div>
   </div>
 </header>
 <?php endif; ?>
-<main class="max-w-7xl mx-auto px-4 py-6">
+<?php
+$adminSection = putmio_admin_section();
+$isAdminShell = $adminSection !== null;
+?>
+<?php if ($isAdminShell): ?>
+<?php require putmio_base_path() . '/templates/partials/admin-sidebar.php'; ?>
+<main class="pt-24 min-h-screen md:ml-64 bg-background">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">
+    <?= $content ?>
+  </div>
+</main>
+<?php else: ?>
+<main class="<?= Session::userId() ? 'pt-24 pb-12' : 'py-6' ?> min-h-screen max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
   <?= $content ?>
 </main>
+<?php endif; ?>
+<?php if ($showFab): ?>
+<a href="<?= putmio_e($appUrl) ?>/catalogo" class="fixed bottom-8 right-8 z-40 w-14 h-14 bg-primary text-on-primary rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group" title="<?= putmio_lang('search') ?>">
+  <span class="material-symbols-outlined text-3xl group-hover:rotate-12 transition-transform">search</span>
+</a>
+<?php endif; ?>
 <script>
-  window.PUTMIO = {
-    baseUrl: <?= json_encode($appUrl) ?>,
-    csrf: <?= json_encode(Csrf::token()) ?>
-  };
+  window.PUTMIO = <?= json_encode(array_merge([
+    'baseUrl' => $appUrl,
+    'csrf' => Csrf::token(),
+  ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="<?= putmio_e($appUrl) ?>/public/assets/app.js" defer></script>
+<?= $extraScripts ?? '' ?>
 </body>
 </html>

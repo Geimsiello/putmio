@@ -32,15 +32,39 @@ final class Client
         return $this->get($url);
     }
 
-    public function details(string $type, int $id): array
+    public function details(string $type, int $id, array $append = []): array
     {
         $key = (string) Config::get('tmdb.api_key');
         $path = $type === 'tv' ? '/tv/' . $id : '/movie/' . $id;
-        $url = self::BASE . $path . '?' . http_build_query([
+        $params = [
+            'api_key' => $key,
+            'language' => Config::get('tmdb.language', 'it-IT'),
+        ];
+        if ($append !== []) {
+            $params['append_to_response'] = implode(',', $append);
+        }
+        $url = self::BASE . $path . '?' . http_build_query($params);
+        return $this->get($url);
+    }
+
+    public function episodeDetails(int $tvId, int $season, int $episode): array
+    {
+        $key = (string) Config::get('tmdb.api_key');
+        if ($key === '') {
+            throw new \RuntimeException('API key TMDB non configurata');
+        }
+
+        $url = self::BASE . '/tv/' . $tvId . '/season/' . $season . '/episode/' . $episode . '?' . http_build_query([
             'api_key' => $key,
             'language' => Config::get('tmdb.language', 'it-IT'),
         ]);
+
         return $this->get($url);
+    }
+
+    public function posterWebPath(?string $path, string $size = 'w500'): ?string
+    {
+        return $this->posterUrl($path, $size);
     }
 
     public function posterUrl(?string $path, string $size = 'w500'): ?string

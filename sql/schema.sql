@@ -62,6 +62,19 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}putio_connection` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `{{prefix}}putio_sync_friends` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `putio_friend_id` BIGINT NOT NULL,
+  `username` VARCHAR(120) NOT NULL,
+  `folder_putio_id` BIGINT NULL,
+  `avatar_url` VARCHAR(512) NULL,
+  `sync_enabled` TINYINT(1) NOT NULL DEFAULT 0,
+  `updated_at` DATETIME NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_putio_friend_id` (`putio_friend_id`),
+  UNIQUE KEY `uq_username` (`username`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `{{prefix}}putio_files` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `putio_id` BIGINT NOT NULL,
@@ -71,17 +84,23 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}putio_files` (
   `size` BIGINT UNSIGNED NOT NULL DEFAULT 0,
   `mime` VARCHAR(120) NULL,
   `is_folder` TINYINT(1) NOT NULL DEFAULT 0,
+  `is_shared` TINYINT(1) NOT NULL DEFAULT 0,
+  `shared_by_username` VARCHAR(120) NULL,
   `content_type` VARCHAR(80) NULL,
   `synced_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_putio_id` (`putio_id`),
   KEY `idx_parent` (`parent_putio_id`),
-  KEY `idx_folder` (`is_folder`)
+  KEY `idx_folder` (`is_folder`),
+  KEY `idx_shared_by` (`shared_by_username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `{{prefix}}media_items` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `putio_file_id` INT UNSIGNED NOT NULL,
+  `putio_file_id` INT UNSIGNED NULL,
+  `series_id` INT UNSIGNED NULL,
+  `season_number` SMALLINT UNSIGNED NULL,
+  `episode_number` SMALLINT UNSIGNED NULL,
   `media_type` ENUM('film','serie','animazione','altro') NOT NULL DEFAULT 'altro',
   `title` VARCHAR(255) NOT NULL,
   `original_title` VARCHAR(255) NULL,
@@ -98,7 +117,9 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_items` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_putio_file` (`putio_file_id`),
   KEY `idx_status` (`classification_status`),
-  KEY `idx_type` (`media_type`)
+  KEY `idx_type` (`media_type`),
+  KEY `idx_series` (`series_id`),
+  KEY `idx_series_episode` (`series_id`, `season_number`, `episode_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `{{prefix}}genres` (

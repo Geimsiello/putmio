@@ -12,7 +12,7 @@ return [
         'cron_token' => 'CHANGE_ME_random_token',
         'stream_complete_ratio' => 0.90,
         'stream_min_progress_ratio' => 0.05,
-        'max_concurrent_streams_per_ip' => 2,
+        'max_concurrent_streams_per_ip' => 4,
     ],
     'db' => [
         'host' => 'localhost',

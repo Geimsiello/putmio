@@ -86,6 +86,61 @@
         "screenshot": "screens/login-putmio-dark/screenshot.png",
         "code": "screens/login-putmio-dark/code.html"
       }
+    },
+    "535807869c124339abcf4b3a4b035ade": {
+      "title": "Home PutMio (Dark)",
+      "slug": "home-putmio-dark",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2158,
+      "files": {
+        "screenshot": "screens/home-putmio-dark/screenshot.png",
+        "code": "screens/home-putmio-dark/code.html"
+      }
+    },
+    "927342ba0a004e95acefca9251a5b0e3": {
+      "title": "Dashboard Amministrazione (Dark)",
+      "slug": "admin-dashboard",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/admin-dashboard/screenshot.png",
+        "code": "screens/admin-dashboard/code.html"
+      }
+    },
+    "36a76fef71974b38a67b41be177b7099": {
+      "title": "Catalogo PutMio (Dark)",
+      "slug": "catalogo-putmio-dark",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/catalogo-putmio-dark/screenshot.png",
+        "code": "screens/catalogo-putmio-dark/code.html"
+      }
+    },
+    "11a692fcf8c64998b5ab4ee9de641cae": {
+      "title": "Modale: Cerca su TMDB (Dark)",
+      "slug": "tmdb-search-modal",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2048,
+      "files": {
+        "screenshot": "screens/tmdb-search-modal/screenshot.png",
+        "code": "screens/tmdb-search-modal/code.html"
+      }
+    },
+    "f07a023a72a64f34b553b5604fa396b3": {
+      "title": "Player PutMio — Semplice (Dark)",
+      "slug": "player-putmio-semplice-dark",
+      "deviceType": "DESKTOP",
+      "width": 2560,
+      "height": 2468,
+      "files": {
+        "screenshot": "screens/player-putmio-semplice-dark/screenshot.png",
+        "code": "screens/player-putmio-semplice-dark/code.html"
+      }
     }
   }
 }

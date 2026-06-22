@@ -77,6 +77,12 @@ function putmio_video_extensions(): array
     return ['mp4', 'mkv', 'avi', 'mov', 'wmv', 'm4v', 'webm', 'ts', 'mpeg', 'mpg'];
 }
 
+/** Titolo suggerito da un nome file release (null se non riconosciuto). */
+function putmio_guess_title_from_filename(string $filename): ?string
+{
+    return \PutMio\Media\ReleaseNameParser::guessTitle($filename);
+}
+
 function putmio_is_video_file(string $name, ?string $mime = null): bool
 {
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -87,6 +93,53 @@ function putmio_is_video_file(string $name, ?string $mime = null): bool
         return true;
     }
     return false;
+}
+
+function putmio_stream_mime_type(?string $fileName, ?string $mime = null): string
+{
+    if ($mime !== null && $mime !== '' && str_starts_with($mime, 'video/')) {
+        return $mime;
+    }
+
+    $ext = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
+    $map = [
+        'mp4' => 'video/mp4',
+        'm4v' => 'video/mp4',
+        'mov' => 'video/quicktime',
+        'webm' => 'video/webm',
+        'mkv' => 'video/x-matroska',
+        'avi' => 'video/x-msvideo',
+        'wmv' => 'video/x-ms-wmv',
+        'mpeg' => 'video/mpeg',
+        'mpg' => 'video/mpeg',
+        'ts' => 'video/mp2t',
+    ];
+
+    return $map[$ext] ?? 'video/mp4';
+}
+
+/** MIME usato dal player HTML5 (hint per contenitori non nativi del browser). */
+function putmio_browser_playback_mime(?string $fileName, ?string $mime = null): string
+{
+    $ext = strtolower(pathinfo((string) $fileName, PATHINFO_EXTENSION));
+    $native = ['mp4', 'm4v', 'webm', 'mov', 'mpeg', 'mpg'];
+
+    if (in_array($ext, $native, true)) {
+        return putmio_stream_mime_type($fileName, $mime);
+    }
+
+    return 'video/mp4';
+}
+
+/** Codec audio non riproducibili nel browser senza transcoding. */
+function putmio_has_unsupported_browser_audio(?string $fileName): bool
+{
+    if ($fileName === null || $fileName === '') {
+        return false;
+    }
+
+    $upper = strtoupper($fileName);
+    return (bool) preg_match('/\b(AC3|DD5\.?1|EAC3|DDP|DTS|DTS-HD|TRUEHD|ATMOS)\b/', $upper);
 }
 
 function putmio_lang(string $key, array $replace = []): string
@@ -176,4 +229,303 @@ function putmio_format_duration(int $seconds): string
         return sprintf('%d:%02d:%02d', $h, $m, $s);
     }
     return sprintf('%d:%02d', $m, $s);
+}
+
+function putmio_format_runtime_label(?int $seconds): ?string
+{
+    if ($seconds === null || $seconds <= 0) {
+        return null;
+    }
+    $h = intdiv($seconds, 3600);
+    $m = intdiv($seconds % 3600, 60);
+    if ($h > 0) {
+        return $h . 'h ' . $m . 'min';
+    }
+    return $m . ' min';
+}
+
+/** @return array{ext: ?string, codec: ?string, resolution: ?string} */
+function putmio_file_technical_labels(?string $fileName): array
+{
+    $ext = $fileName ? strtoupper(pathinfo($fileName, PATHINFO_EXTENSION)) : '';
+    $codec = null;
+    $resolution = null;
+
+    if ($fileName !== null && $fileName !== '') {
+        $upper = strtoupper($fileName);
+        if (preg_match('/\b(X264|H\.?264|AVC)\b/', $upper)) {
+            $codec = 'H.264';
+        } elseif (preg_match('/\b(X265|H\.?265|HEVC)\b/', $upper)) {
+            $codec = 'H.265';
+        } elseif (preg_match('/\bXVID\b/', $upper)) {
+            $codec = 'XviD';
+        }
+
+        if (preg_match('/\b2160P?\b/', $upper)) {
+            $resolution = '4K UHD';
+        } elseif (preg_match('/\b1080P?\b/', $upper)) {
+            $resolution = '1080p Full HD';
+        } elseif (preg_match('/\b720P?\b/', $upper)) {
+            $resolution = '720p HD';
+        }
+    }
+
+    return [
+        'ext' => $ext !== '' ? $ext : null,
+        'codec' => $codec,
+        'resolution' => $resolution,
+    ];
+}
+
+/** Contenuto con metadati TMDB applicati. */
+function putmio_media_is_linked(array $media): bool
+{
+    return !empty($media['tmdb_id']);
+}
+
+function putmio_request_path(): string
+{
+    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+    if (putmio_is_installed()) {
+        $base = rtrim(parse_url(\PutMio\Config::get('app.url', putmio_detect_base_url()), PHP_URL_PATH) ?? '', '/');
+        if ($base !== '' && str_starts_with($uri, $base)) {
+            $uri = substr($uri, strlen($base)) ?: '/';
+        }
+    }
+    $uri = '/' . trim($uri, '/');
+    return $uri === '//' ? '/' : ($uri === '' ? '/' : $uri);
+}
+
+function putmio_nav_is_active(string $prefix): bool
+{
+    $path = putmio_request_path();
+    if ($prefix === '/') {
+        return $path === '/';
+    }
+    return str_starts_with($path, $prefix);
+}
+
+/** Percorso catalogo con filtri (es. `/catalogo?q=batman&type=film`). */
+function putmio_catalog_path(array $filters, int $page = 1): string
+{
+    $query = array_filter([
+        'q' => trim((string) ($filters['q'] ?? '')) ?: null,
+        'type' => trim((string) ($filters['type'] ?? '')) ?: null,
+        'genre' => trim((string) ($filters['genre'] ?? '')) ?: null,
+        'shared_by' => trim((string) ($filters['shared_by'] ?? '')) ?: null,
+        'page' => $page > 1 ? (string) $page : null,
+    ], static fn ($v) => $v !== null && $v !== '');
+
+    $path = '/catalogo';
+    if ($query !== []) {
+        $path .= '?' . http_build_query($query);
+    }
+
+    return $path;
+}
+
+/** Valida un percorso di ritorno al catalogo (anti open-redirect). */
+function putmio_sanitize_catalog_return(?string $from): ?string
+{
+    if ($from === null || trim($from) === '') {
+        return null;
+    }
+    $from = rawurldecode(trim($from));
+    if (str_contains($from, '://') || str_starts_with($from, '//')) {
+        return null;
+    }
+    if ($from !== '/catalogo' && !str_starts_with($from, '/catalogo?')) {
+        return null;
+    }
+    $parts = parse_url($from);
+    if ($parts === false || ($parts['path'] ?? '') !== '/catalogo') {
+        return null;
+    }
+
+    $allowed = ['q', 'type', 'genre', 'shared_by', 'page'];
+    parse_str($parts['query'] ?? '', $query);
+    $clean = [];
+    foreach ($allowed as $key) {
+        if (!isset($query[$key]) || $query[$key] === '') {
+            continue;
+        }
+        $clean[$key] = (string) $query[$key];
+    }
+
+    return putmio_catalog_path([
+        'q' => $clean['q'] ?? null,
+        'type' => $clean['type'] ?? null,
+        'genre' => $clean['genre'] ?? null,
+        'shared_by' => $clean['shared_by'] ?? null,
+    ], max(1, (int) ($clean['page'] ?? 1)));
+}
+
+function putmio_catalog_return_url(?string $from = null): string
+{
+    $base = rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/');
+    $path = putmio_sanitize_catalog_return($from) ?? '/catalogo';
+
+    return $base . $path;
+}
+
+/** Tipologia effettiva per la UI (media_type DB o inferenza da TMDB). */
+function putmio_resolve_media_type(array $item): ?string
+{
+    $type = (string) ($item['media_type'] ?? 'altro');
+    if ($type !== 'altro') {
+        return $type;
+    }
+    return putmio_media_type_from_tmdb(
+        (string) ($item['tmdb_type'] ?? ''),
+        is_array($item['tmdb_genres'] ?? null) ? $item['tmdb_genres'] : []
+    );
+}
+
+/** @param list<array{id?: int, name?: string}> $genres */
+function putmio_media_type_from_tmdb(string $tmdbType, array $genres = []): ?string
+{
+    foreach ($genres as $genre) {
+        if ((int) ($genre['id'] ?? 0) === 16) {
+            return 'animazione';
+        }
+    }
+    if ($tmdbType === 'tv') {
+        return 'serie';
+    }
+    if ($tmdbType === 'movie') {
+        return 'film';
+    }
+    return null;
+}
+
+/** Sottotitolo card catalogo: «Tipologia • Genere/Anno» come da design Stitch */
+function putmio_catalog_subtitle(array $item): string
+{
+    $type = putmio_resolve_media_type($item);
+    $typeLabel = $type !== null ? putmio_lang($type) : null;
+
+    $secondary = null;
+    $genreNames = trim((string) ($item['genre_names'] ?? ''));
+    if ($genreNames !== '') {
+        $secondary = explode(', ', $genreNames)[0];
+    } elseif (!empty($item['year'])) {
+        $secondary = (string) (int) $item['year'];
+    }
+
+    if ($typeLabel !== null && $secondary !== null) {
+        return $typeLabel . ' • ' . $secondary;
+    }
+    if ($secondary !== null) {
+        return $secondary;
+    }
+    if ($typeLabel !== null) {
+        return $typeLabel;
+    }
+    return putmio_lang('unclassified');
+}
+
+/** Nick put.io del proprietario per contenuti condivisi (null se tuo). */
+function putmio_catalog_owner_nick(array $item): ?string
+{
+    $owner = trim((string) ($item['shared_by_username'] ?? ''));
+    return $owner !== '' ? $owner : null;
+}
+
+/** @return array{0: string, 1: string} classi badge poster (sfondo, testo) */
+function putmio_media_badge_classes(string $type): array
+{
+    switch ($type) {
+        case 'serie':
+            return ['bg-primary/80 backdrop-blur-md', 'text-on-primary'];
+        case 'animazione':
+            return ['bg-tertiary-container/80 backdrop-blur-md', 'text-on-tertiary-container'];
+        default:
+            return ['bg-background/60 backdrop-blur-md', 'text-white'];
+    }
+}
+
+/** Sezione admin attiva (null se fuori dall'area admin). */
+function putmio_admin_section(): ?string
+{
+    if (!\PutMio\Auth\Session::isAdmin()) {
+        return null;
+    }
+    $path = putmio_request_path();
+    if ($path === '/admin') {
+        return 'dashboard';
+    }
+    if (str_starts_with($path, '/admin/impostazioni')) {
+        return 'settings';
+    }
+    if (str_starts_with($path, '/admin/classificazione')) {
+        return 'classify';
+    }
+    if (str_starts_with($path, '/admin/streaming')) {
+        return 'streaming';
+    }
+    if (str_starts_with($path, '/admin/utenti')) {
+        return 'users';
+    }
+    return null;
+}
+
+/** @return array{unclassified: int} */
+function putmio_admin_nav_stats(): array
+{
+    static $stats = null;
+    if ($stats !== null) {
+        return $stats;
+    }
+    if (!putmio_is_installed() || !\PutMio\Auth\Session::isAdmin()) {
+        return $stats = ['unclassified' => 0];
+    }
+    try {
+        $pdo = \PutMio\Database::pdo();
+        $stats = [
+            'unclassified' => (int) $pdo->query(
+                'SELECT COUNT(*) FROM `' . \PutMio\Config::table('media_items') . "` WHERE classification_status = 'unclassified'"
+            )->fetchColumn(),
+        ];
+    } catch (\Throwable $e) {
+        $stats = ['unclassified' => 0];
+    }
+    return $stats;
+}
+
+function putmio_admin_nav_link_class(string $section): string
+{
+    $active = putmio_admin_section() === $section;
+    if ($active) {
+        return 'flex items-center gap-4 px-4 py-3 rounded-lg text-primary font-bold border-r-4 border-primary bg-primary/5 transition-transform hover:translate-x-1';
+    }
+    return 'flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/20 transition-transform hover:translate-x-1';
+}
+
+function putmio_session_duration_label(?string $startedAt): string
+{
+    if (!$startedAt) {
+        return '—';
+    }
+    $ts = strtotime($startedAt);
+    if (!$ts) {
+        return '—';
+    }
+    return putmio_format_duration(max(0, time() - $ts));
+}
+
+function putmio_stream_bitrate_label(int $bytesSent, ?string $startedAt): string
+{
+    if (!$startedAt || $bytesSent <= 0) {
+        return '—';
+    }
+    $ts = strtotime($startedAt);
+    if (!$ts) {
+        return '—';
+    }
+    $seconds = max(1, time() - $ts);
+    $mbps = ($bytesSent * 8) / $seconds / 1_000_000;
+    if ($mbps < 0.1) {
+        return round($mbps * 1000, 1) . ' Kbps';
+    }
+    return round($mbps, 1) . ' Mbps';
 }

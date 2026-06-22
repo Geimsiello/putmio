@@ -100,6 +100,13 @@ final class Session
         }
     }
 
+    public static function release(): void
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_write_close();
+        }
+    }
+
     public static function requireAdmin(): void
     {
         self::requireAuth();

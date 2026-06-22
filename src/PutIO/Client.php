@@ -110,13 +110,31 @@ final class Client
         return $this->apiGet('/account/info');
     }
 
-    public function listFiles(int $parentId = -1, ?string $cursor = null): array
+    public function listFiles(int $parentId = -1, ?string $cursor = null, array $options = []): array
     {
         $query = ['parent_id' => $parentId, 'per_page' => 1000];
         if ($cursor) {
             $query['cursor'] = $cursor;
         }
+        if (!empty($options['hidden'])) {
+            $query['hidden'] = 1;
+        }
         return $this->apiGet('/files/list', $query);
+    }
+
+    public function listFriends(): array
+    {
+        $data = $this->apiGet('/friends/list');
+        return $data['friends'] ?? [];
+    }
+
+    public static function isFolder(array $file): bool
+    {
+        if (!empty($file['is_folder']) || ($file['file_type'] ?? '') === 'FOLDER') {
+            return true;
+        }
+
+        return ($file['content_type'] ?? '') === 'application/x-directory';
     }
 
     public function getDownloadUrl(int $fileId): string
@@ -126,6 +144,73 @@ final class Client
             throw new \RuntimeException('URL streaming non disponibile');
         }
         return $data['url'];
+    }
+
+    /** @return array{status: string, percent_done?: int, size?: int} */
+    public function getMp4Status(int $fileId): array
+    {
+        $data = $this->apiGet('/files/' . $fileId . '/mp4');
+        return is_array($data['mp4'] ?? null) ? $data['mp4'] : [];
+    }
+
+    public function isMp4Available(int $fileId): bool
+    {
+        try {
+            $status = $this->getMp4Status($fileId);
+            return strtoupper((string) ($status['status'] ?? '')) === 'COMPLETED';
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    public function getPlaybackRemoteUrl(int $fileId, string $format = 'mp4'): string
+    {
+        if ($format === 'mp4') {
+            if (!$this->isMp4Available($fileId)) {
+                throw new \RuntimeException('Versione MP4 non disponibile su put.io');
+            }
+            return $this->resolveRedirect('/files/' . $fileId . '/mp4/stream');
+        }
+
+        return $this->getDownloadUrl($fileId);
+    }
+
+    private function resolveRedirect(string $path, array $query = []): string
+    {
+        $url = self::API_BASE . $path;
+        if ($query) {
+            $url .= '?' . http_build_query($query);
+        }
+
+        $token = $this->getAccessToken();
+        $location = null;
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_NOBODY => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => false,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+            ],
+        ]);
+        curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($ch, string $line) use (&$location) {
+            if (preg_match('/^Location:\s*(.+)$/i', trim($line), $m)) {
+                $location = trim($m[1]);
+            }
+            return strlen($line);
+        });
+        curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($location) {
+            return $location;
+        }
+        if ($code >= 200 && $code < 300) {
+            return $url;
+        }
+
+        throw new \RuntimeException('URL stream put.io non disponibile (HTTP ' . $code . ')');
     }
 
     public function apiGet(string $path, array $query = []): array

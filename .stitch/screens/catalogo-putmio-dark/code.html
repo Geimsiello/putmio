@@ -1,0 +1,344 @@
+<!DOCTYPE html><html class="dark" lang="it"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#ffb783",
+                    "surface-container-low": "#131b2e",
+                    "on-surface": "#dae2fd",
+                    "surface-slate": "#1e293b",
+                    "on-secondary-fixed": "#231b00",
+                    "on-error": "#690005",
+                    "twitter-blue": "#1da1f2",
+                    "secondary": "#ffe083",
+                    "tertiary-container": "#d97721",
+                    "tertiary-fixed": "#ffdcc5",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "on-tertiary-fixed": "#301400",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary": "#4f2500",
+                    "inverse-primary": "#494bd6",
+                    "on-secondary-container": "#645000",
+                    "on-background": "#dae2fd",
+                    "on-tertiary-fixed-variant": "#703700",
+                    "secondary-container": "#eec200",
+                    "on-secondary": "#3c2f00",
+                    "outline-variant": "#464554",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "surface-variant": "#2d3449",
+                    "secondary-fixed": "#ffe083",
+                    "surface-container": "#171f33",
+                    "surface-dim": "#0b1326",
+                    "inverse-surface": "#dae2fd",
+                    "outline": "#908fa0",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "surface-dark": "#161616",
+                    "on-secondary-fixed-variant": "#574500",
+                    "warning": "#f59e0b",
+                    "surface-bright": "#31394d",
+                    "surface-container-highest": "#2d3449",
+                    "surface-container-lowest": "#060e20",
+                    "on-primary-fixed": "#07006c",
+                    "primary-container": "#8083ff",
+                    "on-primary-container": "#0d0096",
+                    "on-tertiary-container": "#452000",
+                    "secondary-fixed-dim": "#eec200",
+                    "surface": "#0b1326",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#c7c4d7",
+                    "primary-fixed": "#e1e0ff",
+                    "primary": "#c0c1ff",
+                    "surface-container-high": "#222a3d",
+                    "success": "#10b981",
+                    "error": "#ef4444",
+                    "on-primary": "#1000a9",
+                    "inverse-on-surface": "#283044",
+                    "surface-tint": "#c0c1ff",
+                    "background": "#0b1326"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "poster-aspect-ratio": "2/3",
+                    "gutter": "1.5rem",
+                    "container-max": "1440px",
+                    "margin-desktop": "2.5rem",
+                    "margin-mobile": "1rem"
+            },
+            "fontFamily": {
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Hanken Grotesk"],
+                    "display-lg-mobile": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-md": ["Hanken Grotesk"],
+                    "label-md": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "800"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0b1326; /* Slate-950 context from system colors */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .poster-hover:hover .poster-overlay {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen font-body-md selection:bg-primary/30">
+<!-- TopNavBar (Shared Component) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 dark:bg-surface/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-sm">
+<div class="flex items-center gap-8">
+<span class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim">PutMio</span>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:scale-105 transition-transform duration-100" href="#">Home</a>
+<a class="text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Catalogo</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:scale-105 transition-transform duration-100" href="#">In corso</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md hover:scale-105 transition-transform duration-100" href="#">Amministrazione</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all active:scale-95">light_mode</button>
+<div class="flex items-center gap-2 pl-4 border-l border-outline-variant/30">
+<span class="text-label-md font-label-md text-on-surface">Renato</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-error transition-all active:scale-95">logout</button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-12 px-margin-desktop max-w-container-max mx-auto">
+<!-- Catalog Header -->
+<div class="mb-10">
+<h1 class="text-display-lg font-display-lg text-on-surface mb-8">Catalogo</h1>
+<!-- Filter Bar -->
+<div class="flex flex-col md:flex-row items-center gap-4 bg-surface-container p-4 rounded-xl border border-outline-variant/20 shadow-lg">
+<div class="relative flex-grow w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-surface-variant border-none rounded-lg pl-10 pr-4 py-2.5 text-on-surface placeholder:text-on-surface-variant focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Cerca..." type="text">
+</div>
+<div class="relative w-full md:w-48">
+<select class="w-full bg-surface-variant border-none rounded-lg px-4 py-2.5 text-on-surface appearance-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer">
+<option>Tutti</option>
+<option>Film</option>
+<option>Serie TV</option>
+<option>Animazione</option>
+<option>Altro</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+</div>
+<button class="w-full md:w-auto px-8 py-2.5 bg-primary text-on-primary font-bold rounded-lg hover:bg-primary-container transition-all active:scale-95 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+                    Cerca
+                </button>
+</div>
+</div>
+<!-- Media Grid -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-gutter">
+<!-- Card 1 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Cinematic movie poster for a high-budget sci-fi thriller featuring a solitary astronaut standing on the edge of a crystalline alien canyon. The lighting is dominated by deep indigo and electric purple hues, casting long, dramatic shadows. The aesthetic is sleek, modern, and immersive, aligned with a premium digital theater experience. High-quality details suggest a narrative of discovery and isolation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbqGtW-9rU2bDUUYiHGh9PINY2XPo3VgD79fkPrZ6izZkSgTeif14qQ9WEL3MUTaKd-LykLXHnAom_ONvgWwzRX-OVu2myP-ZJ3wJQye_7PpIvj0nme6oCafqNFwbxB-yBnIoyR2Jh_cwrfd0c4-HECWbhEL79UZDUW1FomRbxu3wOfaBYduH5Z8NHt4pf443ro9tA0GyzuvVF3qh3K700GMTP3fck98Vu26xk3vrAb5IFqBnan4ZAXBwU_FKSkdgUfN1sb5SAZdV7">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Interstellar Drift</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Film • 2024</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="A sophisticated TV series poster showing a group of corporate rivals in a dark, glass-walled boardroom overlooking a neon-lit futuristic city. The color palette is cold and clinical with sharp highlights on expensive suits and polished surfaces. The mood is tense and professional, capturing a high-stakes power struggle. Minimalist composition with a focus on dramatic silhouettes and reflective textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBGnnEdFwz6S-TGSTMdq9CQLfhSZkr2ufN6Ptk7A3z0HgUp9hd9WFpaYYBQQWnBV5F7GmFlSeWGErpHCiZkGvSB0lmGr3PIg2JEyUKzN98nOYUyUs_MVu5ozJoiKXqyXcwHDEavRSU5RaCNl2uysODzhbqayYypQBh8S_C11PlnYoRsRRyTzD_TTQMCsOtkmW6txeLf9tKauYO_gWrf_Ds_ij9hMZ9j_CCqjABc8bOfZMZmxr8r0R1p9x_0bmCPFN4NiRapR2z1BeMe">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Succession: 2099</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Serie TV • S1</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Vibrant animation poster featuring a young hero wielding a sword made of liquid light in a lush, bioluminescent forest at night. The art style is painterly and detailed, reminiscent of high-end fantasy anime. Glowing flora in shades of turquoise and amber illuminates the scene. The mood is magical and adventurous, with a rich depth created by soft bokeh and atmospheric haze." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2W6FqPglEXDGOHEbzx3NYDha9ZPyNSxvjSNudUsvmfM2pf1TrZpkUb-zUMGWbu2Ks5VSuE2hXSZdZVHXBPeiBELfdkA5dhIAZzpq-B6wy-39N4OPkOvFWscLsbMHgJErP1BBJHmT3zFlj2U3NPnOi3fa45Z6YfFllDseykqb9MxIRxDTfO_S9twttax-uBPNWK7WmBWVWriIMyrCMmIddLauLiPa1xqyBOg-ssEsUzIrw_SGHWZbniORSug3exyW4PF8UZ_63OUk-">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Lumina's Quest</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Animazione • Film</p>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Gritty documentary-style poster depicting a hacker's workstation in a dimly lit apartment, cluttered with monitors displaying scrolling green code and hardware components. The lighting is moody, with the only light sources being the glowing screens reflecting on a face partially in shadow. The aesthetic is industrial and high-tech, emphasizing a clandestine, powerful digital world. Deep blacks and slate greys dominate." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBId1Nok_0nfcFjGlwqgsX1olFplCXCQf1R3_buBm4XYZOinT3KMNSuGXz6x8iX21aGo_vcY0x2smoObf7NHMj-TjbJSgG5sTmBn-I3wAGrIavbd-WJt3KpitS-gEOnjhkgNyMY_jV9883G3KbYXSprirPl5qJ34Kb-viCt3WecF3BtKnoE9pna0R1mEOTuTM_s8opsYOXh4teqByz6X6d3bysmA_QxGO6HxKJkDuzeqsxAfTEAv6T_UncmHK0Obpx4XPVfgsy_FhvE">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">The Last Patch</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Altro • Documentario</p>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Classic noir film poster reimagined for a modern era. A detective in a trench coat stands under a single streetlamp in a rain-slicked alleyway. The rain is captured in sharp detail, catching the amber light. High contrast monochrome palette with a single splash of deep red from a neon sign in the background. The mood is mysterious, lonely, and intensely atmospheric." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyqGc6k3LI75fqBLuhpMAafyo2iWwM-nD8UQsClx62l2rudNOhEp50Bfjl5Hkjw9X3cXmVN8ZSpua6mR9PY3wnBPbFzOVCOS1uOK3ciGUtzK3DRfUqVf-lV1Fio78EPZZFU2qI8roamiqVS5Zx_D9aPbOt-deX8ksRgvATevXfr3xNynpfzZOdZH7Au08o-DoRXWJ99WBK4zf9dU9xnbbBU3AgVsaaAbmixvwFS78CqnZv_JcLJ6G-Etf7VelqRCzt4zJ9mRSN3DTf">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Midnight Protocol</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Film • Noir</p>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Epic historical drama poster showing a massive fleet of ancient sailing ships approaching a rocky, sun-drenched Mediterranean coastline. The water is a brilliant turquoise, and the sky is a deep, warm orange from a setting sun. The lighting is golden and heroic, highlighting the textures of wood and sail. The composition is expansive and cinematic, suggesting a grand scale narrative of war and exploration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDKatny58g_gW7Hhv-g1JX3j59int15e6PhYcKucqwLMvOX_s3x354hZLvkoKDTgIkWpZiVFozFSXDiuWZzVvjwzi3rD_dydkaOQGGJTX1blsEVPIBH5qnFNhnOi5q2LaF-mGkrJkJBsN8nMglzGcaoCvClFIplxBamWfEU08BsjhDIi4_12sJHtpz-1S8n9l6PMPWf0bg-CawuzaItLk7UgqXpEVgsaU9tI4UJaK82_Oe9whI19Wv3hU3Cmu1MDoHNfqNjslfVFdWM">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Empire's Fall</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Serie TV • S3</p>
+</div>
+</div>
+<!-- Repeating cards for full grid -->
+<!-- Card 7 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Ethereal fantasy poster featuring a floating castle island suspended above a sea of clouds. The sky is a gradient of soft peach and lavender during a quiet sunrise. The architecture is intricate and spindly, suggesting an elven or magical origin. The lighting is soft and diffused, creating a serene, dreamlike atmosphere with a high level of artistic polish and depth." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnayp8_b3-uWIO1L9c7IJQFJJiqLB6tyyPLo7bmzcBNbP9UiKQBvji-t7tlkgW-Ds2S5GXzRBaBKC7TmV6fkq8-pSDRNYNOWHIKYnKeykt6Js9XKgzr0w32CZAixdwO2LiecUDo_1zbSk4DHbC2PPw_zE8QrFHD36ShGcPfZo-gU-U_0Aza7I4ya0dMcDbEXkkDjb4653jaCFZNpnxqFRSiXMryVJp4J7tAqCcial04jg-aHG9XsD5GQq5mMaExWosS3_emcxd0U_f">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Azure Citadel</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Film • Fantasy</p>
+</div>
+</div>
+<!-- Card 8 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="High-octane racing film poster showing a sleek, carbon-fiber electric supercar drifting through a rain-drenched neon street. Motion blur effects emphasize speed, with bright streaks of light following the tail lights. The color scheme is vibrant pink and cyan against dark asphalt. The image feels fast-paced and technologically advanced, with a heavy emphasis on reflective surfaces and light trails." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVRBDYb7c6ZIdTt-Uvu-yHL47sLIzE50WBOoQiBLdVG0hkeBg4I7wVN-n8EJnP3ebLDaCS6iM_bx1YFJ2Q9uSmPUx6UMJpR42BzGKHl8jwzVoTFlfGIIrtD13pgRLy2b-riwlLGeEvpoZ-4uakdM1u5jRgZ8jC5uiUSbCyTuPZek8X5IPScT6vklVLf5pIgReAEA5qab49I0q5eWjzy1WdJPzJRcNapr0svryFWe53GcttD0lxCIOU3ND-G5ju6XrOKoF2lfik-FsV">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Volt Velocity</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Film • Action</p>
+</div>
+</div>
+<!-- Card 9 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Psychological thriller poster featuring a shattered mirror reflecting a fragmented face. Each shard shows a slightly different emotion or angle, creating a disorienting and unsettling effect. The lighting is high-key and cold, with clinical white backgrounds. The aesthetic is minimalist and sharp, focusing on the distorted geometry of the glass and the psychological intensity of the expressions." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCw5YNaRME7BCWKe6hhyhL3B2ivVeuAorUrFoWFj-TIIO-Bi7FKXtRWmIQ2ahbhKzPy3e8o46z7EJpDvEAkNMBWkfum0q1icmm6IJpiUXTTss2RwJ0hGELJeVN1S5j-HsT60aynzQrKTQNv1C2RyYlSV9P0LKYdIyRQ8yewaHCymThS790_lWwOLGZLnqFOpiqtaiI_GP8NxNgdxXp1d2q4pkQdD9B25vi7ixu_zKmD0_kzjxAkIP3Hq5SBsuBxci-23b0MeY2nv-x">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Fragmented</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Serie TV • S1</p>
+</div>
+</div>
+<!-- Card 10 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Cozy slice-of-life animation poster showing a charming small cafe in a rainy European village. Warm yellow light glows from the windows, inviting the viewer in. A character sits by the window with a steaming cup of coffee. The art style is soft and inviting, with a rich texture like watercolor. The palette is composed of warm earth tones and cool blues, creating a peaceful and nostalgic mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpONSrKN78ZDe8Qq4gum04dBeABIFEhdRI29yfoEnDoyd6FfYnfSrIbwjZjvvZQtZOyuwonMUTqabREj7EYuyO3PyL6mv5TvzZrI9yevYGLZxR9WF8n4l8B7OlpEAmdJkvRyu7cEiNMaY3B2Jz8ZHH7YUBy6ewRPMl4XDI73TPMYwZ3JeesmtkmNZTWCg6D9XPv4SN17RTYvfYzbnj8nYkMBMgVsA6Pgq_WJZE-AQ-Au4ii7uFvsmMhELZwXMRM0I62qZxHxqrja8_">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Rainy Coffee</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Animazione • Serie</p>
+</div>
+</div>
+<!-- Card 11 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Survival drama poster depicting a lone figure trekking across an endless, scorching desert landscape with giant dunes. The sun is a massive, blinding white orb in a clear blue sky, creating intense heat distortion. The lighting is harsh and direct, emphasizing the texture of the sand and the exhaustion of the character. The mood is desperate and epic, focusing on the vastness and indifference of nature." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBjUMq6ziSgBuSTL_ERMfDXfImVTLGIJrVtl_HiL1C6Ft9D1wHfQpzp1o01JAwpw5IBhEjmpGdmP9sQFWgdBKCtvnlX07vJDrk0VaL53VCDZc729GKwqzE_FzVpcAHCagGir_mn5hy5NKsOzhQqDidFgyWj4PU5Ktv0Mb_upRbgQQgm0MueGozpU1rPDL97npTBFhcnMDP7-K1xkZX3DbJw0TRofleLN0kmm6_xDpGzGayrGdJbNjETyIohCZALaHiHbCjrdAYB_gRK">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Solitude</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Film • Drama</p>
+</div>
+</div>
+<!-- Card 12 -->
+<div class="group flex flex-col gap-3 poster-hover cursor-pointer">
+<div class="aspect-[2/3] relative overflow-hidden rounded-xl bg-surface-container-high shadow-lg transition-all duration-300 group-hover:scale-[1.03] group-hover:shadow-primary/10">
+<img class="w-full h-full object-cover" data-alt="Cyberpunk mystery poster showing a rain-drenched alleyway in a future metropolis where holographic advertisements illuminate the dark corners. The color palette is a clash of hot neon pinks and cold cobalt blues. Reflections of neon signs shimmer in puddles on the ground. A mysterious figure in a high-tech visor stands in the background, partially obscured by steam from a vents. The mood is gritty, urban, and high-tech." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCK5mR3geDxUuMYcM19fwGdSFlKnTkVrjTxUe-qE4dM5l4gRPW0J92dozEaCjF8bJOg4EQdW4-TJWAzP40oSNtEoon0iiQfqmnk4KxgP7TQq4Nvr6HAN1zGYrmj8s-91XPNDCCmg_GR1UfGs7F1W8H46Mcqv2h9oDIMg8o1PgRRAp1SOsExLmpvyWg8kU5XpisGaeXRUjEwCof-siyRYkQBg6WyOAK2h71c5LDulJHfnIRkV5wIBajxqhxJwv7sI7o-OZrHXm25Hpqm">
+<div class="poster-overlay absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 transition-opacity duration-300 flex items-end p-4">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-md text-body-lg text-on-surface truncate group-hover:text-primary transition-colors">Neon Shadow</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Serie TV • S2</p>
+</div>
+</div>
+</div>
+<!-- Pagination / Footer-ish action -->
+<div class="mt-16 flex justify-center">
+<button class="px-10 py-3 bg-surface-variant text-on-surface font-label-md rounded-full border border-outline-variant/30 hover:bg-surface-bright transition-all active:scale-95 shadow-lg">
+                Carica altri
+            </button>
+</div>
+</main>
+<!-- Micro-interaction script -->
+<script>
+        document.querySelectorAll('.poster-hover').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.querySelector('.poster-overlay').style.opacity = '1';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.querySelector('.poster-overlay').style.opacity = '0';
+            });
+        });
+    </script>
+</body></html>

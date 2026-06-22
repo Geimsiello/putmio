@@ -6,6 +6,7 @@ namespace PutMio\Controllers;
 
 use PutMio\Auth\Session;
 use PutMio\CatalogService;
+use PutMio\Config;
 use PutMio\View;
 
 final class CatalogController
@@ -20,17 +21,36 @@ final class CatalogController
     public function index(): void
     {
         Session::requireAuth();
+        $this->catalog->backfillLinkedMediaTypes();
         $filters = [
-            'type' => $_GET['type'] ?? null,
-            'q' => $_GET['q'] ?? null,
+            'type' => trim((string) ($_GET['type'] ?? '')) ?: null,
+            'genre' => trim((string) ($_GET['genre'] ?? '')) ?: null,
+            'shared_by' => trim((string) ($_GET['shared_by'] ?? '')) ?: null,
+            'q' => trim((string) ($_GET['q'] ?? '')) ?: null,
         ];
-        $items = $this->catalog->listMedia(array_filter($filters));
+        $page = max(1, (int) ($_GET['page'] ?? 1));
+        $perPage = $this->catalog->perPage();
+        $limit = $page * $perPage;
+        $activeFilters = array_filter($filters, static fn ($v) => $v !== null && $v !== '');
+        $activeFilters['sort'] = 'title';
+        $items = $this->catalog->listMedia($activeFilters, $limit, 0);
+        $total = $this->catalog->countMedia($activeFilters);
 
         View::render('catalog/index', [
-            'title' => 'Catalogo',
+            'title' => putmio_lang('catalog'),
             'items' => $items,
             'filters' => $filters,
+            'genres' => $this->catalog->listGenres(),
+            'sharers' => $this->catalog->listSharedByUsernames(),
+            'page' => $page,
+            'total' => $total,
+            'hasMore' => $total > count($items),
             'catalog' => $this->catalog,
+            'extraScripts' => '<script src="' . htmlspecialchars(
+                rtrim(Config::get('app.url'), '/') . '/public/assets/catalog.js',
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '" defer></script>',
         ]);
     }
 
@@ -45,14 +65,34 @@ final class CatalogController
             return;
         }
 
+        if (!empty($media['series_id'])) {
+            $from = isset($_GET['from']) ? '&from=' . rawurlencode((string) $_GET['from']) : '';
+            putmio_redirect('media?id=' . (int) $media['series_id'] . $from);
+        }
+
         $userId = (int) Session::userId();
         $progress = $this->getProgress($userId, $id);
+        $isSeries = $this->catalog->isSeries($media);
+        $episodesBySeason = $isSeries ? $this->catalog->episodesBySeason($id) : [];
+        $episodeProgress = $isSeries ? $this->catalog->episodeProgressForUser($userId, $id) : [];
+
+        $fileName = (string) ($media['file_name'] ?? '');
+        $tmdbSuggestedQuery = putmio_guess_title_from_filename($fileName) ?? $media['title'];
+        $isLinked = putmio_media_is_linked($media);
+        $genres = $isLinked ? $this->catalog->mediaGenreNames($id) : [];
 
         View::render('catalog/show', [
             'title' => $media['title'],
             'media' => $media,
             'progress' => $progress,
             'catalog' => $this->catalog,
+            'tmdbSuggestedQuery' => $tmdbSuggestedQuery,
+            'isLinked' => $isLinked,
+            'genres' => $genres,
+            'isSeries' => $isSeries,
+            'episodesBySeason' => $episodesBySeason,
+            'episodeProgress' => $episodeProgress,
+            'catalogReturnUrl' => putmio_catalog_return_url($_GET['from'] ?? null),
         ]);
     }
 

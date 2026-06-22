@@ -9,8 +9,11 @@ use PutMio\Auth\Session;
 use PutMio\CatalogService;
 use PutMio\Config;
 use PutMio\Database;
+use PutMio\Mail\Mailer;
 use PutMio\PutIO\Client;
+use PutMio\PutIO\FriendService;
 use PutMio\PutIO\SyncService;
+use PutMio\Stream\StreamProxy;
 use PutMio\View;
 
 final class AdminController
@@ -23,9 +26,26 @@ final class AdminController
             "SELECT COUNT(*) FROM `" . Config::table('media_items') . "` WHERE classification_status = 'unclassified'"
         )->fetchColumn();
 
+        $activeStreams = $pdo->query(
+            'SELECT ss.*, u.display_name, mi.title, mi.poster_url, mi.poster_local_path
+             FROM `' . Config::table('stream_sessions') . '` ss
+             LEFT JOIN `' . Config::table('users') . '` u ON u.id = ss.user_id
+             LEFT JOIN `' . Config::table('media_items') . '` mi ON mi.id = ss.media_id
+             WHERE ss.active = 1 ORDER BY ss.started_at DESC LIMIT 10'
+        )->fetchAll();
+
+        $todayBytes = (int) $pdo->query(
+            'SELECT COALESCE(SUM(bytes_sent),0) FROM `' . Config::table('stream_sessions') . '`
+             WHERE DATE(started_at) = CURDATE()'
+        )->fetchColumn();
+
         View::render('admin/dashboard', [
             'title' => putmio_lang('admin'),
             'unclassified' => $unclassified,
+            'activeStreams' => $activeStreams,
+            'activeCount' => count($activeStreams),
+            'todayBytes' => $todayBytes,
+            'catalog' => new CatalogService(),
         ]);
     }
 
@@ -34,6 +54,19 @@ final class AdminController
         Session::requireAdmin();
         $putio = new Client();
         $conn = $putio->getConnection();
+        $friendService = new FriendService($putio);
+        $putioFriends = [];
+        $friendsError = null;
+
+        if ($putio->isConnected()) {
+            try {
+                $friendService->refreshFromApi();
+                $putioFriends = $friendService->listStored();
+            } catch (\Throwable $e) {
+                $friendsError = $e->getMessage();
+                $putioFriends = $friendService->listStored();
+            }
+        }
 
         View::render('admin/settings', [
             'title' => putmio_lang('settings'),
@@ -44,6 +77,29 @@ final class AdminController
             'cronToken' => Config::get('app.cron_token'),
             'putioClientId' => Config::get('putio.client_id'),
             'tmdbKey' => Config::get('tmdb.api_key'),
+            'smtpEnabled' => (bool) Config::get('smtp.enabled'),
+            'smtpHost' => (string) Config::get('smtp.host', ''),
+            'smtpPort' => (int) Config::get('smtp.port', 587),
+            'smtpUser' => (string) Config::get('smtp.user', ''),
+            'smtpFromEmail' => (string) Config::get('smtp.from_email', ''),
+            'smtpFromName' => (string) Config::get('smtp.from_name', 'PutMio'),
+            'hasSmtpPass' => trim((string) Config::get('smtp.pass', '')) !== '',
+            'putioFriends' => $putioFriends,
+            'friendsError' => $friendsError,
+            'putmioExtra' => [
+                'initialToast' => !empty($_SESSION['flash_success'])
+                    ? ['type' => 'success', 'message' => (string) $_SESSION['flash_success']]
+                    : (!empty($_SESSION['flash_error'])
+                        ? ['type' => 'error', 'message' => (string) $_SESSION['flash_error']]
+                        : null),
+                'settings' => [
+                    'toastSaving' => putmio_lang('putio_friends_saving'),
+                    'toastSaved' => putmio_lang('putio_friends_saved'),
+                    'toastSaveError' => putmio_lang('putio_friends_save_error'),
+                    'toastSyncRunning' => putmio_lang('putio_sync_running'),
+                ],
+            ],
+            'extraScripts' => '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/admin-settings.js', ENT_QUOTES, 'UTF-8') . '" defer></script>',
             'success' => $_SESSION['flash_success'] ?? null,
             'error' => $_SESSION['flash_error'] ?? null,
         ]);
@@ -57,23 +113,36 @@ final class AdminController
 
         $config = Config::all();
         $config['putio']['client_id'] = trim((string) ($_POST['putio_client_id'] ?? ''));
-        $config['putio']['client_secret'] = trim((string) ($_POST['putio_client_secret'] ?? ''));
+        $putioSecret = trim((string) ($_POST['putio_client_secret'] ?? ''));
+        if ($putioSecret !== '') {
+            $config['putio']['client_secret'] = $putioSecret;
+        }
         $config['putio']['redirect_uri'] = rtrim(Config::get('app.url'), '/') . '/admin/oauth/putio/callback';
-        $config['tmdb']['api_key'] = trim((string) ($_POST['tmdb_api_key'] ?? ''));
+        $tmdbKey = trim((string) ($_POST['tmdb_api_key'] ?? ''));
+        if ($tmdbKey !== '') {
+            $config['tmdb']['api_key'] = $tmdbKey;
+        }
 
         if (!empty($_POST['smtp_enable'])) {
             $config['smtp']['enabled'] = true;
-            $config['smtp']['host'] = trim((string) ($_POST['smtp_host'] ?? ''));
-            $config['smtp']['port'] = (int) ($_POST['smtp_port'] ?? 587);
-            $config['smtp']['user'] = trim((string) ($_POST['smtp_user'] ?? ''));
-            if (!empty($_POST['smtp_pass'])) {
-                $config['smtp']['pass'] = (string) $_POST['smtp_pass'];
-            }
-            $config['smtp']['from_email'] = trim((string) ($_POST['smtp_from'] ?? ''));
+        } else {
+            $config['smtp']['enabled'] = false;
+        }
+        $config['smtp']['host'] = trim((string) ($_POST['smtp_host'] ?? ''));
+        $config['smtp']['port'] = max(1, (int) ($_POST['smtp_port'] ?? 587));
+        $config['smtp']['user'] = trim((string) ($_POST['smtp_user'] ?? ''));
+        if (!empty($_POST['smtp_pass'])) {
+            $config['smtp']['pass'] = (string) $_POST['smtp_pass'];
+        }
+        $config['smtp']['from_email'] = trim((string) ($_POST['smtp_from'] ?? ''));
+        $fromName = trim((string) ($_POST['smtp_from_name'] ?? ''));
+        if ($fromName !== '') {
+            $config['smtp']['from_name'] = $fromName;
         }
 
         $this->writeConfig($config);
         Config::load();
+
         $_SESSION['flash_success'] = 'Impostazioni salvate.';
         putmio_redirect('admin/impostazioni');
     }
@@ -98,6 +167,11 @@ final class AdminController
                 'user_id' => $account['user_id'] ?? $account['id'] ?? null,
                 'username' => $account['username'] ?? null,
             ]);
+            try {
+                (new FriendService($client))->refreshFromApi();
+            } catch (\Throwable $e) {
+                // Lista amici opzionale al collegamento; l'admin può aggiornarla dalle impostazioni.
+            }
             $_SESSION['flash_success'] = 'put.io collegato con successo.';
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
@@ -109,8 +183,22 @@ final class AdminController
     {
         Session::requireAdmin();
         Csrf::requireValid($_POST['_csrf'] ?? null);
+        (new FriendService())->clearAll();
         (new Client())->disconnect();
         $_SESSION['flash_success'] = 'put.io disconnesso.';
+        putmio_redirect('admin/impostazioni');
+    }
+
+    public function refreshPutioFriends(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+        try {
+            $count = (new FriendService())->refreshFromApi();
+            $_SESSION['flash_success'] = 'Lista amici aggiornata (' . $count . ' amici).';
+        } catch (\Throwable $e) {
+            $_SESSION['flash_error'] = $e->getMessage();
+        }
         putmio_redirect('admin/impostazioni');
     }
 
@@ -120,7 +208,12 @@ final class AdminController
         Csrf::requireValid($_POST['_csrf'] ?? null);
         try {
             $result = (new SyncService())->sync();
-            $_SESSION['flash_success'] = 'Sync completata: ' . $result['imported'] . ' elementi.';
+            $msg = 'Sync completata: ' . $result['imported'] . ' elementi aggiornati';
+            if (!empty($result['removed'])) {
+                $msg .= ', ' . $result['removed'] . ' rimossi';
+            }
+            $msg .= '.';
+            $_SESSION['flash_success'] = $msg;
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
         }
@@ -131,16 +224,64 @@ final class AdminController
     {
         Session::requireAdmin();
         $pdo = Database::pdo();
+        $mediaTable = Config::table('media_items');
+        $filesTable = Config::table('putio_files');
         $items = $pdo->query(
-            "SELECT mi.*, pf.name AS file_name FROM `" . Config::table('media_items') . "` mi
-             JOIN `" . Config::table('putio_files') . "` pf ON pf.id = mi.putio_file_id
+            "SELECT mi.*, pf.name AS file_name, pf.shared_by_username,
+                    (SELECT COUNT(*) FROM `{$mediaTable}` ep
+                     WHERE ep.series_id = mi.id AND ep.classification_status = 'unclassified') AS episode_count
+             FROM `{$mediaTable}` mi
+             LEFT JOIN `{$filesTable}` pf ON pf.id = mi.putio_file_id
              WHERE mi.classification_status = 'unclassified'
-             ORDER BY mi.created_at DESC LIMIT 100"
+               AND mi.series_id IS NULL
+               AND (
+                 mi.putio_file_id IS NOT NULL
+                 OR EXISTS (
+                   SELECT 1 FROM `{$mediaTable}` ep
+                   WHERE ep.series_id = mi.id AND ep.classification_status = 'unclassified'
+                 )
+               )
+             ORDER BY pf.shared_by_username IS NOT NULL DESC, mi.created_at DESC
+             LIMIT 100"
         )->fetchAll();
 
         View::render('admin/classify', [
             'title' => putmio_lang('classify'),
             'items' => $items,
+            'tmdbConfigured' => (new \PutMio\TMDB\Client())->isConfigured(),
+            'extraScripts' => '<script src="' . htmlspecialchars(
+                rtrim(Config::get('app.url'), '/') . '/public/assets/classify-tmdb.js',
+                ENT_QUOTES,
+                'UTF-8'
+            ) . '" defer></script>',
+            'putmioExtra' => [
+                'classifyTmdb' => [
+                    'mediaIds' => array_map(static fn (array $row): int => (int) $row['id'], $items),
+                ],
+                'classifyTmdbLabels' => [
+                    'film' => putmio_lang('film'),
+                    'serie' => putmio_lang('serie'),
+                    'animazione' => putmio_lang('animazione'),
+                    'altro' => putmio_lang('altro'),
+                    'summary' => putmio_lang('classify_tmdb_summary'),
+                    'empty' => putmio_lang('classify_tmdb_empty'),
+                    'shared_from' => putmio_lang('classify_shared_from', ['user' => ':user']),
+                    'confidence' => putmio_lang('classify_tmdb_confidence'),
+                    'searched_as' => putmio_lang('classify_tmdb_searched_as'),
+                    'no_match' => putmio_lang('classify_tmdb_no_match'),
+                    'scan_error' => putmio_lang('classify_tmdb_scan_error'),
+                    'scanning' => putmio_lang('classify_tmdb_scanning'),
+                    'scan_done' => putmio_lang('classify_tmdb_scan_done'),
+                    'nothing_selected' => putmio_lang('classify_tmdb_nothing_selected'),
+                    'saving' => putmio_lang('classify_tmdb_saving'),
+                    'save_error' => putmio_lang('classify_tmdb_save_error'),
+                    'saved' => putmio_lang('classify_tmdb_saved'),
+                    'pick_match' => putmio_lang('classify_tmdb_pick_match'),
+                    'no_year' => putmio_lang('classify_tmdb_no_year'),
+                    'year_hint' => putmio_lang('classify_tmdb_year_hint'),
+                    'rating' => putmio_lang('classify_tmdb_rating'),
+                ],
+            ],
         ]);
     }
 
@@ -161,11 +302,28 @@ final class AdminController
         }
 
         $pdo = Database::pdo();
+        $titleFinal = $title !== '' ? $title : 'Senza titolo';
         $pdo->prepare(
             'UPDATE `' . Config::table('media_items') . '`
              SET media_type = ?, title = ?, classification_status = ?, updated_at = NOW()
              WHERE id = ?'
-        )->execute([$type, $title !== '' ? $title : 'Senza titolo', $status, $id]);
+        )->execute([$type, $titleFinal, $status, $id]);
+
+        if ($status === 'classified') {
+            $stmt = $pdo->prepare(
+                'SELECT putio_file_id FROM `' . Config::table('media_items') . '` WHERE id = ? LIMIT 1'
+            );
+            $stmt->execute([$id]);
+            $row = $stmt->fetch();
+            if ($row && empty($row['putio_file_id'])) {
+                $pdo->prepare(
+                    'UPDATE `' . Config::table('media_items') . '`
+                     SET media_type = ?, classification_status = \'classified\', updated_at = NOW()
+                     WHERE series_id = ? AND classification_status = \'unclassified\''
+                )->execute([$type, $id]);
+                (new CatalogService())->syncSeriesMetadataToEpisodes($id);
+            }
+        }
 
         putmio_redirect('admin/classificazione');
     }
@@ -191,7 +349,33 @@ final class AdminController
             'title' => 'Streaming',
             'active' => $active,
             'todayBytes' => $todayBytes,
+            'putmioExtra' => [
+                'initialToast' => !empty($_SESSION['flash_success'])
+                    ? ['type' => 'success', 'message' => (string) $_SESSION['flash_success']]
+                    : (!empty($_SESSION['flash_error'])
+                        ? ['type' => 'error', 'message' => (string) $_SESSION['flash_error']]
+                        : null),
+            ],
+            'extraScripts' => '<script>document.addEventListener("DOMContentLoaded",function(){var t=window.PUTMIO&&window.PUTMIO.initialToast;if(t&&window.pmToast)window.pmToast(t.message,t.type||"success");});</script>',
         ]);
+        unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+    }
+
+    public function stopAllStreams(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $stopped = StreamProxy::terminateAllActive();
+        if ($stopped > 0) {
+            $_SESSION['flash_success'] = $stopped === 1
+                ? '1 sessione di streaming interrotta.'
+                : $stopped . ' sessioni di streaming interrotte.';
+        } else {
+            $_SESSION['flash_success'] = 'Nessuno stream attivo da interrompere.';
+        }
+
+        putmio_redirect('admin/streaming');
     }
 
     public function users(): void
@@ -203,9 +387,11 @@ final class AdminController
         View::render('admin/users', [
             'title' => 'Utenti',
             'users' => $users,
+            'success' => $_SESSION['flash_success'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null,
             'inviteLink' => $_SESSION['flash_invite'] ?? null,
         ]);
-        unset($_SESSION['flash_invite']);
+        unset($_SESSION['flash_success'], $_SESSION['flash_error'], $_SESSION['flash_invite']);
     }
 
     public function createInvite(): void
@@ -224,7 +410,23 @@ final class AdminController
              VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 72 HOUR), ?)'
         )->execute([$email, hash('sha256', $token), Session::userId()]);
 
-        $_SESSION['flash_invite'] = rtrim(Config::get('app.url'), '/') . '/registrati?token=' . urlencode($token);
+        $inviteUrl = rtrim(Config::get('app.url'), '/') . '/registrati?token=' . urlencode($token);
+
+        if (!Mailer::isEnabled()) {
+            $_SESSION['flash_error'] = putmio_lang('invite_smtp_required');
+            $_SESSION['flash_invite'] = $inviteUrl;
+            putmio_redirect('admin/utenti');
+        }
+
+        try {
+            Mailer::sendInvite($email, $inviteUrl);
+            $_SESSION['flash_success'] = putmio_lang('invite_email_sent', ['email' => $email]);
+        } catch (\Throwable $e) {
+            putmio_log('Invito email fallito per ' . $email . ': ' . $e->getMessage());
+            $_SESSION['flash_error'] = putmio_lang('invite_email_failed');
+            $_SESSION['flash_invite'] = $inviteUrl;
+        }
+
         putmio_redirect('admin/utenti');
     }
 

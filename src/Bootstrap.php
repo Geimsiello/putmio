@@ -8,6 +8,11 @@ final class Bootstrap
 {
     public static function init(): void
     {
+        $autoload = dirname(__DIR__) . '/vendor/autoload.php';
+        if (is_file($autoload)) {
+            require $autoload;
+        }
+
         require dirname(__DIR__) . '/src/polyfills.php';
         require dirname(__DIR__) . '/src/helpers.php';
 

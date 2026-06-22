@@ -19,7 +19,11 @@ final class CronController
 
         try {
             $result = (new SyncService())->sync();
-            putmio_json(['ok' => true, 'imported' => $result['imported']]);
+            putmio_json([
+                'ok' => true,
+                'imported' => $result['imported'],
+                'removed' => $result['removed'] ?? 0,
+            ]);
         } catch (\Throwable $e) {
             putmio_json(['ok' => false, 'error' => $e->getMessage()], 500);
         }

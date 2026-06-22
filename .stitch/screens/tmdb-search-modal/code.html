@@ -1,0 +1,269 @@
+<!DOCTYPE html><html class="dark" lang="it"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;700;800&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&amp;family=JetBrains+Mono:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #464554;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #908fa0;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#0b1326",
+                        "primary-fixed": "#e1e0ff",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "on-secondary-fixed-variant": "#574500",
+                        "on-secondary": "#3c2f00",
+                        "inverse-on-surface": "#283044",
+                        "secondary-fixed": "#ffe083",
+                        "surface-slate": "#1e293b",
+                        "surface-variant": "#2d3449",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-surface-variant": "#c7c4d7",
+                        "background": "#0b1326",
+                        "secondary-container": "#eec200",
+                        "on-secondary-fixed": "#231b00",
+                        "on-tertiary-container": "#452000",
+                        "warning": "#f59e0b",
+                        "inverse-primary": "#494bd6",
+                        "success": "#10b981",
+                        "surface-container-highest": "#2d3449",
+                        "tertiary": "#ffb783",
+                        "surface-container-low": "#131b2e",
+                        "surface-container-high": "#222a3d",
+                        "primary-container": "#8083ff",
+                        "primary": "#c0c1ff",
+                        "surface-dim": "#0b1326",
+                        "on-tertiary": "#4f2500",
+                        "on-secondary-container": "#645000",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-primary-fixed": "#07006c",
+                        "surface-bright": "#31394d",
+                        "surface-dark": "#161616",
+                        "tertiary-fixed": "#ffdcc5",
+                        "on-surface": "#dae2fd",
+                        "on-primary": "#1000a9",
+                        "surface-container": "#171f33",
+                        "twitter-blue": "#1da1f2",
+                        "error": "#ef4444",
+                        "secondary": "#ffe083",
+                        "outline": "#908fa0",
+                        "on-tertiary-fixed": "#301400",
+                        "tertiary-container": "#d97721",
+                        "secondary-fixed-dim": "#eec200",
+                        "surface-tint": "#c0c1ff",
+                        "error-container": "#93000a",
+                        "surface-container-lowest": "#060e20",
+                        "on-error-container": "#ffdad6",
+                        "on-error": "#690005",
+                        "on-background": "#dae2fd",
+                        "inverse-surface": "#dae2fd",
+                        "outline-variant": "#464554",
+                        "on-primary-container": "#0d0096"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "poster-aspect-ratio": "2/3",
+                        "margin-desktop": "2.5rem",
+                        "container-max": "1440px",
+                        "gutter": "1.5rem",
+                        "margin-mobile": "1rem"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Hanken Grotesk"],
+                        "label-sm": ["JetBrains Mono"],
+                        "label-md": ["JetBrains Mono"],
+                        "body-md": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "fontWeight": "800"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-hidden">
+<!-- Mock Background: Administration Dashboard -->
+<main class="fixed inset-0 w-full h-full opacity-40 grayscale pointer-events-none overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBT3OpVPGwsxaNjwGgLd0keqJS45AqBF-sCWIjzf0crPAzDhbhl9iMxVicYxVKTK5ZkThQOzwMUw5KqVFobpJ-EPL1Ga5Dc5oSS44KLnFvTuYLGDufiFvxnEE7T2Hx-0bxGHbINqRTSspbS9vontpFv2UrqF6LMdYDucXoDcUgTx2WWvg1Z3EcbxpEWD6cN77Mq6NmL63IoCZ90d04-R0NWcKSXe88EuGZYJ61ZlPvvYUmQgO1vO50VGOZ5o1YEab_4hS2hq8NR07cR')"></div>
+</main>
+<!-- Overlay Backdrop -->
+<div class="fixed inset-0 z-[100] bg-surface-dark/80 backdrop-blur-md flex items-center justify-center p-4" id="modal-overlay">
+<!-- Modal Container -->
+<section class="bg-surface-container-low w-full max-w-[800px] max-h-[921px] rounded-xl shadow-xl flex flex-col overflow-hidden border border-outline-variant/30 scale-100 transition-transform duration-300">
+<!-- Header -->
+<header class="flex items-center justify-between px-6 py-4 border-b border-outline-variant/30 bg-surface-container">
+<h1 class="font-headline-md text-headline-md text-on-surface">Collega metadati TMDB</h1>
+<button class="p-2 hover:bg-surface-variant rounded-full text-on-surface-variant transition-colors active:scale-95" id="close-modal">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</header>
+<!-- Body -->
+<div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+<!-- Left Column: Search & Results -->
+<aside class="w-full md:w-[320px] border-r border-outline-variant/20 flex flex-col bg-surface-container-lowest/50">
+<div class="p-4">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-variant/40 border border-outline-variant rounded-lg font-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all placeholder:text-on-surface-variant/50" placeholder="Cerca film o serie TV..." type="text">
+</div>
+</div>
+<!-- Results List -->
+<div class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-4">
+<div class="space-y-1">
+<!-- Result Item 1 (Active/Selected) -->
+<button class="w-full flex gap-3 p-2 rounded-lg bg-primary/10 border border-primary/20 text-left transition-all">
+<img class="w-[46px] h-[69px] object-cover rounded shadow-md shrink-0" data-alt="A high-resolution movie poster for Dune: Part Two in a cinematic, dark atmosphere. The poster features Paul Atreides standing in the vast Arrakis desert under a deep orange sunset, with high-contrast shadows and glowing blue eyes. The aesthetic is professional and sleek, utilizing deep navy and vibrant orange tones to match the cinematic media center style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ1O8qQKtXX5uQholmvza8jfGBAUcLBgrEB4SSmo4EZYhZIy0DxY3qfv8g1IfT0tyuYNIJfDa35J_6DdzTeVLg3JDYWBZfYTMapTsDwaDg9e2v7jJ5w3TTY-ZJ6Xk7V8HwUqDvbgHTPp2T9fID5Ws5qjFCa89XAMYG3641PTuaT7jNeUzvGdEGRNmMoj3zEAZoWc03vLbvY5dQ9DbU8fRNE26NwMeyYlLf4AW42cJRl_8AUsR7z-daoeh-tyqrJ_9R-y8kRZMT3t-P">
+<div class="flex flex-col justify-center min-w-0">
+<span class="font-label-md text-on-surface truncate">Dune: Parte Due</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-on-surface-variant">2024</span>
+<span class="bg-tertiary/10 text-tertiary px-1.5 py-0.5 rounded text-[10px] font-label-sm uppercase tracking-wider">Film</span>
+</div>
+</div>
+</button>
+<!-- Result Item 2 -->
+<button class="w-full flex gap-3 p-2 rounded-lg hover:bg-surface-variant/40 text-left transition-all group">
+<img class="w-[46px] h-[69px] object-cover rounded shadow-sm opacity-80 group-hover:opacity-100 shrink-0" data-alt="A classic 1984 movie poster for Dune, showcasing retro sci-fi aesthetics with David Lynch's signature dark, surreal style. The lighting is moody and atmospheric, focusing on the character Paul Atreides with a spice-blue glow in his eyes. The palette is rich with deep blues and metallic golds, presented in a sharp, high-quality digital theater preview format." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa4HvCVL4Uwgujmfal0O_IJ1FJHitD43LfvzVH76eb1YYImuNur5YqKQtAb2MMgYWFaluw43QKKEqNRDZ0w9spNohoJLzbQ5RYWt2KW87qtSxn697RxxcN1Kk887O_u9AB1VyGFh0uFNa2WmwkgR8ryMa2uSH8S0PJV8PW6JJhRwvEGyPi7jLLzY2o7vzVGJRq0MDwSNjW72tDHRYHjjA_USFigbSMmmpbljmg9sQI7UmXShiy3HFHpSbRw4by4u47vo4b5Eog9Cdp">
+<div class="flex flex-col justify-center min-w-0">
+<span class="font-label-md text-on-surface-variant group-hover:text-on-surface truncate">Dune (1984)</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-on-surface-variant/60">1984</span>
+<span class="bg-surface-variant text-on-surface-variant px-1.5 py-0.5 rounded text-[10px] font-label-sm uppercase tracking-wider">Film</span>
+</div>
+</div>
+</button>
+<!-- Result Item 3 -->
+<button class="w-full flex gap-3 p-2 rounded-lg hover:bg-surface-variant/40 text-left transition-all group">
+<img class="w-[46px] h-[69px] object-cover rounded shadow-sm opacity-80 group-hover:opacity-100 shrink-0" data-alt="A sleek, modern TV series poster for Dune: Prophecy, featuring a minimalist silhouette of a Bene Gesserit figure against a backdrop of swirling sands and celestial bodies. The lighting is high-end and cinematic with golden highlights on deep obsidian backgrounds. The visual style is mysterious and powerful, fitting a premium streaming platform metadata overlay." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBS_eIeHjjJDUkC4rGPpAKLHHAqWf9HaYGv2xS1rx7OD1LY9eFUDIRyi3QLATZw_yQcz0GPe6K26TSwa1eFHTetABUpph8OuQr0YgufBzHD3CcaMpzifZxwoukCkclZ0oyxg4HxxKMM_rThYbf4y8rTzFB4VAp5vBHf7VkA0tjjSiIiKzWSDeRGdx3HhOa6ql79vXI-Usyox3Ol3OffpAV44Rkdb-NRHgaqwd8evgwQMtHBj9eP3pGNNp0ClvhkzxIOxXUBI1jopxN9">
+<div class="flex flex-col justify-center min-w-0">
+<span class="font-label-md text-on-surface-variant group-hover:text-on-surface truncate">Dune: Prophecy</span>
+<div class="flex items-center gap-2 mt-1">
+<span class="font-label-sm text-on-surface-variant/60">2024</span>
+<span class="bg-secondary-container/20 text-secondary px-1.5 py-0.5 rounded text-[10px] font-label-sm uppercase tracking-wider">Serie TV</span>
+</div>
+</div>
+</button>
+</div>
+</div>
+</aside>
+<!-- Right Column: Preview -->
+<article class="flex-1 flex flex-col bg-surface-container-low p-6 overflow-y-auto custom-scrollbar">
+<div class="flex flex-col sm:flex-row gap-6">
+<!-- Large Poster -->
+<div class="w-full sm:w-[200px] shrink-0">
+<div class="aspect-[2/3] w-full rounded-xl overflow-hidden shadow-2xl border border-outline-variant/30 transform hover:scale-[1.02] transition-transform duration-500">
+<img class="w-full h-full object-cover" data-alt="Large, detailed preview of the movie Dune: Part Two poster. High-end digital theater style with intricate detail on the Fremen stillsuits, glistening desert spice in the air, and a cinematic warm glow. The color scheme is deep indigo and vibrant amber, representing the premium cinematic curator narrative of the PutMio brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDp6zB0TRDyJ598IL5Q7qExrALEs0ClbITU2OB7b5aN9KgSTTp_UkLQ-CdARgR9S1RmaIliv2tPGcmG67iWzSxHi5jL4bd3edEG8tZcxn0qLQWN8opStjDRnVSjXQ2eqdFQe8Y2rcGetyoflpqZjDj1FBq8UXzjJ2V8rXr82L8EH34fdfP-G9Isyt03Ll1GyOV1a89rcOpQBuPUCwCxL-FNJU-ZuSEjiT2BCKnetEatY2VyOvdfw9x8eAVzyXbeJOVn6pNcEWHMMdZE">
+</div>
+</div>
+<!-- Info -->
+<div class="flex-1">
+<div class="flex flex-wrap items-center gap-2 mb-2">
+<span class="bg-success/10 text-success px-2 py-0.5 rounded-full font-label-sm text-[11px] uppercase border border-success/20">Consigliato</span>
+<span class="font-label-sm text-outline">ID TMDB: 693134</span>
+</div>
+<h2 class="font-headline-lg text-headline-md text-on-surface mb-2">Dune: Parte Due</h2>
+<div class="flex flex-wrap gap-2 mb-4">
+<span class="text-on-surface-variant font-label-md text-label-md bg-surface-variant/40 px-3 py-1 rounded-full">Fantascienza</span>
+<span class="text-on-surface-variant font-label-md text-label-md bg-surface-variant/40 px-3 py-1 rounded-full">Avventura</span>
+</div>
+<p class="text-on-surface-variant font-body-md leading-relaxed mb-6">
+                                Paul Atreides si unisce a Chani e ai Fremen mentre è sul sentiero della vendetta contro i cospiratori che hanno distrutto la sua famiglia. Di fronte alla scelta tra l'amore della sua vita e il destino dell'universo conosciuto, si sforza di prevenire un futuro terribile che solo lui può prevedere.
+                            </p>
+<div class="grid grid-cols-2 gap-4 border-t border-outline-variant/20 pt-4">
+<div>
+<span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1">Regista</span>
+<span class="font-body-md text-on-surface">Denis Villeneuve</span>
+</div>
+<div>
+<span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1">Durata</span>
+<span class="font-body-md text-on-surface">166 min</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Preview Footer Action -->
+<footer class="mt-auto pt-8 flex items-center justify-end gap-3">
+<button class="px-6 py-2.5 rounded-full border border-outline text-on-surface-variant font-label-md hover:bg-surface-variant/30 hover:text-on-surface transition-all active:scale-95" id="cancel-btn">
+                            Annulla
+                        </button>
+<button class="px-8 py-2.5 rounded-full bg-primary-container text-on-primary-container font-label-md font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] hover:brightness-110 transition-all active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="check">check</span>
+                            Applica
+                        </button>
+</footer>
+</article>
+</div>
+</section>
+</div>
+<script>
+        // Simple Interaction Logic
+        const overlay = document.getElementById('modal-overlay');
+        const closeModal = document.getElementById('close-modal');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        const dismissModal = () => {
+            overlay.classList.add('opacity-0', 'pointer-events-none');
+            overlay.firstElementChild.classList.add('scale-95');
+        };
+
+        closeModal.addEventListener('click', dismissModal);
+        cancelBtn.addEventListener('click', dismissModal);
+
+        // Result selection simulation
+        const resultButtons = document.querySelectorAll('aside button');
+        resultButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                resultButtons.forEach(b => {
+                    b.classList.remove('bg-primary/10', 'border-primary/20');
+                    b.classList.add('hover:bg-surface-variant/40');
+                });
+                btn.classList.add('bg-primary/10', 'border-primary/20');
+                btn.classList.remove('hover:bg-surface-variant/40');
+            });
+        });
+
+        // Close on clicking backdrop
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) dismissModal();
+        });
+    </script>
+</body></html>

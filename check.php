@@ -33,6 +33,7 @@ if (!is_dir($sessionsDir)) {
 echo 'storage/sessions: [' . $perm($sessionsDir) . "]\n";
 echo 'storage/logs: [' . $perm(__DIR__ . '/storage/logs') . "]\n";
 echo 'config.php: ' . (is_file(__DIR__ . '/config.php') ? 'presente' : 'assente') . "\n";
+echo 'vendor/autoload.php: ' . (is_file(__DIR__ . '/vendor/autoload.php') ? 'OK' : 'MANCANTE — esegui composer install') . "\n";
 echo '.installed: ' . (is_file(__DIR__ . '/storage/.installed') ? 'presente' : 'assente') . "\n";
 echo "Permessi consigliati OVH: cartelle 755, file 644, storage/ 755 o 775\n";
 

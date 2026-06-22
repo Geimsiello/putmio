@@ -1,0 +1,12 @@
+{
+    "name": "putmio/putmio",
+    "description": "Media center personale su put.io",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
