@@ -5,10 +5,21 @@
   if (!playerEl) return;
 
   const tvMode = !!(window.PUTMIO && window.PUTMIO.tvMode);
+  const tvDevice = !!(window.PUTMIO && window.PUTMIO.isTvDevice);
+  const tvFullscreenEnabled = tvMode && tvDevice;
   const playerOptions = {
     responsive: true,
     fluid: true,
-    aspectRatio: '16:9'
+    aspectRatio: '16:9',
+    controlBar: {
+      skipButtons: {
+        forward: 10,
+        backward: 10
+      },
+      volumePanel: {
+        inline: false
+      }
+    }
   };
   if (tvMode) {
     playerOptions.userActions = { hotkeys: false };
@@ -46,7 +57,15 @@
   const playerLabels = window.PUTMIO.playerLabels || {};
   let tvFullscreenDone = false;
   let tvFullscreenAttempts = 0;
+  let tvImmersiveActive = false;
   let tvLastKeyStamp = { code: 0, at: 0 };
+
+  function setTvPlayerLoading(isLoading) {
+    const shell = document.querySelector('.putmio-player-tv');
+    if (shell) {
+      shell.classList.toggle('putmio-player-tv--loading', isLoading);
+    }
+  }
 
   function enterTvImmersive() {
     document.documentElement.classList.add('putmio-tv-player-immersive');
@@ -58,10 +77,26 @@
 
   function exitTvImmersive() {
     document.documentElement.classList.remove('putmio-tv-player-immersive');
+    tvImmersiveActive = false;
     const shell = document.querySelector('.putmio-player-tv');
     if (shell) {
       shell.classList.add('putmio-player-tv--idle');
+      shell.classList.remove('putmio-player-tv--loading');
     }
+  }
+
+  /** Fullscreen solo su dispositivi TV reali e quando la riproduzione è effettivamente partita. */
+  function activateTvFullscreenWhenReady() {
+    if (!tvFullscreenEnabled || tvImmersiveActive) return;
+    try {
+      if (player.paused()) return;
+    } catch (e) {
+      return;
+    }
+    tvImmersiveActive = true;
+    setTvPlayerLoading(false);
+    enterTvImmersive();
+    scheduleTvFullscreenRetry();
   }
 
   function requestFullscreenOn(el) {
@@ -136,6 +171,7 @@
   }
 
   function scheduleTvFullscreenRetry() {
+    if (!tvImmersiveActive) return;
     if (tvFullscreenDone || document.fullscreenElement) {
       tvFullscreenDone = true;
       return;
@@ -147,12 +183,6 @@
         scheduleTvFullscreenRetry();
       }
     }, 400);
-  }
-
-  function onTvPlaybackStart() {
-    if (!tvMode) return;
-    enterTvImmersive();
-    scheduleTvFullscreenRetry();
   }
 
   function defaultStartAt() {
@@ -260,7 +290,11 @@
     if (at > 0) {
       player.currentTime(at);
     }
-    player.play().catch(function () {});
+    player.play().catch(function () {
+      if (tvFullscreenEnabled) {
+        setTvPlayerLoading(false);
+      }
+    });
   }
 
   function waitForReady(at) {
@@ -292,17 +326,14 @@
     }
 
     if (started && player.currentSrc()) {
-      if (tvMode) {
-        onTvPlaybackStart();
-      }
       startPlayback(at);
       return;
     }
 
     started = true;
     loading = true;
-    if (tvMode) {
-      onTvPlaybackStart();
+    if (tvFullscreenEnabled) {
+      setTvPlayerLoading(true);
     }
     setSource();
     waitForReady(at);
@@ -478,9 +509,6 @@
       return;
     }
     setPlayerPlayingState(true);
-    if (tvMode) {
-      onTvPlaybackStart();
-    }
   });
 
   player.on('pause', function () {
@@ -602,7 +630,9 @@
     if (!shouldHandleTvPlayerKey(evt)) return;
     if (isDuplicateTvKey(evt)) return;
 
-    if (!tvFullscreenDone && !document.fullscreenElement) {
+    activateTvFullscreenWhenReady();
+
+    if (tvImmersiveActive && !tvFullscreenDone && !document.fullscreenElement) {
       scheduleTvFullscreenRetry();
     }
 
@@ -667,17 +697,14 @@
     }
   }
 
-  if (tvMode) {
-    enterTvImmersive();
-
-    player.on('playing', onTvPlaybackStart);
-    player.on('loadeddata', scheduleTvFullscreenRetry);
+  if (tvFullscreenEnabled) {
+    player.on('playing', activateTvFullscreenWhenReady);
+    player.on('canplay', activateTvFullscreenWhenReady);
 
     player.ready(function () {
       const root = player.el();
       if (root) {
         root.setAttribute('tabindex', '0');
-        try { root.focus(); } catch (e) { /* ignore */ }
       }
       begin(defaultStartAt());
     });
@@ -730,6 +757,9 @@
   let tick = 0;
   player.on('timeupdate', function () {
     if (leaving) return;
+    if (tvFullscreenEnabled && !tvImmersiveActive) {
+      activateTvFullscreenWhenReady();
+    }
     tick++;
     if (tick % 6 === 0) saveProgress();
   });

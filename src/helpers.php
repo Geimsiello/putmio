@@ -185,138 +185,6 @@ function putmio_set_locale(string $locale): void
     ]);
 }
 
-function putmio_is_tv_user_agent(?string $ua = null): bool
-{
-    $ua = $ua ?? ($_SERVER['HTTP_USER_AGENT'] ?? '');
-    if ($ua === '') {
-        return false;
-    }
-
-    $patterns = [
-        'Tizen',
-        'SmartTV',
-        'Smart-TV',
-        'Android TV',
-        'GoogleTV',
-        'Apple TV',
-        'tvOS',
-        'Web0S',
-        'WebOS',
-        'HbbTV',
-        'AFT', // Amazon Fire TV (AFTT, AFTM, …)
-        'FireTV',
-        'Fire TV',
-        'Amazon Fire',
-    ];
-
-    foreach ($patterns as $needle) {
-        if (stripos($ua, $needle) !== false) {
-            return true;
-        }
-    }
-
-    if (stripos($ua, 'Silk') !== false && stripos($ua, 'Android') !== false) {
-        return true;
-    }
-
-    return false;
-}
-
-function putmio_set_ui_mode_cookie(string $uiMode): void
-{
-    if (!in_array($uiMode, ['standard', 'tv'], true)) {
-        return;
-    }
-
-    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
-
-    setcookie('putmio_ui_mode', $uiMode, [
-        'expires' => time() + 86400 * 365,
-        'path' => '/',
-        'secure' => $secure,
-        'httponly' => false,
-        'samesite' => 'Strict',
-    ]);
-}
-
-function putmio_tv_mode(): bool
-{
-    static $resolved = null;
-    if ($resolved !== null) {
-        return $resolved;
-    }
-
-    if (putmio_is_tv_user_agent()) {
-        return $resolved = true;
-    }
-
-    $sessionMode = $_SESSION['user_ui_mode'] ?? null;
-    if ($sessionMode === 'tv' || $sessionMode === 'standard') {
-        return $resolved = $sessionMode === 'tv';
-    }
-
-    $cookieMode = $_COOKIE['putmio_ui_mode'] ?? null;
-    if ($cookieMode === 'tv' || $cookieMode === 'standard') {
-        return $resolved = $cookieMode === 'tv';
-    }
-
-    return $resolved = false;
-}
-
-function putmio_admin_ui_enabled(): bool
-{
-    return \PutMio\Auth\Session::isAdmin() && !putmio_tv_mode();
-}
-
-function putmio_play_url(int $mediaId): string
-{
-    $base = putmio_is_installed()
-        ? rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/')
-        : rtrim(putmio_detect_base_url(), '/');
-
-    return $base . '/play?id=' . $mediaId;
-}
-
-/** Attributi HTML per card navigabili in TV mode. */
-function putmio_tv_card_attrs(array $opts): string
-{
-    if (!putmio_tv_mode()) {
-        return '';
-    }
-
-    $id = (int) ($opts['id'] ?? 0);
-    $title = (string) ($opts['title'] ?? '');
-    $subtitle = (string) ($opts['subtitle'] ?? '');
-    $synopsis = (string) ($opts['synopsis'] ?? '');
-
-    $attrs = [
-        'data-pm-tv-focus',
-        'tabindex="0"',
-        'data-pm-tv-id="' . putmio_e((string) $id) . '"',
-        'data-pm-tv-title="' . putmio_e($title) . '"',
-        'data-pm-tv-subtitle="' . putmio_e($subtitle) . '"',
-    ];
-    if ($synopsis !== '') {
-        $attrs[] = 'data-pm-tv-synopsis="' . putmio_e($synopsis) . '"';
-    }
-
-    return implode(' ', $attrs);
-}
-
-function putmio_media_url(int $mediaId, ?string $from = null): string
-{
-    $base = putmio_is_installed()
-        ? rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/')
-        : rtrim(putmio_detect_base_url(), '/');
-    $url = $base . '/media?id=' . $mediaId;
-    if ($from !== null && $from !== '') {
-        $url .= '&from=' . rawurlencode($from);
-    }
-
-    return $url;
-}
-
 function putmio_lang(string $key, array $replace = []): string
 {
     static $strings = [];
@@ -675,7 +543,7 @@ function putmio_media_badge_classes(string $type): array
 /** Sezione admin attiva (null se fuori dall'area admin). */
 function putmio_admin_section(): ?string
 {
-    if (!putmio_admin_ui_enabled()) {
+    if (!\PutMio\Auth\Session::isAdmin()) {
         return null;
     }
     $path = putmio_request_path();
@@ -704,7 +572,7 @@ function putmio_admin_nav_stats(): array
     if ($stats !== null) {
         return $stats;
     }
-    if (!putmio_is_installed() || !putmio_admin_ui_enabled()) {
+    if (!putmio_is_installed() || !\PutMio\Auth\Session::isAdmin()) {
         return $stats = ['unclassified' => 0];
     }
     try {

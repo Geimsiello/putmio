@@ -135,7 +135,7 @@
   }
 
   const btn = document.getElementById('theme-toggle');
-  if (btn && window.PUTMIO && !document.documentElement.classList.contains('tv-mode')) {
+  if (btn && window.PUTMIO) {
     btn.addEventListener('click', async function () {
       const isDark = document.documentElement.classList.toggle('dark');
       const theme = isDark ? 'dark' : 'light';
@@ -332,38 +332,5 @@
         /* installazione opzionale */
       });
     });
-  }
-
-  function bindUiModeToggle() {
-    var btn = document.getElementById('pm-ui-mode-toggle');
-    if (!btn || !window.PUTMIO || document.documentElement.classList.contains('tv-mode')) {
-      return;
-    }
-    var labels = window.PUTMIO.uiModeLabels || {};
-    btn.addEventListener('click', async function () {
-      if (!window.PUTMIO.csrf) {
-        document.cookie = 'putmio_ui_mode=tv;path=/;max-age=31536000;SameSite=Strict';
-        window.location.reload();
-        return;
-      }
-      btn.disabled = true;
-      try {
-        var body = new URLSearchParams({ _csrf: window.PUTMIO.csrf, ui_mode: 'tv' });
-        var res = await fetch(window.PUTMIO.baseUrl + '/api/preferences/ui-mode', { method: 'POST', body: body });
-        if (!res.ok) throw new Error('ui mode failed');
-        document.cookie = 'putmio_ui_mode=tv;path=/;max-age=31536000;SameSite=Strict';
-        window.location.reload();
-      } catch (e) {
-        btn.disabled = false;
-        if (window.pmToast) window.pmToast(labels.tvHint || 'TV mode failed', 'error');
-      }
-    });
-  }
-
-  bindUiModeToggle();
-
-  if (window.PUTMIO && window.PUTMIO.initialToast && window.pmToast) {
-    var t = window.PUTMIO.initialToast;
-    window.pmToast(t.message, t.type || 'info');
   }
 })();

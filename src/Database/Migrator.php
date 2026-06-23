@@ -46,7 +46,6 @@ final class Migrator
             self::runRememberTokensMigration($pdo);
             self::runDeviceLoginMigration($pdo);
             self::runLocaleMigration($pdo);
-            self::runUiModeMigration($pdo);
             self::runBackdropsMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
@@ -170,17 +169,6 @@ final class Migrator
             $pdo->exec(
                 'ALTER TABLE `' . $table . '`
                  ADD COLUMN `locale` VARCHAR(5) NOT NULL DEFAULT \'it\' AFTER `theme`'
-            );
-        }
-    }
-
-    private static function runUiModeMigration(\PDO $pdo): void
-    {
-        $table = Config::table('users');
-        if (!self::columnExists($pdo, $table, 'ui_mode')) {
-            $pdo->exec(
-                'ALTER TABLE `' . $table . '`
-                 ADD COLUMN `ui_mode` ENUM(\'standard\',\'tv\') NOT NULL DEFAULT \'standard\' AFTER `locale`'
             );
         }
     }

@@ -43,7 +43,6 @@ return [
     'device_console' => 'Game console',
     'device_mobile' => 'Phone or tablet',
     'device_browser' => 'Browser',
-    'device_authorize_nav' => 'Authorize TV',
     'device_pwa_launch_title' => 'Open in PutMio',
     'device_pwa_launch_desc' => 'To use your account already signed in to the app, open this link in PutMio (not in the browser).',
     'device_pwa_launch_open_app' => 'Open in PutMio app',

@@ -43,7 +43,6 @@ return [
     'device_console' => 'Console',
     'device_mobile' => 'Telefono o tablet',
     'device_browser' => 'Browser',
-    'device_authorize_nav' => 'Autorizza TV',
     'device_pwa_launch_title' => 'Apri in PutMio',
     'device_pwa_launch_desc' => 'Per usare l\'account già connesso nell\'app, apri questo link in PutMio (non nel browser).',
     'device_pwa_launch_open_app' => 'Apri nell\'app PutMio',

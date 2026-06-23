@@ -30,16 +30,13 @@ $resolutionLabel = null;
 if (!$isSeries) {
     $resolutionLabel = putmio_file_technical_labels($media['file_name'] ?? null)['resolution'] ?? null;
 }
-$tvMode = putmio_tv_mode();
-$backTvAttrs = $tvMode ? ' data-pm-tv-focus tabindex="0"' : '';
-$heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap-8 lg:gap-12';
 ?>
-<a href="<?= putmio_e($catalogReturnUrl) ?>" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-8 group"<?= $backTvAttrs ?>>
+<a href="<?= putmio_e($catalogReturnUrl) ?>" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-8 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
   <?= putmio_lang('back_to_catalog') ?>
 </a>
 
-<div class="<?= $heroClass ?>">
+<div class="grid lg:grid-cols-[280px_1fr] gap-8 lg:gap-12">
   <div class="mx-auto w-full max-w-[280px] lg:max-w-none">
     <div class="aspect-[2/3] rounded-xl overflow-hidden shadow-2xl border border-outline-variant/30 bg-surface-container">
       <img src="<?= putmio_e($poster) ?>" alt="" class="w-full h-full object-cover">
@@ -64,10 +61,10 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
     <p class="text-on-surface-variant font-body-md leading-relaxed mb-8"><?= nl2br(putmio_e($media['synopsis'])) ?></p>
     <?php endif; ?>
 
-    <div class="grid <?= $isSeries ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4' ?> gap-4 sm:gap-8 border-t border-outline-variant/20 pt-6 mb-10 <?= $tvMode ? 'pm-catalog-tv-hero__meta-grid' : '' ?>">
+    <div class="grid <?= $isSeries ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4' ?> gap-4 sm:gap-8 border-t border-outline-variant/20 pt-6 mb-10">
       <div>
-        <span class="block font-label-sm text-outline uppercase tracking-widest <?= $tvMode ? 'pm-tv-meta-label' : 'text-[10px]' ?> mb-1"><?= putmio_lang('duration') ?></span>
-        <span class="font-body-md text-on-surface <?= $tvMode ? 'pm-tv-meta-value' : '' ?>"><?= putmio_e($runtimeLabel ?? '—') ?></span>
+        <span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1"><?= putmio_lang('duration') ?></span>
+        <span class="font-body-md text-on-surface"><?= putmio_e($runtimeLabel ?? '—') ?></span>
       </div>
       <div>
         <span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1"><?= putmio_lang('year') ?></span>
@@ -96,13 +93,8 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
     ?>
     <div class="mb-8 max-w-xl">
       <a
-        href="<?= putmio_e(putmio_play_url((int) $seriesEpisode['id'])) ?>"
+        href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $seriesEpisode['id'] ?>"
         class="pm-btn-primary w-full sm:w-auto inline-flex justify-center px-6 py-3 text-base shadow-lg shadow-primary/20"
-        <?= putmio_tv_card_attrs([
-            'id' => (int) $seriesEpisode['id'],
-            'title' => (string) $media['title'],
-            'subtitle' => $seriesPlayLabel,
-        ]) ?>
       >
         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
         <?= putmio_e($seriesPlayLabel) ?>
@@ -110,7 +102,7 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
     </div>
     <?php endif; ?>
 
-    <?php if (putmio_admin_ui_enabled()): ?>
+    <?php if (\PutMio\Auth\Session::isAdmin()): ?>
     <div class="flex flex-wrap gap-3 items-center mb-8">
       <?php
       $fileName = (string) ($media['file_name'] ?? $media['title'] ?? '');
@@ -124,7 +116,7 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
     </div>
     <?php endif; ?>
 
-    <?php if (!$isSeries && !$tvMode): ?>
+    <?php if (!$isSeries): ?>
     <div class="rounded-xl border border-outline-variant/30 bg-surface-container-high p-4 md:p-5 mb-8">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -136,7 +128,7 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
           </p>
           <?php if (!$subtitlesConfigured): ?>
           <p class="font-label-sm text-label-sm text-warning/90 mt-2">
-            <?= putmio_e(putmio_admin_ui_enabled() ? putmio_lang('subtitles_not_configured_admin') : putmio_lang('subtitles_not_configured')) ?>
+            <?= putmio_e(\PutMio\Auth\Session::isAdmin() ? putmio_lang('subtitles_not_configured_admin') : putmio_lang('subtitles_not_configured')) ?>
           </p>
           <?php elseif (!putmio_media_is_linked($media)): ?>
           <p class="font-label-sm text-label-sm text-on-surface-variant mt-2"><?= putmio_e(putmio_lang('subtitles_tmdb_hint')) ?></p>
@@ -158,11 +150,11 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
     <?php if (!$isSeries): ?>
     <div class="mt-auto space-y-3 max-w-xl" data-media-actions="<?= $mediaId ?>">
       <div class="flex flex-col sm:flex-row gap-3">
-        <a href="<?= putmio_e(putmio_play_url($mediaId)) ?>" class="pm-btn-primary flex-1 justify-center px-6 py-3 text-base shadow-lg shadow-primary/20" <?= putmio_tv_card_attrs(['id' => $mediaId, 'title' => (string) $media['title'], 'subtitle' => $hasProgress ? putmio_lang('resume') : putmio_lang('play')]) ?>>
+        <a href="<?= putmio_e($appUrl) ?>/play?id=<?= $mediaId ?>" class="pm-btn-primary flex-1 justify-center px-6 py-3 text-base shadow-lg shadow-primary/20">
           <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
           <?= $hasProgress ? putmio_lang('resume') : putmio_lang('play') ?>
         </a>
-        <?php if (!$isWatched && !$tvMode): ?>
+        <?php if (!$isWatched): ?>
         <button
           type="button"
           data-pm-watch-action="complete"
@@ -173,7 +165,7 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
         </button>
         <?php endif; ?>
       </div>
-      <?php if ($canRestart && !$tvMode): ?>
+      <?php if ($canRestart): ?>
       <button
         type="button"
         data-pm-watch-action="reset"
@@ -223,7 +215,7 @@ $heroClass = $tvMode ? 'pm-catalog-tv-hero' : 'grid lg:grid-cols-[280px_1fr] gap
 </script>
 <?php endif; ?>
 
-<?php if (!$isSeries && !$tvMode): ?>
+<?php if (!$isSeries): ?>
 <?php
 $subtitleModalMediaId = $mediaId;
 $subtitleModalAutoOpen = false;
@@ -231,7 +223,7 @@ require putmio_base_path() . '/templates/partials/subtitle-modal.php';
 ?>
 <?php endif; ?>
 
-<?php if (putmio_admin_ui_enabled()): ?>
+<?php if (\PutMio\Auth\Session::isAdmin()): ?>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>[x-cloak]{display:none!important}</style>
 <?php endif; ?>

@@ -5,24 +5,14 @@ use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url', putmio_detect_base_url()), '/');
 $userTheme = $_SESSION['user_theme'] ?? $_COOKIE['putmio_theme'] ?? 'dark';
-$tvMode = Session::userId() && putmio_tv_mode();
-$isDark = $tvMode || $userTheme === 'dark';
+$isDark = $userTheme === 'dark';
 $appLocale = putmio_locale();
 $htmlLang = putmio_available_locales()[$appLocale]['html'] ?? 'it';
 $pageTitle = putmio_e($title ?? 'PutMio');
-$showFab = ($showSearchFab ?? false) && Session::userId() && !$tvMode;
-$flashToast = null;
-if (!empty($_SESSION['flash_error'])) {
-    $flashToast = ['type' => 'error', 'message' => (string) $_SESSION['flash_error']];
-    unset($_SESSION['flash_error']);
-} elseif (!empty($_SESSION['flash_success'])) {
-    $flashToast = ['type' => 'success', 'message' => (string) $_SESSION['flash_success']];
-    unset($_SESSION['flash_success']);
-}
-$htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
+$showFab = ($showSearchFab ?? false) && Session::userId();
 ?>
 <!DOCTYPE html>
-<html lang="<?= putmio_e($htmlLang) ?>" class="<?= putmio_e($htmlClasses) ?>">
+<html lang="<?= putmio_e($htmlLang) ?>" class="<?= $isDark ? 'dark' : '' ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,12 +26,7 @@ $htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
   <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/icons/icon-192.png">
   <script>
-    (function(){
-      var tv=<?= $tvMode ? 'true' : 'false' ?>;
-      var t=tv?'dark':(localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>');
-      if(tv){try{localStorage.setItem('putmio_theme','dark');}catch(e){}document.cookie='putmio_theme=dark;path=/;max-age=31536000;SameSite=Strict';}
-      if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');
-    })();
+    (function(){var t=localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>';if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();
   </script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -116,9 +101,6 @@ $htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
 </head>
 <body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-background dark:text-on-surface selection:bg-primary/30">
 <?php if (Session::userId()): ?>
-<?php if ($tvMode): ?>
-<?php require putmio_base_path() . '/templates/partials/tv-header.php'; ?>
-<?php else: ?>
 <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-margin-desktop h-16 glass-header border-b border-outline-variant/30 shadow-sm">
   <div class="flex items-center gap-6 md:gap-8 min-w-0">
     <a href="<?= putmio_e($appUrl) ?>/" class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim shrink-0">PutMio</a>
@@ -128,9 +110,8 @@ $htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
         ['/', putmio_lang('home')],
         ['/catalogo', putmio_lang('catalog')],
         ['/in-corso', putmio_lang('in_progress')],
-        ['/authorize-device', putmio_lang('device_authorize_nav')],
       ];
-      if (putmio_admin_ui_enabled()) {
+      if (Session::isAdmin()) {
         $navItems[] = ['/admin', putmio_lang('admin')];
       }
       foreach ($navItems as [$href, $label]):
@@ -147,9 +128,6 @@ $htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
     <div class="hidden md:block">
       <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
     </div>
-    <button type="button" id="pm-ui-mode-toggle" class="hidden md:inline-flex hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_e(putmio_lang('ui_mode_tv')) ?>">
-      <span class="material-symbols-outlined text-primary">tv</span>
-    </button>
     <button type="button" id="theme-toggle" class="hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_lang('theme_dark') ?>">
       <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
       <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
@@ -164,7 +142,6 @@ $htmlClasses = trim(($isDark ? 'dark' : '') . ($tvMode ? ' tv-mode' : ''));
   </div>
 </header>
 <?php $mobileNavPart = 'drawer'; require putmio_base_path() . '/templates/partials/mobile-nav.php'; unset($mobileNavPart); ?>
-<?php endif; ?>
 <?php endif; ?>
 <?php
 $adminSection = putmio_admin_section();
@@ -194,14 +171,7 @@ $isAuthShell = !empty($authShell) && !Session::userId();
   </div>
 </main>
 <?php else: ?>
-<?php
-$mainPadTop = Session::userId() ? ($tvMode ? 'pt-28' : 'pt-24') : '';
-$mainClasses = trim($mainPadTop . ' pb-12 min-h-screen max-w-container-max mx-auto ' . ($tvMode ? 'px-[5%]' : 'px-margin-mobile md:px-margin-desktop'));
-?>
-<main<?= $tvMode ? ' id="pm-tv-main" tabindex="-1"' : '' ?> class="<?= putmio_e($mainClasses) ?>">
-  <?php if ($tvMode): ?>
-  <?php require putmio_base_path() . '/templates/partials/tv-info-rail.php'; ?>
-  <?php endif; ?>
+<main class="<?= Session::userId() ? 'pt-24 pb-12' : 'py-6' ?> min-h-screen max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop">
   <?= $content ?>
 </main>
 <?php endif; ?>
@@ -215,23 +185,9 @@ $mainClasses = trim($mainPadTop . ' pb-12 min-h-screen max-w-container-max mx-au
     'baseUrl' => $appUrl,
     'csrf' => Csrf::token(),
     'localeChangeError' => putmio_lang('locale_change_error'),
-    'tvMode' => $tvMode,
-    'tvKeyUpFallback' => $tvMode,
-    'uiModeLabels' => [
-      'tv' => putmio_lang('ui_mode_tv'),
-      'standard' => putmio_lang('ui_mode_standard'),
-      'tvHint' => putmio_lang('ui_mode_tv_hint'),
-    ],
-    'initialToast' => $flashToast,
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<?php if ($tvMode): ?>
-<script src="<?= putmio_e($appUrl) ?>/public/assets/tv-keys.js" defer></script>
-<?php endif; ?>
 <script src="<?= putmio_e($appUrl) ?>/public/assets/app.js" defer></script>
-<?php if ($tvMode): ?>
-<script src="<?= putmio_e($appUrl) ?>/public/assets/tv-nav.js" defer></script>
-<?php endif; ?>
 <?= $extraScripts ?? '' ?>
 </body>
 </html>

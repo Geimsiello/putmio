@@ -107,13 +107,13 @@ final class CatalogController
             'subtitleCount' => $subtitleCount,
             'availableSubtitles' => $availableSubtitles,
             'subtitlesConfigured' => $subtitleService->isConfigured(),
-            'extraScripts' => !$isSeries && !putmio_tv_mode()
+            'extraScripts' => !$isSeries
                 ? '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/subtitles.js', ENT_QUOTES, 'UTF-8') . '" defer></script>'
                 : '',
-            'putmioExtra' => !$isSeries && !putmio_tv_mode() ? [
+            'putmioExtra' => !$isSeries ? [
                 'mediaId' => $id,
                 'subtitlesConfigured' => $subtitleService->isConfigured(),
-                'isAdmin' => putmio_admin_ui_enabled(),
+                'isAdmin' => Session::isAdmin(),
                 'availableSubtitles' => $availableSubtitles,
                 'subtitleLabels' => [
                     'off' => putmio_lang('subtitles_off'),
@@ -130,7 +130,7 @@ final class CatalogController
                     'use' => putmio_lang('subtitles_use'),
                     'delete' => putmio_lang('subtitles_delete'),
                     'downloadError' => putmio_lang('subtitles_download_error'),
-                    'notConfigured' => putmio_admin_ui_enabled()
+                    'notConfigured' => Session::isAdmin()
                         ? putmio_lang('subtitles_not_configured_admin')
                         : putmio_lang('subtitles_not_configured'),
                     'attribution' => putmio_lang('subtitles_attribution'),

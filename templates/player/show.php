@@ -26,19 +26,13 @@ $canRestart = $progress && (($progress['position_sec'] ?? 0) > 0 || !empty($prog
 $prevEpisode = $adjacent['prev'] ?? null;
 $nextEpisode = $adjacent['next'] ?? null;
 $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !empty($techLabels['resolution']);
-$tvMode = putmio_tv_mode();
-$backTvAttrs = $tvMode ? ' data-pm-tv-focus tabindex="0"' : '';
-$playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' putmio-player-tv putmio-player-tv--idle' : '');
 ?>
-<?php if ($tvMode): ?>
-<script>document.documentElement.classList.add('putmio-tv-player-immersive');</script>
-<?php endif; ?>
-<a href="<?= putmio_e($appUrl) ?>/media?id=<?= $detailMediaId ?>" id="player-back-link" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-6 group"<?= $backTvAttrs ?>>
+<a href="<?= putmio_e($appUrl) ?>/media?id=<?= $detailMediaId ?>" id="player-back-link" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-6 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
   <?= putmio_lang('back_to_detail') ?>
 </a>
 
-<div class="<?= putmio_e($playerShellClass) ?>">
+<div class="max-w-[1200px] mx-auto space-y-6 relative">
   <section class="relative group">
     <div class="putmio-player-wrap w-full relative bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 shadow-2xl">
       <?php if (!empty($posterUrl)): ?>
@@ -49,8 +43,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
         class="video-js vjs-big-play-centered"
         controls
         preload="none"
-        <?= $tvMode ? '' : 'playsinline' ?>
-        <?= $tvMode ? 'tabindex="0"' : '' ?>
+        playsinline
         <?php if (!empty($posterUrl)): ?>poster="<?= putmio_e($posterUrl) ?>"<?php endif; ?>
       ></video>
     </div>
@@ -81,7 +74,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
           class="bg-surface-container-high border border-outline-variant/40 rounded-lg px-3 py-1.5 font-label-sm text-label-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
         ></select>
       </div>
-      <div id="player-subtitle-controls" class="flex flex-wrap items-center gap-2<?= $tvMode ? ' hidden' : '' ?>">
+      <div id="player-subtitle-controls" class="flex flex-wrap items-center gap-2">
         <button type="button" id="player-subtitle-manage" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-outline-variant/40 bg-surface-container-high font-label-sm text-label-sm text-on-surface hover:border-primary/40 hover:text-primary transition-colors">
           <span class="material-symbols-outlined text-sm">subtitles</span>
           <?= putmio_e(putmio_lang('subtitles_manage')) ?>
@@ -113,7 +106,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
     </div>
   </section>
 
-  <section class="putmio-player-meta bg-surface-container rounded-xl p-6 border border-outline-variant/20 shadow-sm relative overflow-hidden group">
+  <section class="bg-surface-container rounded-xl p-6 border border-outline-variant/20 shadow-sm relative overflow-hidden group">
     <div class="absolute inset-0 putmio-shimmer pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true"></div>
     <div class="relative z-10">
       <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
@@ -188,7 +181,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
     <div class="flex flex-wrap gap-2 w-full sm:w-auto sm:ml-auto">
       <?php if ($prevEpisode): ?>
       <a
-        href="<?= putmio_e(putmio_play_url((int) $prevEpisode['id'])) ?>"
+        href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $prevEpisode['id'] ?>"
         class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest transition-all active:scale-95"
       >
         <span class="material-symbols-outlined">skip_previous</span>
@@ -197,7 +190,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
       <?php endif; ?>
       <?php if ($nextEpisode): ?>
       <a
-        href="<?= putmio_e(putmio_play_url((int) $nextEpisode['id'])) ?>"
+        href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $nextEpisode['id'] ?>"
         class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest transition-all active:scale-95"
       >
         <span class="material-symbols-outlined">skip_next</span>
@@ -209,7 +202,7 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
   </section>
 
   <?php if ($hasTechMeta): ?>
-  <footer class="putmio-player-details mt-8 pt-6 border-t border-outline-variant/10">
+  <footer class="mt-8 pt-6 border-t border-outline-variant/10">
     <div class="flex flex-col md:flex-row justify-between items-center gap-4">
       <div class="flex flex-wrap items-center gap-6">
         <?php if (!empty($techLabels['ext'])): ?>
@@ -236,13 +229,11 @@ $playerShellClass = 'max-w-[1200px] mx-auto space-y-6 relative' . ($tvMode ? ' p
   <?php endif; ?>
 </div>
 
-<?php if (!$tvMode): ?>
 <?php
 $subtitleModalMediaId = $mediaId;
 $subtitleModalAutoOpen = false;
 require putmio_base_path() . '/templates/partials/subtitle-modal.php';
 ?>
-<?php endif; ?>
 
 <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true">
   <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary-container/10 blur-[120px] rounded-full"></div>

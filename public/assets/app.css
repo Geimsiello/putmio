@@ -625,6 +625,41 @@ html:not(.dark) .pm-mobile-nav__logout-name {
   background-color: #8083ff;
 }
 
+.putmio-player-wrap .video-js .vjs-skip-backward-10 .vjs-icon-placeholder::before,
+.putmio-player-wrap .video-js .vjs-skip-forward-10 .vjs-icon-placeholder::before {
+  font-size: 1.35em;
+}
+
+.putmio-player-wrap .video-js .vjs-volume-panel.vjs-volume-panel-vertical {
+  width: 3em;
+}
+
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical .vjs-volume-control.vjs-volume-vertical {
+  height: 5.5em;
+  width: 3em;
+  left: -0.35em;
+}
+
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical .vjs-volume-bar.vjs-slider-vertical {
+  width: 0.35em;
+  height: 5em;
+  margin: 0 auto;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical .vjs-volume-level {
+  width: 0.35em;
+}
+
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical:hover .vjs-volume-control,
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical:focus .vjs-volume-control,
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical.vjs-hover .vjs-volume-control,
+.putmio-player-wrap .video-js .vjs-volume-panel-vertical:active .vjs-volume-control {
+  opacity: 1;
+  visibility: visible;
+  transition: visibility 0.1s, opacity 0.1s;
+}
+
 .putmio-player-wrap .video-js .vjs-big-play-button {
   background-color: rgba(128, 131, 255, 0.9);
   border: none;
@@ -1740,6 +1775,19 @@ html.tv-mode .putmio-player-tv .putmio-player-details {
 }
 
 html.tv-mode .putmio-player-tv.putmio-player-tv--idle .putmio-player-meta {
+  display: block;
+}
+
+html.tv-mode .putmio-player-tv--loading .putmio-player-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  background: rgba(6, 14, 32, 0.55);
+  pointer-events: none;
+}
+
+html.tv-mode .putmio-player-tv--loading .putmio-player-wrap .video-js .vjs-loading-spinner {
   display: block;
 }
 

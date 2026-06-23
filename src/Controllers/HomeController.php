@@ -26,9 +26,7 @@ final class HomeController
             'title' => putmio_lang('home'),
             'inProgress' => array_slice($inProgress, 0, 10),
             'recent' => $recent,
-            'genreRows' => putmio_tv_mode()
-                ? array_slice($catalog->homeGenresWithMedia(), 0, 2)
-                : $catalog->homeGenresWithMedia(),
+            'genreRows' => $catalog->homeGenresWithMedia(),
             'putioConnected' => $putio->isConnected(),
             'catalog' => $catalog,
             'showSearchFab' => true,

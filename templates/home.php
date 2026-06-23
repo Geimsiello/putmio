@@ -2,10 +2,8 @@
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url'), '/');
-$tvMode = putmio_tv_mode();
 ?>
-<div class="<?= $tvMode ? 'pm-home-tv-limit' : '' ?>">
-<?php if (!$putioConnected && !$tvMode): ?>
+<?php if (!$putioConnected): ?>
 <section class="mt-2 md:mt-6" id="putio-banner">
   <div class="bg-warning/10 border border-warning/30 rounded-xl px-4 md:px-6 py-4 flex items-center justify-between group hover:bg-warning/15 transition-all">
     <div class="flex items-center gap-3 min-w-0">
@@ -37,18 +35,8 @@ $tvMode = putmio_tv_mode();
         $pct = ($item['duration_sec'] ?? 0) > 0 ? round(100 * $item['position_sec'] / $item['duration_sec']) : 0;
         $displayTitle = !empty($item['series_title']) ? (string) $item['series_title'] : (string) $item['title'];
         $episodeLabel = !empty($item['series_title']) ? (string) $item['title'] : null;
-        $resumeSubtitle = $episodeLabel
-            ? $episodeLabel . ' · ' . putmio_lang('resume') . ' · ' . $pct . '%'
-            : putmio_lang('resume') . ' · ' . $pct . '%';
-        $tvAttrs = putmio_tv_card_attrs([
-            'id' => (int) $item['id'],
-            'title' => $displayTitle,
-            'subtitle' => $resumeSubtitle,
-        ]);
-        $playHref = putmio_play_url((int) $item['id']);
-        $widthClass = $tvMode ? 'w-44 sm:w-48' : 'w-36 sm:w-44';
       ?>
-      <a href="<?= putmio_e($playHref) ?>" class="flex-shrink-0 <?= $widthClass ?> snap-start group block" <?= $tvAttrs ?>>
+      <a href="<?= putmio_e($appUrl) ?>/play?id=<?= (int)$item['id'] ?>" class="flex-shrink-0 w-36 sm:w-44 snap-start group block">
         <div class="relative aspect-[2/3] rounded-xl overflow-hidden bg-surface-container shadow-lg group-hover:scale-105 group-hover:shadow-primary/20 transition-all duration-300 poster-card poster-card--with-progress">
           <img src="<?= putmio_e($poster) ?>" alt="" class="w-full h-full object-cover" loading="lazy" draggable="false">
           <?php require putmio_base_path() . '/templates/partials/poster-owner-badge.php'; ?>
@@ -57,14 +45,18 @@ $tvMode = putmio_tv_mode();
               <div class="bg-primary h-1 rounded-full" style="width:<?= $pct ?>%"></div>
             </div>
           </div>
-          <div class="pm-tv-play-overlay absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/40">
+          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-background/40">
             <span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">play_circle</span>
           </div>
         </div>
-        <div class="mt-3 pm-tv-card-caption">
+        <div class="mt-3">
           <h3 class="text-body-md font-bold text-on-surface truncate"><?= putmio_e($displayTitle) ?></h3>
           <p class="text-label-sm font-label-sm text-on-surface-variant">
-            <?= putmio_e($resumeSubtitle) ?>
+            <?php if ($episodeLabel): ?>
+              <?= putmio_e($episodeLabel) ?> · <?= putmio_lang('resume') ?> · <?= $pct ?>%
+            <?php else: ?>
+              <?= putmio_lang('resume') ?> · <?= $pct ?>%
+            <?php endif; ?>
           </p>
         </div>
       </a>
@@ -118,4 +110,3 @@ $tvMode = putmio_tv_mode();
   ?>
 </section>
 <?php endforeach; ?>
-</div>

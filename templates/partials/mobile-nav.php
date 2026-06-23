@@ -23,9 +23,8 @@ $navItems = [
     ['/', putmio_lang('home'), 'home'],
     ['/catalogo', putmio_lang('catalog'), 'video_library'],
     ['/in-corso', putmio_lang('in_progress'), 'play_circle'],
-    ['/authorize-device', putmio_lang('device_authorize_nav'), 'devices'],
 ];
-if (putmio_admin_ui_enabled()) {
+if (Session::isAdmin()) {
     $navItems[] = ['/admin', putmio_lang('admin'), 'admin_panel_settings'];
 }
 $currentLocale = putmio_locale();
