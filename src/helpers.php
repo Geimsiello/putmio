@@ -42,6 +42,35 @@ function putmio_e(?string $value): string
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/**
+ * URL di un asset locale con versione derivata dal mtime del file.
+ *
+ * Per CSS/JS la versione finisce nel NOME del file (es. app.v1718900000.css):
+ * una regola rewrite in .htaccess la rimappa al file reale. Così, quando il
+ * file cambia, cambia anche l'URL e i client (anche le Smart TV, dove svuotare
+ * la cache è scomodo) scaricano sempre l'ultima versione. Per altre estensioni
+ * si usa una query string. Se il file non esiste, l'URL non viene versionato.
+ */
+function putmio_asset(string $relativePath): string
+{
+    $relativePath = ltrim($relativePath, '/');
+    $base = rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/');
+    $mtime = @filemtime(putmio_base_path() . '/' . $relativePath);
+    if ($mtime === false) {
+        return $base . '/' . $relativePath;
+    }
+    $dotPos = strrpos($relativePath, '.');
+    if ($dotPos === false) {
+        return $base . '/' . $relativePath . '?v=' . $mtime;
+    }
+    $name = substr($relativePath, 0, $dotPos);
+    $ext = substr($relativePath, $dotPos + 1);
+    if ($ext === 'css' || $ext === 'js') {
+        return $base . '/' . $name . '.v' . $mtime . '.' . $ext;
+    }
+    return $base . '/' . $relativePath . '?v=' . $mtime;
+}
+
 function putmio_redirect(string $path): void
 {
     $base = putmio_is_installed()

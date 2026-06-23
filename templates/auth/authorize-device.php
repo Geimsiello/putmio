@@ -129,5 +129,5 @@ $putmioExtra = array_merge($putmioExtra ?? [], [
         'authorizeUrl' => $authorizeUrl ?? '',
     ],
 ]);
-$extraScripts = '<script src="' . putmio_e($appUrl) . '/public/assets/device-authorize.js" defer></script>';
+$extraScripts = '<script src="' . putmio_e(putmio_asset('public/assets/device-authorize.js')) . '" defer></script>';
 ?>

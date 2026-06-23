@@ -48,7 +48,7 @@ final class CatalogController
             'hasMore' => $total > count($items),
             'catalog' => $this->catalog,
             'extraScripts' => '<script src="' . htmlspecialchars(
-                rtrim(Config::get('app.url'), '/') . '/public/assets/catalog.js',
+                putmio_asset('public/assets/catalog.js'),
                 ENT_QUOTES,
                 'UTF-8'
             ) . '" defer></script>',
@@ -108,7 +108,7 @@ final class CatalogController
             'availableSubtitles' => $availableSubtitles,
             'subtitlesConfigured' => $subtitleService->isConfigured(),
             'extraScripts' => !$isSeries
-                ? '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/subtitles.js', ENT_QUOTES, 'UTF-8') . '" defer></script>'
+                ? '<script src="' . htmlspecialchars(putmio_asset('public/assets/subtitles.js'), ENT_QUOTES, 'UTF-8') . '" defer></script>'
                 : '',
             'putmioExtra' => !$isSeries ? [
                 'mediaId' => $id,

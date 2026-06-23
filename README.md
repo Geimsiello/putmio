@@ -87,6 +87,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
 - **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone). I link di autorizzazione TV (`/authorize-device`) sono configurati per aprirsi nell'app installata quando possibile (Android/Chrome); su iOS usare il menu **Autorizza TV** nell'app
+- **Cache-busting asset** con versione nel nome del file (es. `app.v1718900000.css`): a ogni modifica di CSS/JS l'URL cambia automaticamente (basato su `filemtime`), così tutti i client — incluse le Smart TV, dove svuotare la cache è scomodo — caricano sempre l'ultima versione senza hard-refresh manuale. Richiede `mod_rewrite` (regola in `.htaccess`)
 
 ## Struttura
 
@@ -134,6 +135,7 @@ Elimina `config.php` e `storage/.installed`, poi ricarica l’URL dell’app per
 | Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni |
 | Invito email non parte | Verifica SMTP in Admin → Impostazioni; controlla `storage/logs/app.log` |
 | Cron non parte | Verifica percorso script in Impostazioni; controlla log email del provider o `storage/logs/app.log` |
+| CSS/JS aggiornati ma vecchi nel browser/TV | Verifica che `mod_rewrite` sia attivo: gli asset usano la versione nel nome (`app.v<numero>.css`) rimappata da `.htaccess`. Se gli asset danno 404, manca `mod_rewrite` o la regola in `.htaccess` |
 
 ## Roadmap
 

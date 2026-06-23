@@ -107,7 +107,7 @@ final class AdminController
                     'toastSubtitlesTestError' => putmio_lang('subtitles_test_error'),
                 ],
             ],
-            'extraScripts' => '<script src="' . htmlspecialchars(rtrim(Config::get('app.url'), '/') . '/public/assets/admin-settings.js', ENT_QUOTES, 'UTF-8') . '" defer></script>',
+            'extraScripts' => '<script src="' . htmlspecialchars(putmio_asset('public/assets/admin-settings.js'), ENT_QUOTES, 'UTF-8') . '" defer></script>',
             'success' => $_SESSION['flash_success'] ?? null,
             'error' => $_SESSION['flash_error'] ?? null,
         ]);
@@ -283,7 +283,7 @@ final class AdminController
             'items' => $items,
             'tmdbConfigured' => (new \PutMio\TMDB\Client())->isConfigured(),
             'extraScripts' => '<script src="' . htmlspecialchars(
-                rtrim(Config::get('app.url'), '/') . '/public/assets/classify-tmdb.js',
+                putmio_asset('public/assets/classify-tmdb.js'),
                 ENT_QUOTES,
                 'UTF-8'
             ) . '" defer></script>',
