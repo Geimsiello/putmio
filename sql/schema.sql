@@ -121,6 +121,8 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_items` (
   `synopsis` TEXT NULL,
   `poster_local_path` VARCHAR(255) NULL,
   `poster_url` VARCHAR(512) NULL,
+  `backdrop_local_path` VARCHAR(255) NULL,
+  `backdrop_url` VARCHAR(512) NULL,
   `tmdb_id` INT UNSIGNED NULL,
   `tmdb_type` ENUM('movie','tv') NULL,
   `imdb_id` VARCHAR(20) NULL,

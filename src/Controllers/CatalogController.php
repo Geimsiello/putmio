@@ -154,12 +154,22 @@ final class CatalogController
 
     public function poster(): void
     {
+        $this->serveStoredImage('posters');
+    }
+
+    public function backdrop(): void
+    {
+        $this->serveStoredImage('backdrops');
+    }
+
+    private function serveStoredImage(string $subdir): void
+    {
         $file = basename((string) ($_GET['f'] ?? ''));
         if ($file === '' || preg_match('/[^a-zA-Z0-9._-]/', $file)) {
             http_response_code(404);
             exit;
         }
-        $path = putmio_base_path() . '/storage/posters/' . $file;
+        $path = putmio_base_path() . '/storage/' . $subdir . '/' . $file;
         if (!is_file($path)) {
             http_response_code(404);
             exit;

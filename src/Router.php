@@ -73,6 +73,7 @@ final class Router
                 '/api/subtitles/search' => [SubtitleController::class, 'search'],
                 '/subtitles/serve' => [SubtitleController::class, 'serve'],
                 '/poster' => [CatalogController::class, 'poster'],
+                '/backdrop' => [CatalogController::class, 'backdrop'],
             ],
             'POST' => [
                 '/login' => [AuthController::class, 'login'],

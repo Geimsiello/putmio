@@ -77,16 +77,37 @@ final class Client
 
     public function downloadPoster(string $posterPath, int $mediaId): ?string
     {
-        $url = $this->posterUrl($posterPath);
+        return $this->downloadImage($this->posterUrl($posterPath), 'posters', 'media_' . $mediaId);
+    }
+
+    public function backdropUrl(?string $path, string $size = 'w1280'): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+
+        return 'https://image.tmdb.org/t/p/' . $size . $path;
+    }
+
+    public function downloadBackdrop(?string $backdropPath, int $mediaId): ?string
+    {
+        return $this->downloadImage($this->backdropUrl($backdropPath), 'backdrops', 'media_' . $mediaId . '_backdrop');
+    }
+
+    private function downloadImage(?string $url, string $subdir, string $basename): ?string
+    {
         if (!$url) {
             return null;
         }
-        $dir = putmio_base_path() . '/storage/posters';
+
+        $dir = putmio_base_path() . '/storage/' . $subdir;
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
-        $ext = pathinfo($posterPath, PATHINFO_EXTENSION) ?: 'jpg';
-        $filename = 'media_' . $mediaId . '.' . $ext;
+
+        $pathPart = parse_url($url, PHP_URL_PATH) ?: '';
+        $ext = pathinfo($pathPart, PATHINFO_EXTENSION) ?: 'jpg';
+        $filename = $basename . '.' . $ext;
         $dest = $dir . '/' . $filename;
 
         $ch = curl_init($url);
@@ -98,8 +119,10 @@ final class Client
         if ($data === false || $code >= 400) {
             return null;
         }
+
         file_put_contents($dest, $data);
-        return 'storage/posters/' . $filename;
+
+        return 'storage/' . $subdir . '/' . $filename;
     }
 
     private function get(string $url): array

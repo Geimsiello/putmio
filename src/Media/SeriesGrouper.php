@@ -259,7 +259,9 @@ final class SeriesGrouper
             $pdo->prepare(
                 'UPDATE `' . $mediaTable . '`
                  SET title = ?, original_title = ?, year = ?, synopsis = ?,
-                     poster_local_path = ?, poster_url = ?, tmdb_id = ?, tmdb_type = ?,
+                     poster_local_path = ?, poster_url = ?,
+                     backdrop_local_path = ?, backdrop_url = ?,
+                     tmdb_id = ?, tmdb_type = ?,
                      duration_sec = COALESCE(?, duration_sec),
                      media_type = \'serie\',
                      classification_status = ?, updated_at = NOW()
@@ -271,6 +273,8 @@ final class SeriesGrouper
                 $episodeRow['synopsis'] ?? null,
                 $episodeRow['poster_local_path'] ?? null,
                 $episodeRow['poster_url'] ?? null,
+                $episodeRow['backdrop_local_path'] ?? null,
+                $episodeRow['backdrop_url'] ?? null,
                 $episodeRow['tmdb_id'] ?? null,
                 $episodeRow['tmdb_type'] ?? null,
                 $episodeRow['duration_sec'] ?? null,

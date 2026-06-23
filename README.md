@@ -73,7 +73,7 @@ putmio/
   src/               # PHP applicazione
   templates/         # Viste
   public/assets/     # CSS/JS
-  storage/           # Log, poster, lock installazione
+  storage/           # Log, poster, backdrop player, lock installazione
   sql/schema.sql     # Schema DB
 ```
 

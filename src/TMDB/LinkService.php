@@ -36,6 +36,8 @@ final class LinkService
         $synopsis = (string) ($details['overview'] ?? '');
         $posterPath = $this->client->downloadPoster($details['poster_path'] ?? null, $mediaId);
         $posterUrl = $this->client->posterUrl($details['poster_path'] ?? null);
+        $backdropPath = $this->client->downloadBackdrop($details['backdrop_path'] ?? null, $mediaId);
+        $backdropUrl = $this->client->backdropUrl($details['backdrop_path'] ?? null);
 
         $runtime = $details['runtime'] ?? null;
         if ($runtime === null && !empty($details['episode_run_time'][0])) {
@@ -52,13 +54,15 @@ final class LinkService
         $pdo->prepare(
             'UPDATE `' . Config::table('media_items') . '`
              SET title = ?, original_title = ?, year = ?, synopsis = ?,
-                 poster_local_path = ?, poster_url = ?, tmdb_id = ?, tmdb_type = ?,
+                 poster_local_path = ?, poster_url = ?,
+                 backdrop_local_path = ?, backdrop_url = ?,
+                 tmdb_id = ?, tmdb_type = ?,
                  imdb_id = ?,
                  media_type = ?,
                  duration_sec = COALESCE(?, duration_sec),
                  classification_status = \'classified\', updated_at = NOW()
              WHERE id = ?'
-        )->execute([$title, $original, $year, $synopsis, $posterPath, $posterUrl, $tmdbId, $tmdbType, $imdbId, $mediaType, $durationSec, $mediaId]);
+        )->execute([$title, $original, $year, $synopsis, $posterPath, $posterUrl, $backdropPath, $backdropUrl, $tmdbId, $tmdbType, $imdbId, $mediaType, $durationSec, $mediaId]);
 
         $catalog = new CatalogService();
         $catalog->syncMediaGenres($mediaId, $details['genres'] ?? []);

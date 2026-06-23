@@ -563,7 +563,6 @@
 
   function ensureSubtitleTracks(list, activeId, offsetMs) {
     const nextList = (list || []).slice();
-    const previousActiveId = subtitleState.activeId;
     subtitleState.list = nextList;
     subtitleState.activeId = activeId || null;
     subtitleState.offsetMs = offsetMs || 0;
@@ -584,9 +583,8 @@
       }
     });
 
-    const trackToShow = subtitleState.activeId || previousActiveId;
-    if (trackToShow) {
-      activateSubtitleTrack(trackToShow);
+    if (subtitleState.activeId) {
+      activateSubtitleTrack(subtitleState.activeId);
     } else {
       disableAllSubtitleTracks();
     }
@@ -612,7 +610,6 @@
       color: '#FFF',
       edgeStyle: 'uniform',
       fontFamily: 'proportionalSansSerif',
-      fontPercent: 1.75,
       textOpacity: '1',
       windowColor: '#000',
       windowOpacity: '0',
@@ -655,10 +652,6 @@
       }
 
       const subtitleId = showing ? parseSubtitleIdFromTrack(showing) : null;
-      if (subtitleId !== subtitleState.activeId) {
-        ensureSubtitleTracks(subtitleState.list, subtitleId, subtitleState.offsetMs);
-        return;
-      }
       subtitleState.activeId = subtitleId;
       emitSubtitleChange(subtitleId);
     });

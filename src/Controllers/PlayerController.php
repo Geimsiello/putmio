@@ -113,13 +113,7 @@ final class PlayerController
         $subtitlePrefs = $subtitleService->userPrefs($userId, $id);
         $subtitlesConfigured = $subtitleService->isConfigured();
 
-        $posterLocal = $media['poster_local_path'] ?? null;
-        $posterRemote = $media['poster_url'] ?? null;
-        if (empty($posterLocal) && empty($posterRemote) && $series) {
-            $posterLocal = $series['poster_local_path'] ?? null;
-            $posterRemote = $series['poster_url'] ?? null;
-        }
-        $posterUrl = $catalog->posterWebPath($posterLocal, $posterRemote);
+        $posterUrl = $catalog->playerArtworkWebPath($media, $series);
 
         View::render('player/show', [
             'title' => $displayTitle,

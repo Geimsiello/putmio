@@ -8,6 +8,7 @@ use PutMio\Config;
 use PutMio\Database;
 use PutMio\CatalogService;
 use PutMio\Media\SeriesGrouper;
+use PutMio\TMDB\Client as TmdbClient;
 
 final class Migrator
 {
@@ -43,6 +44,7 @@ final class Migrator
             self::runPutioFriendsMigration($pdo);
             self::runSubtitlesMigration($pdo);
             self::runRememberTokensMigration($pdo);
+            self::runBackdropsMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
         }
@@ -160,6 +162,91 @@ final class Migrator
                  ADD COLUMN `shared_by_username` VARCHAR(120) NULL AFTER `is_shared`,
                  ADD KEY `idx_shared_by` (`shared_by_username`)'
             );
+        }
+    }
+
+    private static function runBackdropsMigration(\PDO $pdo): void
+    {
+        $table = Config::table('media_items');
+        if (!self::columnExists($pdo, $table, 'backdrop_url')) {
+            $pdo->exec(
+                'ALTER TABLE `' . $table . '`
+                 ADD COLUMN `backdrop_local_path` VARCHAR(255) NULL AFTER `poster_url`,
+                 ADD COLUMN `backdrop_url` VARCHAR(512) NULL AFTER `backdrop_local_path`'
+            );
+        }
+
+        self::runBackdropBackfill();
+    }
+
+    private static function runBackdropBackfill(): void
+    {
+        $flag = putmio_base_path() . '/storage/.migration_backdrop_backfill';
+        if (is_file($flag)) {
+            return;
+        }
+
+        try {
+            $client = new TmdbClient();
+            if (!$client->isConfigured()) {
+                @file_put_contents($flag, date('c'));
+                return;
+            }
+
+            $pdo = Database::pdo();
+            $table = Config::table('media_items');
+            $stmt = $pdo->query(
+                'SELECT id, tmdb_id, tmdb_type FROM `' . $table . '`
+                 WHERE tmdb_id IS NOT NULL
+                   AND backdrop_url IS NULL
+                   AND series_id IS NULL'
+            );
+            $rows = $stmt ? $stmt->fetchAll() : [];
+            $update = $pdo->prepare(
+                'UPDATE `' . $table . '`
+                 SET backdrop_local_path = ?, backdrop_url = ?, updated_at = NOW()
+                 WHERE id = ?'
+            );
+
+            foreach ($rows as $row) {
+                $tmdbId = (int) ($row['tmdb_id'] ?? 0);
+                $tmdbType = (string) ($row['tmdb_type'] ?? 'movie');
+                if ($tmdbId <= 0) {
+                    continue;
+                }
+                if (!in_array($tmdbType, ['movie', 'tv'], true)) {
+                    $tmdbType = 'movie';
+                }
+
+                try {
+                    $details = $client->details($tmdbType, $tmdbId);
+                    $backdropPath = $client->downloadBackdrop($details['backdrop_path'] ?? null, (int) $row['id']);
+                    $backdropUrl = $client->backdropUrl($details['backdrop_path'] ?? null);
+                    if ($backdropPath || $backdropUrl) {
+                        $update->execute([$backdropPath, $backdropUrl, (int) $row['id']]);
+                    }
+                } catch (\Throwable $e) {
+                    self::logMigrationError($e);
+                }
+
+                usleep(250000);
+            }
+
+            $catalog = new CatalogService();
+            $seriesStmt = $pdo->query(
+                'SELECT id FROM `' . $table . '`
+                 WHERE series_id IS NULL AND putio_file_id IS NULL
+                   AND classification_status = \'classified\'
+                   AND backdrop_url IS NOT NULL'
+            );
+            $seriesRows = $seriesStmt ? $seriesStmt->fetchAll() : [];
+            foreach ($seriesRows as $seriesRow) {
+                $catalog->syncSeriesMetadataToEpisodes((int) $seriesRow['id']);
+            }
+
+            @file_put_contents($flag, date('c'));
+        } catch (\Throwable $e) {
+            self::logMigrationError($e);
         }
     }
 

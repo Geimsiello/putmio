@@ -522,6 +522,7 @@ final class CatalogService
         $updateStmt = $pdo->prepare(
             'UPDATE `' . $mediaTable . '`
              SET title = ?, synopsis = ?, poster_local_path = ?, poster_url = ?,
+                 backdrop_local_path = ?, backdrop_url = ?,
                  media_type = ?, classification_status = ?, year = ?,
                  duration_sec = COALESCE(?, duration_sec),
                  updated_at = NOW()
@@ -574,6 +575,8 @@ final class CatalogService
                 $synopsis !== '' ? $synopsis : null,
                 $series['poster_local_path'] ?? null,
                 $series['poster_url'] ?? null,
+                $series['backdrop_local_path'] ?? null,
+                $series['backdrop_url'] ?? null,
                 $series['media_type'] ?? 'serie',
                 ($series['classification_status'] ?? '') === 'classified' ? 'classified' : ($episode['classification_status'] ?? 'unclassified'),
                 $series['year'] ?? null,
@@ -611,5 +614,41 @@ final class CatalogService
             return $remote;
         }
         return rtrim(Config::get('app.url'), '/') . '/public/assets/no-poster.svg';
+    }
+
+    public function backdropWebPath(?string $local, ?string $remote): ?string
+    {
+        if ($local && is_file(putmio_base_path() . '/' . $local)) {
+            return rtrim(Config::get('app.url'), '/') . '/backdrop?f=' . urlencode(basename($local));
+        }
+        if ($remote) {
+            return $remote;
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $media */
+    public function playerArtworkWebPath(array $media, ?array $series = null): string
+    {
+        $backdropLocal = $media['backdrop_local_path'] ?? null;
+        $backdropRemote = $media['backdrop_url'] ?? null;
+        if (empty($backdropLocal) && empty($backdropRemote) && $series) {
+            $backdropLocal = $series['backdrop_local_path'] ?? null;
+            $backdropRemote = $series['backdrop_url'] ?? null;
+        }
+        $backdrop = $this->backdropWebPath($backdropLocal, $backdropRemote);
+        if ($backdrop !== null) {
+            return $backdrop;
+        }
+
+        $posterLocal = $media['poster_local_path'] ?? null;
+        $posterRemote = $media['poster_url'] ?? null;
+        if (empty($posterLocal) && empty($posterRemote) && $series) {
+            $posterLocal = $series['poster_local_path'] ?? null;
+            $posterRemote = $series['poster_url'] ?? null;
+        }
+
+        return $this->posterWebPath($posterLocal, $posterRemote);
     }
 }
