@@ -78,9 +78,9 @@ function putmio_video_extensions(): array
 }
 
 /** Titolo suggerito da un nome file release (null se non riconosciuto). */
-function putmio_guess_title_from_filename(string $filename): ?string
+function putmio_guess_title_from_filename(string $filename, ?string $folderName = null): ?string
 {
-    return \PutMio\Media\ReleaseNameParser::guessTitle($filename);
+    return \PutMio\Media\ReleaseNameParser::guessTitle($filename, $folderName);
 }
 
 function putmio_is_video_file(string $name, ?string $mime = null): bool

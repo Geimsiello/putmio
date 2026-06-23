@@ -17,9 +17,14 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0b1326">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PutMio">
   <title><?= $pageTitle ?> — PutMio</title>
+  <link rel="manifest" href="<?= putmio_e($appUrl) ?>/manifest.webmanifest">
   <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/icons/icon-192.png">
   <script>
     (function(){var t=localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>';if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();
   </script>

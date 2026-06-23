@@ -75,6 +75,14 @@ $tmdbTriggerLabel = $tmdbTriggerLabel ?? 'Collega metadati TMDB';
                 <span x-show="!loading">Cerca</span>
                 <span x-show="loading">Ricerca...</span>
               </button>
+              <a
+                x-show="catalogMode && mediaId > 0"
+                :href="mediaDetailUrl()"
+                class="mt-2 w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-outline-variant/40 text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/30 hover:text-on-surface transition-all active:scale-95"
+              >
+                <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+                <?= putmio_e(putmio_lang('tmdb_view_content')) ?>
+              </a>
             </div>
 
             <div class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-4 min-h-0">
@@ -268,6 +276,12 @@ function tmdbLinkModal(mediaId, initialQuery, fileName, autoOpen, catalogMode) {
     closeModal() {
       this.isOpen = false;
       document.body.classList.remove('overflow-hidden');
+    },
+    mediaDetailUrl() {
+      if (!this.mediaId) {
+        return '#';
+      }
+      return window.PUTMIO.baseUrl + '/media?id=' + this.mediaId;
     },
     posterUrl(path, size) {
       if (!path) return '';

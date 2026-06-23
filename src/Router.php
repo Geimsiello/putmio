@@ -14,6 +14,7 @@ use PutMio\Controllers\CatalogController;
 use PutMio\Controllers\CronController;
 use PutMio\Controllers\HomeController;
 use PutMio\Controllers\PlayerController;
+use PutMio\Controllers\PwaController;
 use PutMio\Controllers\SubtitleController;
 use PutMio\Install\InstallGate;
 
@@ -74,6 +75,7 @@ final class Router
                 '/subtitles/serve' => [SubtitleController::class, 'serve'],
                 '/poster' => [CatalogController::class, 'poster'],
                 '/backdrop' => [CatalogController::class, 'backdrop'],
+                '/manifest.webmanifest' => [PwaController::class, 'manifest'],
             ],
             'POST' => [
                 '/login' => [AuthController::class, 'login'],

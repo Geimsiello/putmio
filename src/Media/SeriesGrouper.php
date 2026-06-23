@@ -20,16 +20,17 @@ final class SeriesGrouper
             'SELECT mi.id, mi.series_id, mi.tmdb_id, mi.tmdb_type, mi.title, mi.media_type,
                     mi.classification_status, mi.original_title, mi.year, mi.synopsis,
                     mi.poster_local_path, mi.poster_url, mi.duration_sec,
-                    pf.name AS file_name
+                    pf.name AS file_name, parent_pf.name AS folder_name
              FROM `' . $mediaTable . '` mi
              JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+             LEFT JOIN `' . $filesTable . '` parent_pf ON parent_pf.putio_id = pf.parent_putio_id
              WHERE mi.putio_file_id IS NOT NULL
              ORDER BY mi.id ASC'
         );
         $rows = $stmt ? $stmt->fetchAll() : [];
 
         foreach ($rows as $row) {
-            $parsed = ReleaseNameParser::parseEpisode((string) $row['file_name']);
+            $parsed = $this->parseEpisodeRow($row);
             if ($parsed === null) {
                 continue;
             }
@@ -93,9 +94,10 @@ final class SeriesGrouper
         $filesTable = Config::table('putio_files');
 
         $stmt = $pdo->prepare(
-            'SELECT mi.*, pf.name AS file_name
+            'SELECT mi.*, pf.name AS file_name, parent_pf.name AS folder_name
              FROM `' . $mediaTable . '` mi
              JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+             LEFT JOIN `' . $filesTable . '` parent_pf ON parent_pf.putio_id = pf.parent_putio_id
              WHERE mi.id = ? LIMIT 1'
         );
         $stmt->execute([$mediaId]);
@@ -104,7 +106,7 @@ final class SeriesGrouper
             return;
         }
 
-        $parsed = ReleaseNameParser::parseEpisode((string) $row['file_name']);
+        $parsed = $this->parseEpisodeRow($row);
         if ($parsed === null) {
             return;
         }
@@ -248,8 +250,10 @@ final class SeriesGrouper
             return;
         }
 
-        $showTitle = ReleaseNameParser::guessTitle((string) ($episodeRow['file_name'] ?? $episodeRow['title'] ?? ''))
-            ?? (string) ($episodeRow['title'] ?? 'Serie TV');
+        $showTitle = ReleaseNameParser::guessTitle(
+            (string) ($episodeRow['file_name'] ?? $episodeRow['title'] ?? ''),
+            isset($episodeRow['folder_name']) ? (string) $episodeRow['folder_name'] : null
+        ) ?? (string) ($episodeRow['title'] ?? 'Serie TV');
 
         if (($episodeRow['tmdb_type'] ?? '') === 'tv') {
             $showTitle = (string) ($episodeRow['title'] ?? $showTitle);
@@ -408,9 +412,10 @@ final class SeriesGrouper
             $seen[$seriesId] = true;
 
             $epStmt = $pdo->prepare(
-                'SELECT mi.*, pf.name AS file_name
+                'SELECT mi.*, pf.name AS file_name, parent_pf.name AS folder_name
                  FROM `' . $mediaTable . '` mi
                  LEFT JOIN `' . Config::table('putio_files') . '` pf ON pf.id = mi.putio_file_id
+                 LEFT JOIN `' . Config::table('putio_files') . '` parent_pf ON parent_pf.putio_id = pf.parent_putio_id
                  WHERE mi.id = ? LIMIT 1'
             );
             $epStmt->execute([(int) $row['episode_id']]);
@@ -428,5 +433,19 @@ final class SeriesGrouper
         $title = preg_replace('/\s+/u', ' ', $title) ?? $title;
 
         return trim($title);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     * @return array{show_title: string, season: int, episode: int, episode_title: ?string}|null
+     */
+    private function parseEpisodeRow(array $row): ?array
+    {
+        $folderName = isset($row['folder_name']) ? trim((string) $row['folder_name']) : '';
+
+        return ReleaseNameParser::parseEpisode(
+            (string) ($row['file_name'] ?? ''),
+            $folderName !== '' ? $folderName : null
+        );
     }
 }

@@ -569,9 +569,10 @@ final class CatalogService
         $pdo = Database::pdo();
         $mediaTable = Config::table('media_items');
         $stmt = $pdo->prepare(
-            'SELECT mi.*, pf.name AS file_name
+            'SELECT mi.*, pf.name AS file_name, parent_pf.name AS folder_name
              FROM `' . $mediaTable . '` mi
              LEFT JOIN `' . Config::table('putio_files') . '` pf ON pf.id = mi.putio_file_id
+             LEFT JOIN `' . Config::table('putio_files') . '` parent_pf ON parent_pf.putio_id = pf.parent_putio_id
              WHERE mi.series_id = ?
              ORDER BY mi.season_number ASC, mi.episode_number ASC, mi.id ASC'
         );
@@ -627,7 +628,11 @@ final class CatalogService
                     // Mantieni titolo da filename se TMDB non risponde per questo episodio.
                 }
             } elseif ($season > 0 && $episodeNum > 0 && !empty($episode['file_name'])) {
-                $parsed = ReleaseNameParser::parseEpisode((string) $episode['file_name']);
+                $folderName = isset($episode['folder_name']) ? trim((string) $episode['folder_name']) : '';
+                $parsed = ReleaseNameParser::parseEpisode(
+                    (string) $episode['file_name'],
+                    $folderName !== '' ? $folderName : null
+                );
                 if ($parsed !== null) {
                     $title = ReleaseNameParser::episodeDisplayTitle(
                         $parsed['season'],

@@ -10,11 +10,18 @@ namespace PutMio\Media;
  */
 final class ReleaseNameParser
 {
-    public static function guessTitle(string $filename): ?string
+    public static function guessTitle(string $filename, ?string $folderName = null): ?string
     {
-        $info = self::parseEpisode($filename);
+        $info = self::parseEpisode($filename, $folderName);
         if ($info !== null) {
             return $info['show_title'];
+        }
+
+        if ($folderName !== null && trim($folderName) !== '') {
+            $fromFolder = self::guessShowTitleFromFolder($folderName);
+            if ($fromFolder !== null) {
+                return $fromFolder;
+            }
         }
 
         return self::guessTitleFromBase(pathinfo($filename, PATHINFO_FILENAME));
@@ -23,7 +30,81 @@ final class ReleaseNameParser
     /**
      * @return array{show_title: string, season: int, episode: int, episode_title: ?string}|null
      */
-    public static function parseEpisode(string $filename): ?array
+    public static function parseEpisode(string $filename, ?string $folderName = null): ?array
+    {
+        $fromFile = self::parseEpisodeFromFilename($filename);
+        if ($fromFile !== null) {
+            return $fromFile;
+        }
+
+        if ($folderName === null || trim($folderName) === '') {
+            return null;
+        }
+
+        return self::parseEpisodeWithFolder($filename, trim($folderName));
+    }
+
+    public static function guessShowTitleFromFolder(string $folderName): ?string
+    {
+        $base = trim($folderName);
+        if ($base === '') {
+            return null;
+        }
+
+        $base = preg_replace('/\s*\([^)]*\)\s*$/u', '', $base) ?? $base;
+        $base = trim($base);
+        if ($base === '') {
+            return null;
+        }
+
+        if (preg_match('/^(.+?)(?:\s*-\s*)?(?:Stagione|Season)\s+\d+/iu', $base, $m)) {
+            $title = trim($m[1], " -_\t");
+
+            return self::isReasonableTitle($title) ? $title : null;
+        }
+
+        if (preg_match('/^(.+?)[.\s_-]+S(\d{1,2})(?:[.\s_.-]|$)/iu', $base, $m)) {
+            $title = trim($m[1], "._- \t");
+
+            return self::isReasonableTitle($title) ? $title : null;
+        }
+
+        $tokens = self::tokenize($base);
+        $titleTokens = [];
+        foreach ($tokens as $token) {
+            if (self::isMetadataToken($token)) {
+                break;
+            }
+            if (preg_match('/^(?:Stagione|Season)$/iu', $token)) {
+                break;
+            }
+            if (preg_match('/^S\d{1,2}$/i', $token)) {
+                break;
+            }
+            $titleTokens[] = $token;
+        }
+
+        $title = self::formatTitle($titleTokens);
+
+        return self::isReasonableTitle($title) ? $title : null;
+    }
+
+    public static function guessSeasonFromFolder(string $folderName): ?int
+    {
+        if (preg_match('/(?:Stagione|Season)\s+(\d{1,2})/iu', $folderName, $m)) {
+            return (int) $m[1];
+        }
+        if (preg_match('/\bS(\d{1,2})\b/i', $folderName, $m)) {
+            return (int) $m[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{show_title: string, season: int, episode: int, episode_title: ?string}|null
+     */
+    private static function parseEpisodeFromFilename(string $filename): ?array
     {
         $originalBase = pathinfo($filename, PATHINFO_FILENAME);
         if ($originalBase === '') {
@@ -102,6 +183,61 @@ final class ReleaseNameParser
                 'season' => 1,
                 'episode' => (int) $m[2],
                 'episode_title' => null,
+            ];
+        }
+
+        return null;
+    }
+
+    /**
+     * Episodio con solo numero/titolo nel filename; nome serie e stagione dalla cartella padre.
+     *
+     * @return array{show_title: string, season: int, episode: int, episode_title: ?string}|null
+     */
+    private static function parseEpisodeWithFolder(string $filename, string $folderName): ?array
+    {
+        $showTitle = self::guessShowTitleFromFolder($folderName);
+        if ($showTitle === null) {
+            return null;
+        }
+
+        $originalBase = pathinfo($filename, PATHINFO_FILENAME);
+        if ($originalBase === '') {
+            return null;
+        }
+
+        $base = self::stripBracketReleaseGroup($originalBase);
+        $base = self::stripReleaseGroup($base);
+
+        if (preg_match('/^(\d{1,2})[xX](\d{1,3})\s*[-–—]?\s*(.*)$/u', $base, $m)) {
+            return [
+                'show_title' => $showTitle,
+                'season' => (int) $m[1],
+                'episode' => (int) $m[2],
+                'episode_title' => self::formatEpisodeTitleSuffix(self::stripTrailingVideoExtension($m[3])),
+            ];
+        }
+
+        if (preg_match('/^[Ss](\d{1,2})[Ee](\d{1,3})\s*[-–—]?\s*(.*)$/u', $base, $m)) {
+            return [
+                'show_title' => $showTitle,
+                'season' => (int) $m[1],
+                'episode' => (int) $m[2],
+                'episode_title' => self::formatEpisodeTitleSuffix(self::stripTrailingVideoExtension($m[3])),
+            ];
+        }
+
+        $folderSeason = self::guessSeasonFromFolder($folderName);
+        if ($folderSeason === null) {
+            return null;
+        }
+
+        if (preg_match('/^(?:E(?:P(?:ISODE)?)?)?(\d{1,3})\s*[-–—]?\s*(.*)$/iu', $base, $m)) {
+            return [
+                'show_title' => $showTitle,
+                'season' => $folderSeason,
+                'episode' => (int) $m[1],
+                'episode_title' => self::formatEpisodeTitleSuffix(self::stripTrailingVideoExtension($m[2])),
             ];
         }
 
@@ -260,12 +396,28 @@ final class ReleaseNameParser
 
     private static function formatEpisodeTitleSuffix(string $suffix): ?string
     {
-        $suffix = trim(str_replace(['.', '_'], ' ', $suffix));
+        $suffix = self::stripTrailingVideoExtension(trim(str_replace(['.', '_'], ' ', $suffix)));
         if ($suffix === '' || !self::isReasonableTitle($suffix)) {
             return null;
         }
 
         return $suffix;
+    }
+
+    private static function stripTrailingVideoExtension(string $suffix): string
+    {
+        $trimmed = trim($suffix);
+        if ($trimmed === '') {
+            return '';
+        }
+
+        $stripped = preg_replace(
+            '/\s+(?:mkv|mp4|avi|mov|webm|m4v|wmv|ts|mpeg|mpg)$/iu',
+            '',
+            $trimmed
+        );
+
+        return $stripped !== null ? trim($stripped) : $trimmed;
     }
 
     /** @param list<string> $tokens */

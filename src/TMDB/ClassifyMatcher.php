@@ -48,9 +48,11 @@ final class ClassifyMatcher
         $isSeriesGroup = empty($item['putio_file_id']) && (int) ($item['episode_count'] ?? 0) > 0;
         $fileLabel = $this->fileLabel($item, $isSeriesGroup);
         $sourceName = (string) ($item['file_name'] ?? $item['title'] ?? '');
+        $folderName = trim((string) ($item['folder_name'] ?? ''));
         $query = $this->buildQuery($item, $fileLabel, $isSeriesGroup);
-        $preferredType = $this->preferredType($sourceName, $isSeriesGroup);
-        $yearHint = $this->yearHintFromFilename($sourceName);
+        $preferredType = $this->preferredType($sourceName, $isSeriesGroup, $folderName);
+        $yearHint = $this->yearHintFromFilename($sourceName)
+            ?? ($folderName !== '' ? $this->yearHintFromFilename($folderName) : null);
 
         $base = [
             'media_id' => $mediaId,
@@ -180,11 +182,12 @@ final class ClassifyMatcher
         $mediaTable = Config::table('media_items');
         $filesTable = Config::table('putio_files');
         $stmt = $pdo->prepare(
-            "SELECT mi.*, pf.name AS file_name, pf.shared_by_username,
+            "SELECT mi.*, pf.name AS file_name, pf.shared_by_username, parent_pf.name AS folder_name,
                     (SELECT COUNT(*) FROM `{$mediaTable}` ep
                      WHERE ep.series_id = mi.id AND ep.classification_status = 'unclassified') AS episode_count
              FROM `{$mediaTable}` mi
              LEFT JOIN `{$filesTable}` pf ON pf.id = mi.putio_file_id
+             LEFT JOIN `{$filesTable}` parent_pf ON parent_pf.putio_id = pf.parent_putio_id
              WHERE mi.id = ?
                AND mi.classification_status = 'unclassified'
                AND mi.series_id IS NULL
@@ -214,11 +217,22 @@ final class ClassifyMatcher
      */
     private function buildQuery(array $item, string $fileLabel, bool $isSeriesGroup): string
     {
+        $folderName = trim((string) ($item['folder_name'] ?? ''));
         $source = (string) ($item['file_name'] ?? $item['title'] ?? '');
         if ($source !== '') {
-            $guessed = putmio_guess_title_from_filename($source);
+            $guessed = putmio_guess_title_from_filename(
+                $source,
+                $folderName !== '' ? $folderName : null
+            );
             if ($guessed) {
                 return $guessed;
+            }
+        }
+
+        if ($folderName !== '') {
+            $fromFolder = ReleaseNameParser::guessShowTitleFromFolder($folderName);
+            if ($fromFolder !== null) {
+                return $fromFolder;
             }
         }
 
@@ -244,12 +258,15 @@ final class ClassifyMatcher
         return $fileLabel !== '' ? $fileLabel : $title;
     }
 
-    private function preferredType(string $sourceName, bool $isSeriesGroup): ?string
+    private function preferredType(string $sourceName, bool $isSeriesGroup, string $folderName = ''): ?string
     {
         if ($isSeriesGroup) {
             return 'tv';
         }
-        if ($sourceName !== '' && ReleaseNameParser::parseEpisode($sourceName) !== null) {
+        if ($sourceName !== '' && ReleaseNameParser::parseEpisode(
+            $sourceName,
+            $folderName !== '' ? $folderName : null
+        ) !== null) {
             return 'tv';
         }
 

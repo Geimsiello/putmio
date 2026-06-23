@@ -76,7 +76,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Wizard installazione guidato
 - Login, inviti famiglia via email (SMTP), reset password, «Ricordami» (sessione persistente 30 giorni)
 - Catalogo film / serie / animazione con classificazione TMDB (scansione e associazione in blocco)
-- Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file)
+- Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file; se manca il titolo serie nel file, viene usato il nome della cartella padre su put.io)
 - TMDB on-demand (admin)
 - Player **Video.js** con proxy streaming Range HTTP e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
@@ -84,6 +84,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
+- **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone)
 
 ## Struttura
 
@@ -91,6 +92,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 putmio/
   front.php          # Front controller (entry point)
   index.php          # Alias verso front.php
+  sw.js              # Service worker PWA (cache asset statici)
   cron-sync.php      # Sync automatica da cron (solo CLI)
   config.php         # Generato dal wizard (non committare)
   composer.json      # Dipendenze PHP

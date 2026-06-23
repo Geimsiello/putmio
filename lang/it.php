@@ -132,6 +132,7 @@ return [
     'classify_tmdb_no_year' => 'n.d.',
     'classify_tmdb_year_hint' => 'Anno nel file: :year',
     'classify_tmdb_rating' => 'Voto :value',
+    'tmdb_view_content' => 'Vedi contenuto',
     'unclassified' => 'Da classificare',
     'film' => 'Film',
     'serie' => 'Serie TV',

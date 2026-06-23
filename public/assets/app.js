@@ -323,4 +323,14 @@
       window.setTimeout(function () { toast.remove(); }, 220);
     }, duration);
   };
+
+  if ('serviceWorker' in navigator && window.PUTMIO && window.PUTMIO.baseUrl) {
+    window.addEventListener('load', function () {
+      var swUrl = window.PUTMIO.baseUrl + '/sw.js';
+      var scope = window.PUTMIO.baseUrl + '/';
+      navigator.serviceWorker.register(swUrl, { scope: scope }).catch(function () {
+        /* installazione opzionale */
+      });
+    });
+  }
 })();
