@@ -85,7 +85,10 @@
           var data = await postAction('/api/auth/device/approve', code);
           if (data.ok) {
             showMessage('success', labels().approved || 'Dispositivo autorizzato.');
-            approveBtn.closest('.space-y-5')?.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+            var approveGroup = approveBtn.closest('.space-y-5');
+            if (approveGroup) {
+              approveGroup.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+            }
           } else {
             showMessage('error', labels().invalidCode || 'Codice non valido o scaduto.');
             approveBtn.disabled = false;
@@ -105,7 +108,10 @@
         try {
           await postAction('/api/auth/device/deny', code);
           showMessage('success', labels().denied || 'Richiesta rifiutata.');
-          denyBtn.closest('.space-y-5')?.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+          var denyGroup = denyBtn.closest('.space-y-5');
+          if (denyGroup) {
+            denyGroup.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+          }
         } catch (e) {
           showMessage('error', labels().error || 'Errore di connessione.');
           denyBtn.disabled = false;

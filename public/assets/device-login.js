@@ -20,8 +20,10 @@
     if (!box || !text) return;
     text.textContent = message;
     box.classList.remove('hidden');
-    $('device-login-loading')?.classList.add('hidden');
-    $('device-login-ready')?.classList.add('hidden');
+    var loading = $('device-login-loading');
+    var ready = $('device-login-ready');
+    if (loading) loading.classList.add('hidden');
+    if (ready) ready.classList.add('hidden');
   }
 
   function setTab(mode) {

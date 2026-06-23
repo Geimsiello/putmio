@@ -8,12 +8,17 @@ $appLocale = putmio_locale();
 $htmlLang = putmio_available_locales()[$appLocale]['html'] ?? 'it';
 $pageTitle = putmio_e($title ?? 'PutMio');
 $showFab = ($showSearchFab ?? false) && Session::userId();
+$tvUa = putmio_is_tv_user_agent();
+$htmlClasses = 'dark' . ($tvUa ? ' tv-ua' : '');
+$viewportContent = $tvUa
+    ? 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
+    : 'width=device-width, initial-scale=1';
 ?>
 <!DOCTYPE html>
-<html lang="<?= putmio_e($htmlLang) ?>" class="dark">
+<html lang="<?= putmio_e($htmlLang) ?>" class="<?= putmio_e($htmlClasses) ?>">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="<?= putmio_e($viewportContent) ?>">
   <meta name="robots" content="noindex, nofollow">
   <meta name="theme-color" content="#0b1326">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -175,6 +180,7 @@ $isAuthShell = !empty($authShell) && !Session::userId();
     'baseUrl' => $appUrl,
     'csrf' => Csrf::token(),
     'localeChangeError' => putmio_lang('locale_change_error'),
+    'isTvDevice' => $tvUa,
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="<?= putmio_e($appUrl) ?>/public/assets/app.js" defer></script>

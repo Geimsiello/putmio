@@ -75,7 +75,8 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 
 - Wizard installazione guidato
 - Login, inviti famiglia via email (SMTP), reset password, «Ricordami» (sessione persistente 30 giorni)
-- **Accesso da TV / altro dispositivo**: tab «QR / TV» nella pagina login con codice e QR; autorizzazione dal telefono già connesso (`/authorize-device`); dopo l’autorizzazione il dispositivo resta associato **30 giorni** (revoca al logout o al cambio password)
+- **Accesso da TV / altro dispositivo**: tab «QR / TV» nella pagina login con codice e QR (su Smart TV LG si apre automaticamente); autorizzazione dal telefono già connesso (`/authorize-device`); dopo l’autorizzazione il dispositivo resta associato **30 giorni** (revoca al logout o al cambio password)
+- **Smart TV LG (webOS):** il browser integrato può non supportare la proprietà CSS `gap`; PutMio applica fallback con margini (`@supports`) così catalogo, slider e header mantengono le spaziature corrette
 - Catalogo film / serie / animazione con classificazione TMDB (scansione e associazione in blocco)
 - Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file; se manca il titolo serie nel file, viene usato il nome della cartella padre su put.io)
 - TMDB on-demand (admin)

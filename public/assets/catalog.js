@@ -54,7 +54,10 @@
         loadMoreBtn.disabled = false;
         loadMoreBtn.removeAttribute('aria-busy');
       } else {
-        loadMoreBtn.closest('[data-catalog-load-more-wrap]')?.remove();
+        var loadMoreWrap = loadMoreBtn.closest('[data-catalog-load-more-wrap]');
+        if (loadMoreWrap) {
+          loadMoreWrap.remove();
+        }
       }
     } catch (e) {
       loadMoreBtn.disabled = false;
