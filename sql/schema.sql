@@ -80,6 +80,23 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}remember_tokens` (
   KEY `idx_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `{{prefix}}user_devices` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED NOT NULL,
+  `selector` VARCHAR(32) NOT NULL,
+  `token_hash` VARCHAR(64) NOT NULL,
+  `label` VARCHAR(64) NOT NULL,
+  `user_agent` VARCHAR(512) NULL,
+  `client_ip` VARCHAR(45) NULL,
+  `expires_at` DATETIME NOT NULL,
+  `last_used_at` DATETIME NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_selector` (`selector`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `{{prefix}}putio_connection` (
   `id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
   `putio_user_id` BIGINT NULL,

@@ -29,7 +29,7 @@ final class Session
 
         if (@session_start()) {
             if (!self::userId()) {
-                $user = RememberMe::attempt();
+                $user = RememberMe::attempt() ?? TrustedDevice::attempt();
                 if ($user) {
                     self::login($user);
                 }

@@ -127,6 +127,7 @@ final class AuthService
             $pdo->prepare('UPDATE `' . Config::table('password_resets') . '` SET used_at = NOW() WHERE id = ?')
                 ->execute([(int) $row['id']]);
             RememberMe::revokeAllForUser((int) $row['user_id']);
+            TrustedDevice::revokeAllForUser((int) $row['user_id']);
             $pdo->commit();
             return true;
         } catch (\Throwable $e) {

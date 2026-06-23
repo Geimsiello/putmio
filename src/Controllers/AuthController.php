@@ -9,6 +9,7 @@ use PutMio\Auth\Csrf;
 use PutMio\Auth\DeviceLoginService;
 use PutMio\Auth\RememberMe;
 use PutMio\Auth\Session;
+use PutMio\Auth\TrustedDevice;
 use PutMio\Config;
 use PutMio\Database;
 use PutMio\View;
@@ -122,6 +123,7 @@ final class AuthController
     public function logout(): void
     {
         RememberMe::forget();
+        TrustedDevice::forget();
         Session::logout();
         putmio_redirect('login');
     }

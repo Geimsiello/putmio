@@ -45,6 +45,7 @@ final class Migrator
             self::runSubtitlesMigration($pdo);
             self::runRememberTokensMigration($pdo);
             self::runDeviceLoginMigration($pdo);
+            self::runUserDevicesMigration($pdo);
             self::runLocaleMigration($pdo);
             self::runBackdropsMigration($pdo);
         } catch (\Throwable $e) {
@@ -156,6 +157,36 @@ final class Migrator
                     UNIQUE KEY `uq_device_token` (`device_token`),
                     KEY `idx_code_hash` (`code_hash`),
                     KEY `idx_client_ip_time` (`client_ip`, `created_at`),
+                    KEY `idx_expires` (`expires_at`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+            );
+        }
+    }
+
+    private static function runUserDevicesMigration(\PDO $pdo): void
+    {
+        $table = Config::table('user_devices');
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$table]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            $pdo->exec(
+                'CREATE TABLE `' . $table . '` (
+                    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                    `user_id` INT UNSIGNED NOT NULL,
+                    `selector` VARCHAR(32) NOT NULL,
+                    `token_hash` VARCHAR(64) NOT NULL,
+                    `label` VARCHAR(64) NOT NULL,
+                    `user_agent` VARCHAR(512) NULL,
+                    `client_ip` VARCHAR(45) NULL,
+                    `expires_at` DATETIME NOT NULL,
+                    `last_used_at` DATETIME NULL,
+                    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`id`),
+                    UNIQUE KEY `uq_selector` (`selector`),
+                    KEY `idx_user` (`user_id`),
                     KEY `idx_expires` (`expires_at`)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
             );

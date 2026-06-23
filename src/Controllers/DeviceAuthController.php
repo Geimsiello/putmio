@@ -7,6 +7,7 @@ namespace PutMio\Controllers;
 use PutMio\Auth\Csrf;
 use PutMio\Auth\DeviceLoginService;
 use PutMio\Auth\Session;
+use PutMio\Auth\TrustedDevice;
 use PutMio\Config;
 
 final class DeviceAuthController
@@ -65,6 +66,11 @@ final class DeviceAuthController
         }
 
         Session::login($user);
+        TrustedDevice::issue(
+            (int) $user['id'],
+            isset($_SERVER['HTTP_USER_AGENT']) ? (string) $_SERVER['HTTP_USER_AGENT'] : null,
+            $_SERVER['REMOTE_ADDR'] ?? null
+        );
         $userLocale = $user['locale'] ?? putmio_locale();
         putmio_set_locale($userLocale);
 
