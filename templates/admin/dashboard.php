@@ -2,9 +2,9 @@
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url'), '/');
-$adminCrumbLabel = 'Dashboard';
-$adminPageTitle = 'Dashboard Amministrazione';
-$adminPageDescription = 'Benvenuto nel cuore pulsante di PutMio. Monitora e gestisci la tua istanza privata.';
+$adminCrumbLabel = putmio_lang('admin_dashboard');
+$adminPageTitle = putmio_lang('admin_dashboard_title');
+$adminPageDescription = putmio_lang('admin_dashboard_desc');
 require putmio_base_path() . '/templates/partials/admin-header.php';
 
 $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
@@ -19,7 +19,7 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
     </div>
     <div>
       <h2 class="text-headline-md font-headline-md mb-2"><?= putmio_lang('settings') ?></h2>
-      <p class="text-on-surface-variant text-body-md opacity-80">Configura sistema, put.io e TMDB</p>
+      <p class="text-on-surface-variant text-body-md opacity-80"><?= putmio_e(putmio_lang('admin_settings_card_desc')) ?></p>
     </div>
   </a>
 
@@ -35,8 +35,8 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
       <?php endif; ?>
     </div>
     <div>
-      <h2 class="text-headline-md font-headline-md mb-2">Da classificare</h2>
-      <p class="text-on-surface-variant text-body-md opacity-80">Titoli in attesa di metadati</p>
+      <h2 class="text-headline-md font-headline-md mb-2"><?= putmio_e(putmio_lang('unclassified')) ?></h2>
+      <p class="text-on-surface-variant text-body-md opacity-80"><?= putmio_e(putmio_lang('admin_unclassified_desc')) ?></p>
     </div>
   </a>
 
@@ -48,8 +48,8 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
       <span class="material-symbols-outlined text-on-surface-variant/30">arrow_outward</span>
     </div>
     <div>
-      <h2 class="text-headline-md font-headline-md mb-2">Utenti e inviti</h2>
-      <p class="text-on-surface-variant text-body-md opacity-80">Gestisci i membri della famiglia e i permessi</p>
+      <h2 class="text-headline-md font-headline-md mb-2"><?= putmio_e(putmio_lang('admin_users_invites')) ?></h2>
+      <p class="text-on-surface-variant text-body-md opacity-80"><?= putmio_e(putmio_lang('admin_users_invites_desc')) ?></p>
     </div>
   </a>
 
@@ -58,19 +58,19 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
       <div class="p-2 bg-primary/20 text-primary rounded-lg">
         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">signal_cellular_alt</span>
       </div>
-      <span class="font-label-md text-label-md text-primary uppercase tracking-widest">Streaming</span>
+      <span class="font-label-md text-label-md text-primary uppercase tracking-widest"><?= putmio_e(putmio_lang('admin_streaming')) ?></span>
     </div>
     <div class="space-y-4">
       <div class="flex justify-between items-end border-b border-surface-variant/30 pb-3">
         <div>
           <p class="text-[40px] leading-none font-bold text-primary"><?= (int) $activeCount ?></p>
-          <p class="text-on-surface-variant text-label-md font-label-md">Stream attivi</p>
+          <p class="text-on-surface-variant text-label-md font-label-md"><?= putmio_e(putmio_lang('admin_active_streams')) ?></p>
         </div>
         <div class="text-right">
           <p class="text-headline-md font-headline-md text-on-surface leading-none font-bold">
             <?= putmio_format_bytes((int) $todayBytes) ?>
           </p>
-          <p class="text-on-surface-variant text-label-md font-label-md">Banda oggi</p>
+          <p class="text-on-surface-variant text-label-md font-label-md"><?= putmio_e(putmio_lang('admin_bandwidth_today')) ?></p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -78,7 +78,7 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
           <div class="h-full bg-primary-container transition-all duration-500" style="width:<?= (int) $bandwidthPct ?>%"></div>
         </div>
         <?php if ($activeCount > 0): ?>
-        <span class="text-[10px] text-primary font-label-sm font-label-md">LIVE</span>
+        <span class="text-[10px] text-primary font-label-sm font-label-md"><?= putmio_e(putmio_lang('admin_live')) ?></span>
         <?php endif; ?>
       </div>
     </div>
@@ -89,34 +89,34 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
   <div class="px-6 md:px-8 py-5 md:py-6 border-b border-surface-variant/30 flex flex-wrap justify-between items-center gap-3 bg-surface-container-high/40">
     <div class="flex items-center gap-3">
       <span class="material-symbols-outlined text-primary">sensors</span>
-      <h2 class="text-headline-md font-headline-md">Stream in tempo reale</h2>
+      <h2 class="text-headline-md font-headline-md"><?= putmio_e(putmio_lang('admin_streams_realtime')) ?></h2>
     </div>
     <?php if ($activeCount > 0): ?>
     <div class="px-3 py-1.5 bg-surface-container-lowest rounded-lg flex items-center gap-2 border border-surface-variant/50">
       <div class="w-2 h-2 rounded-full bg-success animate-pulse"></div>
-      <span class="text-label-md font-label-md text-on-surface-variant">Live Update</span>
+      <span class="text-label-md font-label-md text-on-surface-variant"><?= putmio_e(putmio_lang('admin_live_update')) ?></span>
     </div>
     <?php endif; ?>
   </div>
 
   <?php if (empty($activeStreams)): ?>
   <div class="px-6 md:px-8 py-12 text-center text-on-surface-variant text-body-md">
-    Nessuno stream in corso al momento.
+    <?= putmio_e(putmio_lang('admin_no_streams_now')) ?>
   </div>
   <?php else: ?>
   <div class="overflow-x-auto">
     <table class="w-full text-left min-w-[640px]">
       <thead>
         <tr class="text-on-surface-variant/60 font-label-md text-label-md border-b border-surface-variant/10">
-          <th class="px-6 md:px-8 py-4 font-medium">Utente</th>
-          <th class="px-6 md:px-8 py-4 font-medium">Titolo</th>
-          <th class="px-6 md:px-8 py-4 font-medium">Durata sessione</th>
-          <th class="px-6 md:px-8 py-4 font-medium">Banda</th>
+          <th class="px-6 md:px-8 py-4 font-medium"><?= putmio_e(putmio_lang('admin_col_user')) ?></th>
+          <th class="px-6 md:px-8 py-4 font-medium"><?= putmio_e(putmio_lang('admin_col_title')) ?></th>
+          <th class="px-6 md:px-8 py-4 font-medium"><?= putmio_e(putmio_lang('admin_col_session')) ?></th>
+          <th class="px-6 md:px-8 py-4 font-medium"><?= putmio_e(putmio_lang('admin_col_bandwidth')) ?></th>
         </tr>
       </thead>
       <tbody class="divide-y divide-surface-variant/10">
         <?php foreach ($activeStreams as $stream):
-          $name = (string) ($stream['display_name'] ?? 'Utente');
+          $name = (string) ($stream['display_name'] ?? putmio_lang('admin_unknown_user'));
           $initial = strtoupper(mb_substr($name, 0, 1));
           $poster = $catalog->posterWebPath($stream['poster_local_path'] ?? null, $stream['poster_url'] ?? null);
           $bitrate = putmio_stream_bitrate_label((int) ($stream['bytes_sent'] ?? 0), $stream['started_at'] ?? null);
@@ -136,7 +136,7 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
               <div class="w-8 h-12 rounded bg-surface-container-highest overflow-hidden shrink-0">
                 <img src="<?= putmio_e($poster) ?>" alt="" class="w-full h-full object-cover" loading="lazy">
               </div>
-              <span class="text-body-md text-on-surface truncate"><?= putmio_e($stream['title'] ?? 'Titolo sconosciuto') ?></span>
+              <span class="text-body-md text-on-surface truncate"><?= putmio_e($stream['title'] ?? putmio_lang('admin_unknown_title')) ?></span>
             </div>
           </td>
           <td class="px-6 md:px-8 py-4 text-on-surface-variant font-label-md"><?= putmio_e(putmio_session_duration_label($stream['started_at'] ?? null)) ?></td>
@@ -150,7 +150,7 @@ $bandwidthPct = $activeCount > 0 ? min(95, 35 + ($activeCount * 15)) : 0;
     </table>
   </div>
   <div class="px-6 md:px-8 py-4 bg-surface-container-lowest/50 text-center">
-    <a href="<?= putmio_e($appUrl) ?>/admin/streaming" class="text-label-md font-label-md text-primary hover:underline">Vedi tutti gli stream attivi</a>
+    <a href="<?= putmio_e($appUrl) ?>/admin/streaming" class="text-label-md font-label-md text-primary hover:underline"><?= putmio_e(putmio_lang('admin_view_all_streams')) ?></a>
   </div>
   <?php endif; ?>
 </section>

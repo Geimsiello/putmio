@@ -53,6 +53,8 @@ final class AuthController
             'httponly' => false,
             'samesite' => 'Strict',
         ]);
+        $userLocale = $user['locale'] ?? putmio_locale();
+        putmio_set_locale($userLocale);
         putmio_redirect('');
     }
 
@@ -145,8 +147,8 @@ final class AuthController
         try {
             $pdo->prepare(
                 'INSERT INTO `' . Config::table('users') . '`
-                (email, password_hash, display_name, role, status, theme) VALUES (?, ?, ?, \'user\', \'active\', \'dark\')'
-            )->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $name]);
+                (email, password_hash, display_name, role, status, theme, locale) VALUES (?, ?, ?, \'user\', \'active\', \'dark\', ?)'
+            )->execute([$email, password_hash($pass, PASSWORD_DEFAULT), $name, putmio_locale()]);
             $pdo->prepare('UPDATE `' . Config::table('invites') . '` SET used_at = NOW() WHERE id = ?')
                 ->execute([(int) $invite['id']]);
             $pdo->commit();

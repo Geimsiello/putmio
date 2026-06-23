@@ -39,7 +39,7 @@ final class RememberMe
 
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
-            'SELECT rt.*, u.id, u.email, u.display_name, u.role, u.theme, u.status
+            'SELECT rt.*, u.id, u.email, u.display_name, u.role, u.theme, u.locale, u.status
              FROM `' . Config::table('remember_tokens') . '` rt
              INNER JOIN `' . Config::table('users') . '` u ON u.id = rt.user_id
              WHERE rt.selector = ? AND rt.expires_at > NOW() AND u.status = \'active\'
@@ -65,6 +65,7 @@ final class RememberMe
             'display_name' => $row['display_name'],
             'role' => $row['role'],
             'theme' => $row['theme'] ?? 'dark',
+            'locale' => $row['locale'] ?? 'it',
         ];
     }
 

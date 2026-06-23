@@ -6,11 +6,13 @@ use PutMio\Config;
 $appUrl = rtrim(Config::get('app.url', putmio_detect_base_url()), '/');
 $userTheme = $_SESSION['user_theme'] ?? $_COOKIE['putmio_theme'] ?? 'dark';
 $isDark = $userTheme === 'dark';
+$appLocale = putmio_locale();
+$htmlLang = putmio_available_locales()[$appLocale]['html'] ?? 'it';
 $pageTitle = putmio_e($title ?? 'PutMio');
 $showFab = ($showSearchFab ?? false) && Session::userId();
 ?>
 <!DOCTYPE html>
-<html lang="it" class="<?= $isDark ? 'dark' : '' ?>">
+<html lang="<?= putmio_e($htmlLang) ?>" class="<?= $isDark ? 'dark' : '' ?>">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -101,7 +103,7 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
       <?php
       $navItems = [
         ['/', putmio_lang('home')],
-        ['/catalogo', 'Catalogo'],
+        ['/catalogo', putmio_lang('catalog')],
         ['/in-corso', putmio_lang('in_progress')],
       ];
       if (Session::isAdmin()) {
@@ -117,7 +119,8 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
       <?php endforeach; ?>
     </nav>
   </div>
-  <div class="flex items-center gap-3 md:gap-4 shrink-0">
+  <div class="flex items-center gap-2 md:gap-3 shrink-0">
+    <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
     <button type="button" id="theme-toggle" class="hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_lang('theme_dark') ?>">
       <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
       <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
@@ -141,10 +144,13 @@ $isAuthShell = !empty($authShell) && !Session::userId();
   <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
   <div class="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-tertiary/5 rounded-full blur-[120px]"></div>
 </div>
-<button type="button" id="theme-toggle" class="fixed top-6 right-6 md:top-8 md:right-8 z-50 p-3 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-variant transition-all active:scale-95 shadow-lg border border-outline-variant/20" title="<?= putmio_lang('theme_dark') ?>">
-  <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
-  <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
-</button>
+<div class="fixed top-6 right-6 md:top-8 md:right-8 z-50 flex items-center gap-2">
+  <?php $localeMenuVariant = 'auth'; require putmio_base_path() . '/templates/partials/locale-menu.php'; unset($localeMenuVariant); ?>
+  <button type="button" id="theme-toggle" class="p-3 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-variant transition-all active:scale-95 shadow-lg border border-outline-variant/20" title="<?= putmio_lang('theme_dark') ?>">
+    <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
+    <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
+  </button>
+</div>
 <main class="auth-shell min-h-screen flex items-center justify-center p-4 md:p-6">
   <?= $content ?>
 </main>
@@ -169,6 +175,7 @@ $isAuthShell = !empty($authShell) && !Session::userId();
   window.PUTMIO = <?= json_encode(array_merge([
     'baseUrl' => $appUrl,
     'csrf' => Csrf::token(),
+    'localeChangeError' => putmio_lang('locale_change_error'),
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="<?= putmio_e($appUrl) ?>/public/assets/app.js" defer></script>

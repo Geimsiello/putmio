@@ -6,6 +6,12 @@
   const settings = window.PUTMIO.settings || {};
   const list = document.getElementById('putio-friends-list');
   const syncBtn = document.getElementById('putio-sync-btn');
+  const syncIcon = document.getElementById('putio-sync-icon');
+
+  function setSyncSpinning(active) {
+    if (!syncIcon) return;
+    syncIcon.classList.toggle('animate-spin', active);
+  }
 
   if (window.PUTMIO.initialToast && window.pmToast) {
     const t = window.PUTMIO.initialToast;
@@ -32,7 +38,7 @@
     });
 
     if (window.pmToast) {
-      window.pmToast(settings.toastSaving || 'Salvataggio opzioni…', 'info', 1800);
+      window.pmToast(settings.toastSaving || '', 'info', 1800);
     }
 
     try {
@@ -56,12 +62,12 @@
       }
 
       if (window.pmToast) {
-        window.pmToast(data.message || settings.toastSaved || 'Opzioni amici salvate', 'success');
+        window.pmToast(data.message || settings.toastSaved || '', 'success');
       }
     } catch (e) {
       if (seq !== saveSeq) return;
       if (window.pmToast) {
-        window.pmToast(settings.toastSaveError || 'Errore nel salvataggio opzioni', 'error');
+        window.pmToast(settings.toastSaveError || '', 'error');
       }
     }
   }
@@ -85,10 +91,12 @@
     syncBtn.addEventListener('click', async function () {
       if (syncBtn.disabled) return;
       syncBtn.disabled = true;
+      syncBtn.setAttribute('aria-busy', 'true');
       syncBtn.classList.add('opacity-70', 'pointer-events-none');
+      setSyncSpinning(true);
 
       if (window.pmToast) {
-        window.pmToast(settings.toastSyncRunning || 'Sincronizzazione in corso…', 'info', 2500);
+        window.pmToast(settings.toastSyncRunning || '', 'info', 2500);
       }
 
       try {
@@ -115,10 +123,12 @@
         }, 1200);
       } catch (e) {
         if (window.pmToast) {
-          window.pmToast(e.message || 'Errore sincronizzazione', 'error', 6000);
+          window.pmToast(e.message || settings.toastSyncError || 'Sync error', 'error', 6000);
         }
         syncBtn.disabled = false;
+        syncBtn.removeAttribute('aria-busy');
         syncBtn.classList.remove('opacity-70', 'pointer-events-none');
+        setSyncSpinning(false);
       }
     });
   }
@@ -130,7 +140,7 @@
       osTestBtn.disabled = true;
 
       if (window.pmToast) {
-        window.pmToast(settings.toastSubtitlesTesting || 'Verifica connessione…', 'info', 2000);
+        window.pmToast(settings.toastSubtitlesTesting || '', 'info', 2000);
       }
 
       try {
@@ -149,11 +159,11 @@
         }
 
         if (window.pmToast) {
-          window.pmToast(data.message || settings.toastSubtitlesTestOk || 'Connessione riuscita', 'success');
+          window.pmToast(data.message || settings.toastSubtitlesTestOk || '', 'success');
         }
       } catch (e) {
         if (window.pmToast) {
-          window.pmToast(e.message || settings.toastSubtitlesTestError || 'Verifica fallita', 'error', 6000);
+          window.pmToast(e.message || settings.toastSubtitlesTestError || '', 'error', 6000);
         }
       } finally {
         osTestBtn.disabled = false;

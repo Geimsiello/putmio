@@ -1,4 +1,73 @@
 (function () {
+  document.querySelectorAll('[data-pm-locale-menu]').forEach(function (menu) {
+    var trigger = menu.querySelector('.pm-locale-menu__trigger');
+    var panel = menu.querySelector('.pm-locale-menu__panel');
+    if (!trigger || !panel) return;
+
+    function closePanel() {
+      panel.classList.add('hidden');
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+
+    function openPanel() {
+      panel.classList.remove('hidden');
+      trigger.setAttribute('aria-expanded', 'true');
+    }
+
+    trigger.addEventListener('click', function (evt) {
+      evt.stopPropagation();
+      if (panel.classList.contains('hidden')) {
+        openPanel();
+      } else {
+        closePanel();
+      }
+    });
+
+    document.addEventListener('click', function (evt) {
+      if (!menu.contains(evt.target)) {
+        closePanel();
+      }
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (evt.key === 'Escape') {
+        closePanel();
+      }
+    });
+
+    panel.querySelectorAll('[data-locale]').forEach(function (option) {
+      option.addEventListener('click', async function () {
+        var locale = option.getAttribute('data-locale') || '';
+        if (!locale || option.getAttribute('aria-selected') === 'true') {
+          closePanel();
+          return;
+        }
+        if (!window.PUTMIO || !window.PUTMIO.csrf) {
+          document.cookie = 'putmio_locale=' + locale + ';path=/;max-age=31536000;SameSite=Strict';
+          window.location.reload();
+          return;
+        }
+
+        option.disabled = true;
+        try {
+          var body = new URLSearchParams({ _csrf: window.PUTMIO.csrf, locale: locale });
+          var res = await fetch(window.PUTMIO.baseUrl + '/api/preferences/locale', { method: 'POST', body: body });
+          if (!res.ok) {
+            throw new Error('locale failed');
+          }
+          localStorage.setItem('putmio_locale', locale);
+          document.cookie = 'putmio_locale=' + locale + ';path=/;max-age=31536000;SameSite=Strict';
+          window.location.reload();
+        } catch (e) {
+          option.disabled = false;
+          if (window.pmToast) {
+            window.pmToast(window.PUTMIO.localeChangeError || 'Language change failed', 'error');
+          }
+        }
+      });
+    });
+  });
+
   const btn = document.getElementById('theme-toggle');
   if (btn && window.PUTMIO) {
     btn.addEventListener('click', async function () {

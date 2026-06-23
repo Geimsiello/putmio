@@ -6,15 +6,12 @@ use PutMio\PutIO\Client;
 $appUrl = rtrim(Config::get('app.url'), '/');
 $authUrl = (new Client())->authorizeUrl();
 $cronUrl = $appUrl . '/cron/sync?token=' . ($cronToken ?? '');
+$cronCliCommand = './putmio/cron-sync.php';
 $putioCallbackUrl = $appUrl . '/admin/oauth/putio/callback';
 
 $lastSyncLabel = '—';
 if (!empty($lastSync)) {
-    $ts = strtotime((string) $lastSync);
-    if ($ts) {
-        $itMonths = [1 => 'gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
-        $lastSyncLabel = (int) date('j', $ts) . ' ' . ($itMonths[(int) date('n', $ts)] ?? '') . ' ' . date('Y, H:i', $ts);
-    }
+    $lastSyncLabel = putmio_format_admin_datetime((string) $lastSync);
 }
 
 $hasTmdbKey = !empty($tmdbKey);
@@ -36,21 +33,24 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
         <span class="material-symbols-outlined text-primary text-[22px]">cloud</span>
       </div>
       <div class="min-w-0">
-        <h2 class="text-headline-md font-headline-md text-on-surface mb-2">Integrazione put.io</h2>
+        <h2 class="text-headline-md font-headline-md text-on-surface mb-2"><?= putmio_e(putmio_lang('admin_putio_integration')) ?></h2>
         <?php if ($putioConnected): ?>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-success/15 border border-success/30 px-3 py-1 text-label-sm font-label-sm text-success mb-2">
           <span class="w-1.5 h-1.5 rounded-full bg-success" aria-hidden="true"></span>
-          Connesso come <?= putmio_e($putioUser) ?>
+          <?= putmio_e(putmio_lang('admin_putio_connected_as', ['user' => (string) $putioUser])) ?>
         </span>
         <p class="text-label-sm font-label-sm text-on-surface-variant">
-          Ultima sync: <?= putmio_e($lastSyncLabel) ?> | <?= (int) $lastSyncCount ?> elementi indicizzati
+          <?= putmio_e(putmio_lang('admin_last_sync', [
+              'date' => $lastSyncLabel,
+              'count' => (string) (int) $lastSyncCount,
+          ])) ?>
         </p>
         <?php else: ?>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 border border-warning/30 px-3 py-1 text-label-sm font-label-sm text-warning mb-2">
-          Non connesso
+          <?= putmio_e(putmio_lang('admin_not_connected')) ?>
         </span>
         <p class="text-label-sm font-label-sm text-on-surface-variant">
-          Configura client_id e secret, salva, poi collega l'account put.io.
+          <?= putmio_e(putmio_lang('admin_putio_setup_hint')) ?>
         </p>
         <?php endif; ?>
       </div>
@@ -58,13 +58,13 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
     <?php if ($putioConnected): ?>
     <div class="flex flex-wrap items-center gap-3 shrink-0">
       <button type="button" id="putio-sync-btn" class="pm-btn-primary" data-pm-putio-sync>
-        <span class="material-symbols-outlined text-[18px]">sync</span>
+        <span id="putio-sync-icon" class="material-symbols-outlined text-[18px]" aria-hidden="true">sync</span>
         <?= putmio_lang('sync_now') ?>
       </button>
       <form method="post" action="<?= putmio_e($appUrl) ?>/admin/disconnect-putio"><?= Csrf::field() ?>
         <button type="submit" class="pm-btn-outline-danger">
           <span class="material-symbols-outlined text-[18px]">link_off</span>
-          Disconnetti
+          <?= putmio_e(putmio_lang('admin_disconnect')) ?>
         </button>
       </form>
     </div>
@@ -77,30 +77,30 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
   <fieldset class="space-y-4">
     <legend class="flex items-center gap-2 text-headline-md font-headline-md text-on-surface mb-2">
       <span class="material-symbols-outlined text-primary text-[22px]">key</span>
-      put.io OAuth
+      <?= putmio_e(putmio_lang('admin_putio_oauth')) ?>
     </legend>
 
     <div class="rounded-xl border border-outline-variant/30 bg-surface-container-high p-4 md:p-5 space-y-4">
       <div class="flex items-start gap-3">
         <span class="material-symbols-outlined text-primary text-[22px] shrink-0 mt-0.5">help</span>
         <div class="min-w-0 space-y-3">
-          <p class="text-body-md text-on-surface">Come collegare put.io</p>
+          <p class="text-body-md text-on-surface"><?= putmio_e(putmio_lang('admin_putio_how_to')) ?></p>
           <ol class="list-decimal list-inside space-y-2 text-label-sm font-label-sm text-on-surface-variant">
             <li>
-              Crea una nuova app OAuth su put.io
+              <?= putmio_e(putmio_lang('admin_putio_step1')) ?>
               (<a href="https://app.put.io/oauth/new" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">app.put.io/oauth/new</a>).
             </li>
-            <li>Nel campo <span class="text-on-surface">Callback URL</span> di put.io incolla l'URL qui sotto (deve coincidere esattamente).</li>
-            <li>Copia qui <span class="text-on-surface">Client ID</span> e <span class="text-on-surface">Client Secret</span>, poi salva le impostazioni.</li>
-            <li>Clicca <span class="text-on-surface">Collega account put.io</span> per autorizzare l'accesso.</li>
+            <li><?= putmio_e(putmio_lang('admin_putio_step2')) ?></li>
+            <li><?= putmio_e(putmio_lang('admin_putio_step3')) ?></li>
+            <li><?= putmio_e(putmio_lang('admin_putio_step4')) ?></li>
           </ol>
         </div>
       </div>
       <div class="space-y-1.5">
-        <span class="font-label-md text-label-md text-on-surface-variant ml-1">Callback URL da registrare su put.io</span>
+        <span class="font-label-md text-label-md text-on-surface-variant ml-1"><?= putmio_e(putmio_lang('admin_putio_callback_label')) ?></span>
         <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface px-4 py-3">
           <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant break-all" id="putio-callback-display"><?= putmio_e($putioCallbackUrl) ?></code>
-          <button type="button" data-pm-copy="<?= putmio_e($putioCallbackUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="Copia Callback URL" aria-label="Copia Callback URL">
+          <button type="button" data-pm-copy="<?= putmio_e($putioCallbackUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="<?= putmio_e(putmio_lang('admin_copy_callback')) ?>" aria-label="<?= putmio_e(putmio_lang('admin_copy_callback')) ?>">
             <span class="material-symbols-outlined text-[20px]">content_copy</span>
           </button>
         </div>
@@ -108,21 +108,21 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
     </div>
 
     <div class="space-y-1.5">
-      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="putio_client_id">Client ID</label>
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="putio_client_id"><?= putmio_e(putmio_lang('admin_client_id')) ?></label>
       <input class="pm-input" type="text" id="putio_client_id" name="putio_client_id" value="<?= putmio_e($putioClientId) ?>" placeholder="client_id" autocomplete="off">
     </div>
     <div class="space-y-1.5">
-      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="putio_client_secret">Client Secret</label>
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="putio_client_secret"><?= putmio_e(putmio_lang('admin_client_secret')) ?></label>
       <div class="relative">
         <input class="pm-input pr-12" type="password" id="putio_client_secret" name="putio_client_secret" placeholder="<?= $hasPutioSecret ? '••••••••••••' : 'client_secret' ?>" autocomplete="new-password">
-        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors p-1" data-pm-toggle-password="putio_client_secret" aria-label="Mostra o nascondi secret">
+        <button type="button" class="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-primary transition-colors p-1" data-pm-toggle-password="putio_client_secret" aria-label="<?= putmio_e(putmio_lang('admin_toggle_secret')) ?>">
           <span class="material-symbols-outlined text-[20px]">visibility</span>
         </button>
       </div>
     </div>
     <?php if (!$putioConnected && $putioClientId): ?>
     <a href="<?= putmio_e($authUrl) ?>" class="inline-flex items-center gap-2 text-primary font-label-md text-label-md hover:underline mt-1">
-      Collega account put.io
+      <?= putmio_e(putmio_lang('admin_connect_putio')) ?>
       <span class="material-symbols-outlined text-[18px]">open_in_new</span>
     </a>
     <?php endif; ?>
@@ -204,11 +204,11 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
       TMDB
     </legend>
     <div class="space-y-1.5">
-      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="tmdb_api_key">API Key TMDB</label>
-      <input class="pm-input" type="password" id="tmdb_api_key" name="tmdb_api_key" placeholder="<?= $hasTmdbKey ? '••••••••••••' : 'API key TMDB' ?>" autocomplete="off">
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="tmdb_api_key"><?= putmio_e(putmio_lang('admin_tmdb_api_key')) ?></label>
+      <input class="pm-input" type="password" id="tmdb_api_key" name="tmdb_api_key" placeholder="<?= $hasTmdbKey ? '••••••••••••' : putmio_e(putmio_lang('admin_tmdb_api_key')) ?>" autocomplete="off">
     </div>
     <p class="text-label-sm font-label-sm text-on-surface-variant ml-1">
-      Necessaria per recuperare poster e metadati cinematografici.
+      <?= putmio_e(putmio_lang('admin_tmdb_required')) ?>
     </p>
   </fieldset>
 
@@ -234,7 +234,7 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
     <div class="rounded-xl border border-outline-variant/30 bg-surface-container-high p-4 md:p-5 space-y-4">
       <div class="space-y-1.5">
         <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="opensubtitles_api_key"><?= putmio_e(putmio_lang('subtitles_settings_api_key')) ?></label>
-        <input class="pm-input" type="password" id="opensubtitles_api_key" name="opensubtitles_api_key" placeholder="<?= $hasOpensubtitlesKey ? '••••••••••••' : 'API key OpenSubtitles' ?>" autocomplete="off">
+        <input class="pm-input" type="password" id="opensubtitles_api_key" name="opensubtitles_api_key" placeholder="<?= $hasOpensubtitlesKey ? '••••••••••••' : putmio_e(putmio_lang('subtitles_settings_api_key')) ?>" autocomplete="off">
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-1.5">
@@ -294,21 +294,21 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
       </label>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="md:col-span-2 space-y-1.5">
-          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_host">Host</label>
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_host"><?= putmio_e(putmio_lang('admin_smtp_host')) ?></label>
           <input class="pm-input" type="text" id="smtp_host" name="smtp_host" value="<?= putmio_e($smtpHost ?? '') ?>" placeholder="ssl0.ovh.net" autocomplete="off">
         </div>
         <div class="space-y-1.5">
-          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_port">Porta</label>
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_port"><?= putmio_e(putmio_lang('admin_smtp_port')) ?></label>
           <input class="pm-input" type="text" id="smtp_port" name="smtp_port" value="<?= putmio_e((string) ($smtpPort ?? 587)) ?>" placeholder="587" inputmode="numeric" autocomplete="off">
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="space-y-1.5">
-          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_user">Utente</label>
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_user"><?= putmio_e(putmio_lang('admin_smtp_user')) ?></label>
           <input class="pm-input" type="text" id="smtp_user" name="smtp_user" value="<?= putmio_e($smtpUser ?? '') ?>" autocomplete="off">
         </div>
         <div class="space-y-1.5">
-          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_pass">Password</label>
+          <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="smtp_pass"><?= putmio_e(putmio_lang('password')) ?></label>
           <input class="pm-input" type="password" id="smtp_pass" name="smtp_pass" placeholder="<?= !empty($hasSmtpPass) ? '••••••••••••' : '' ?>" autocomplete="new-password">
         </div>
       </div>
@@ -328,22 +328,34 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
   <fieldset class="space-y-4">
     <legend class="flex items-center gap-2 text-headline-md font-headline-md text-on-surface mb-2">
       <span class="material-symbols-outlined text-primary text-[22px]">schedule</span>
-      Cron sync
+      <?= putmio_e(putmio_lang('admin_cron_sync')) ?>
     </legend>
     <p class="text-body-md text-on-surface-variant max-w-2xl">
-      Pannello di configurazione per i processi pianificati. Usa questo endpoint nel crontab del tuo hosting (es. OVH).
+      <?= putmio_e(putmio_lang('cron_sync_desc')) ?>
     </p>
-    <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3">
-      <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant truncate" id="cron-endpoint-display"><?= putmio_e($appUrl) ?>/cron/sync?token=*****</code>
-      <button type="button" data-pm-copy="<?= putmio_e($cronUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="Copia URL" aria-label="Copia URL cron">
-        <span class="material-symbols-outlined text-[20px]">content_copy</span>
-      </button>
+    <div class="space-y-2">
+      <p class="text-label-md font-label-md text-on-surface"><?= putmio_e(putmio_lang('cron_sync_cli_label')) ?></p>
+      <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3">
+        <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant truncate"><?= putmio_e($cronCliCommand) ?></code>
+        <button type="button" data-pm-copy="<?= putmio_e($cronCliCommand) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="<?= putmio_e(putmio_lang('admin_copy_command')) ?>" aria-label="<?= putmio_e(putmio_lang('admin_copy_command')) ?>">
+          <span class="material-symbols-outlined text-[20px]">content_copy</span>
+        </button>
+      </div>
+    </div>
+    <div class="space-y-2">
+      <p class="text-label-md font-label-md text-on-surface"><?= putmio_e(putmio_lang('cron_sync_url_label')) ?></p>
+      <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3">
+        <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant truncate"><?= putmio_e($appUrl) ?>/cron/sync?token=*****</code>
+        <button type="button" data-pm-copy="<?= putmio_e($cronUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="<?= putmio_e(putmio_lang('admin_copy_url')) ?>" aria-label="<?= putmio_e(putmio_lang('admin_copy_url')) ?>">
+          <span class="material-symbols-outlined text-[20px]">content_copy</span>
+        </button>
+      </div>
     </div>
   </fieldset>
 
   <div class="pt-2">
     <button type="submit" class="pm-btn-primary px-6 py-3 text-body-md">
-      Salva modifiche
+      <?= putmio_e(putmio_lang('admin_save_changes')) ?>
     </button>
   </div>
 </form>

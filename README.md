@@ -1,63 +1,87 @@
 # PutMio
 
-Media center personale su [put.io](https://put.io) — catalogo stile Plex, streaming via proxy, multi-utente famiglia.
+Media center personale su [put.io](https://put.io) — catalogo stile Plex, streaming via proxy, multi-utente.
 
 ## Requisiti
 
 - PHP 7.4+ (consigliato 8.x) con estensioni: `pdo_mysql`, `curl`, `openssl`, `mbstring`, `json`
 - MySQL 5.7+ / MariaDB
 - Apache con `mod_rewrite` e HTTPS
-- [Composer](https://getcomposer.org/) per PHPMailer (cartella `vendor/`)
-- Account put.io + (opzionale) API key [TMDB](https://www.themoviedb.org/settings/api)
+- Account [put.io](https://put.io)
+- (Opzionale) API key [TMDB](https://www.themoviedb.org/settings/api)
+- (Opzionale) Account OpenSubtitles per i sottotitoli
 
-## Installazione (solo SFTP, senza SSH)
+## Dipendenze (Composer)
 
-1. Crea un **database MySQL vuoto** dal pannello OVH (annota host, nome, utente, password).
-2. Carica l’intera cartella `putmio/` in `/www/putmio/` via FileZilla/SFTP (inclusi `.htaccess`, `vendor/` e, opzionale, `.ovhconfig`).
-3. Verifica che `storage/` sia scrivibile (permessi 755 dalla GUI FTP se necessario).
-4. Se vedi errore 500, apri prima `https://tuodominio.it/putmio/check.php` per la diagnostica (PHP, estensioni, permessi).
-5. Apri `https://tuodominio.it/putmio/` — wizard automatico (come WordPress):
-   - Requisiti di sistema
-   - **Database**: inserisci i dati del DB già creato + prefisso tabelle (default `pm_`)
+PutMio usa [Composer](https://getcomposer.org/) per gestire le dipendenze PHP (attualmente [PHPMailer](https://github.com/PHPMailer/PHPMailer) per l’invio email).
+
+Dalla root del progetto:
+
+```bash
+composer install --no-dev
+```
+
+In produzione carica anche la cartella `vendor/` sul server. Se non hai accesso SSH, esegui `composer install` in locale e trasferisci `vendor/` via FTP/SFTP insieme agli altri file.
+
+## Installazione
+
+1. Clona o scarica il repository nella directory web del tuo hosting (sottocartella o document root).
+2. Installa le dipendenze Composer (vedi sopra).
+3. Crea un **database MySQL vuoto** dal pannello del provider e annota host, nome database, utente e password.
+4. Verifica che `storage/` sia scrivibile dal web server (es. permessi 755 o 775).
+5. Apri l’URL dell’app nel browser. Parte il wizard di installazione:
+   - Controllo requisiti di sistema
+   - **Database**: inserisci le credenziali del DB già creato e il prefisso tabelle (default `pm_`)
    - PutMio crea **solo le tabelle** nel database
-   - Account amministratore (+ SMTP opzionale)
-5. Accedi e vai in **Admin → Impostazioni**:
+   - Creazione account amministratore (+ SMTP opzionale)
+6. Accedi e vai in **Admin → Impostazioni**:
    - Inserisci `client_id` e `client_secret` da [put.io OAuth Apps](https://app.put.io/settings/account/oauth/apps)
-   - Redirect URI da registrare: `https://tuodominio.it/putmio/admin/oauth/putio/callback`
+   - Registra come Redirect URI: `https://tuodominio.example/admin/oauth/putio/callback` (adatta host e percorso alla tua installazione)
    - Clic **Collega account put.io**
-   - (Opzionale) Configura **SMTP** per gli inviti famiglia via email
-   - (Opzionale) Configura **OpenSubtitles** in Impostazioni (API key + account) per i sottotitoli
+   - (Opzionale) Configura **SMTP** per inviti famiglia e reset password
+   - (Opzionale) Configura **OpenSubtitles** per i sottotitoli
    - **Sincronizza ora**
-6. Classifica i titoli in **Admin → Classificazione**: manualmente oppure con **Scansione TMDB** per proporre associazioni automatiche da confermare con checkbox.
+7. Classifica i titoli in **Admin → Classificazione**: manualmente oppure con **Scansione TMDB**.
 
-### Database (come WordPress)
+### Database
 
-PutMio **non crea il database**. Devi crearlo dal pannello OVH, poi nel wizard inserisci host, nome, utente e password. PutMio installerà solo le tabelle (prefisso predefinito `pm_`, personalizzabile).
+PutMio **non crea il database**. Va creato in anticipo dal pannello del provider; il wizard installa solo le tabelle (prefisso predefinito `pm_`, personalizzabile).
 
-## Sync automatico (cron OVH)
+### Diagnostica
 
-Dal pannello hosting → Cron, chiama questa URL ogni 6–12 ore:
+In caso di errore 500 all’avvio, apri `check.php` nella cartella dell’app per verificare PHP, estensioni e permessi.
+
+## Sync automatico (cron)
+
+La sync aggiorna il catalogo da put.io e **rimuove** i titoli eliminati sul cloud (inclusi progressi visione e metadati collegati). Pianificala ogni 6–12 ore, oppure usa **Sincronizza ora** manualmente.
+
+**Script CLI** (adatto alla maggior parte degli hosting con cron PHP):
 
 ```
-https://tuodominio.it/putmio/cron/sync?token=IL_TUO_CRON_TOKEN
+./percorso-installazione/cron-sync.php
 ```
 
-Il token è visibile in **Admin → Impostazioni** (generato in installazione).
+Adatta il percorso alla posizione reale sul server (es. `./putmio/cron-sync.php` se l’app è in una sottocartella `putmio/`). Il comando è visibile e copiabile in **Admin → Impostazioni**.
 
-In alternativa usa **Sincronizza ora** manualmente.
+**URL HTTP** (se il cron del provider supporta `wget` o `curl`):
 
-La sync aggiorna il catalogo da put.io e **rimuove** i titoli eliminati sul cloud (inclusi progressi visione e metadati collegati).
+```
+https://tuodominio.example/percorso/cron/sync?token=IL_TUO_CRON_TOKEN
+```
+
+Il token è in **Admin → Impostazioni** (generato in installazione).
 
 ## Funzionalità
 
-- Wizard installazione su `/putmio/` (senza URL `/install` dedicato)
-- Login, inviti famiglia via email (SMTP + PHPMailer), reset password (SMTP), «Ricordami» (sessione persistente 30 giorni)
-- Catalogo film / serie / animazione con classificazione manuale
+- Wizard installazione guidato
+- Login, inviti famiglia via email (SMTP), reset password, «Ricordami» (sessione persistente 30 giorni)
+- Catalogo film / serie / animazione con classificazione TMDB (scansione e associazione in blocco)
 - Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file)
 - TMDB on-demand (admin)
 - Player **Video.js** con proxy streaming Range HTTP e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
 - Tema light / dark per utente
+- Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
 
@@ -65,58 +89,48 @@ La sync aggiorna il catalogo da put.io e **rimuove** i titoli eliminati sul clou
 
 ```
 putmio/
-  front.php          # Front controller (entry point reale)
-  index.php          # Alias verso front.php (compatibilità)
+  front.php          # Front controller (entry point)
+  index.php          # Alias verso front.php
+  cron-sync.php      # Sync automatica da cron (solo CLI)
   config.php         # Generato dal wizard (non committare)
-  composer.json      # Dipendenze PHP (PHPMailer)
-  vendor/            # Dipendenze installate con composer install
-  src/               # PHP applicazione
+  composer.json      # Dipendenze PHP
+  vendor/            # Dipendenze installate con Composer
+  src/               # Codice applicazione
   templates/         # Viste
+  lang/              # Traduzioni interfaccia (it, en)
   public/assets/     # CSS/JS
-  storage/           # Log, poster, backdrop player, lock installazione
+  storage/           # Log, poster, lock installazione
   sql/schema.sql     # Schema DB
 ```
 
 ## Sicurezza
 
 - `config.php` e `storage/.installed` non vanno nel repository
-- App nascosta: `noindex` + `Disallow: /putmio/` in robots.txt
+- `noindex` e `robots.txt` per limitare l’indicizzazione
 - Token put.io cifrati in database
 - CSRF su tutti i form POST
 
 ## Reinstallazione
 
-Via FTP elimina `config.php` e `storage/.installed`, poi ricarica `/putmio/` per ripetere il wizard.
+Elimina `config.php` e `storage/.installed`, poi ricarica l’URL dell’app per ripetere il wizard.
 
 ## Risoluzione problemi
 
 | Problema | Soluzione |
 |----------|-----------|
-| Errore 500 all’apertura | Apri `/putmio/check.php` e `/putmio/probe.php`; controlla permessi (cartelle 755, file 644) e `storage/logs/shutdown.log` |
+| Errore 500 all’apertura | Apri `check.php` e `probe.php`; controlla permessi (cartelle 755, file 644) e `storage/logs/shutdown.log` |
 | Pagina bianca | Controlla PHP 7.4+ e log in `storage/logs/app.log` |
 | Wizard non parte | Verifica che `config.php` non esista già |
+| Dipendenze mancanti | Esegui `composer install --no-dev` e carica `vendor/` |
 | Video non riproduce | Controlla collegamento put.io; usa la sorgente **MP4 put.io** nel player se disponibile |
 | Video si interrompe a metà | Di default PutMio reindirizza al CDN put.io (`stream_via_redirect` in `config.php`). Se usi il proxy PHP, l’hosting può troncare connessioni lunghe — imposta `stream_via_redirect` a `true` |
 | Video senza audio / barra a 0:00 | Seleziona **MP4 put.io** nel player; per MKV/AC3 apri il file su put.io per generare la conversione |
 | Errore 429 sullo stream | Sessioni stream bloccate: attendi 10 minuti o svuota `stream_sessions` (active=0); in `config.php` puoi alzare `max_concurrent_streams_per_ip` |
-| Sync fallisce | Token scaduto → ricollega put.io in Impostazioni |
-| Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni (API key, username, password) |
+| Sync fallisce | Token put.io scaduto → ricollega put.io in Impostazioni |
+| Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni |
 | Invito email non parte | Verifica SMTP in Admin → Impostazioni; controlla `storage/logs/app.log` |
-
-### Dipendenze PHP
-
-Dalla cartella del progetto:
-
-```bash
-composer install --no-dev
-```
-
-Carica anche la cartella `vendor/` sul server via SFTP.
+| Cron non parte | Verifica percorso script in Impostazioni; controlla log email del provider o `storage/logs/app.log` |
 
 ## Roadmap
 
-- **Multi-tenant** (pianificato, non ancora implementato): vedi [docs/MULTI_TENANT.md](docs/MULTI_TENANT.md) per il piano completo di conversione.
-
-## Licenza
-
-Uso personale — progetto privato Renato Armenio.
+- **Multi-tenant** (pianificato): vedi [docs/MULTI_TENANT.md](docs/MULTI_TENANT.md)

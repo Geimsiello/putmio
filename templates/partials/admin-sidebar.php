@@ -10,49 +10,49 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
     <a href="<?= putmio_e($appUrl) ?>/admin" class="<?= putmio_admin_nav_link_class('dashboard') ?>">
       <span class="material-symbols-outlined">dashboard</span>
       <div class="flex flex-col min-w-0">
-        <span class="font-label-md text-label-md">Dashboard</span>
-        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">Panoramica sistema</span>
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('admin_dashboard')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_overview')) ?></span>
       </div>
     </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/impostazioni" class="<?= putmio_admin_nav_link_class('settings') ?>">
       <span class="material-symbols-outlined">settings</span>
       <div class="flex flex-col min-w-0">
         <span class="font-label-md text-label-md"><?= putmio_lang('settings') ?></span>
-        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">put.io, TMDB, SMTP</span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_settings_hint')) ?></span>
       </div>
     </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/classificazione" class="<?= putmio_admin_nav_link_class('classify') ?>">
       <span class="material-symbols-outlined">inventory_2</span>
       <div class="flex flex-col min-w-0">
         <span class="font-label-md text-label-md"><?= putmio_lang('classify') ?></span>
-        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= $unclassified ?> da classificare</span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_unclassified', ['count' => (string) $unclassified])) ?></span>
       </div>
     </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/streaming" class="<?= putmio_admin_nav_link_class('streaming') ?>">
       <span class="material-symbols-outlined">lan</span>
       <div class="flex flex-col min-w-0">
-        <span class="font-label-md text-label-md">Streaming</span>
-        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">Banda e sessioni attive</span>
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('admin_streaming')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_streaming_hint')) ?></span>
       </div>
     </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/utenti" class="<?= putmio_admin_nav_link_class('users') ?>">
       <span class="material-symbols-outlined">group</span>
       <div class="flex flex-col min-w-0">
-        <span class="font-label-md text-label-md">Utenti</span>
-        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5">Inviti famiglia</span>
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('admin_users')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_users_hint')) ?></span>
       </div>
     </a>
   </nav>
 </aside>
 
-<nav class="md:hidden flex gap-2 overflow-x-auto pb-2 mb-6 custom-scrollbar -mx-1 px-1" aria-label="Navigazione admin">
+<nav class="md:hidden flex gap-2 overflow-x-auto pb-2 mb-6 custom-scrollbar -mx-1 px-1" aria-label="<?= putmio_e(putmio_lang('admin_nav_aria')) ?>">
   <?php
   $mobileLinks = [
-    ['dashboard', '/admin', 'Dashboard'],
+    ['dashboard', '/admin', putmio_lang('admin_dashboard')],
     ['settings', '/admin/impostazioni', putmio_lang('settings')],
     ['classify', '/admin/classificazione', putmio_lang('classify')],
-    ['streaming', '/admin/streaming', 'Streaming'],
-    ['users', '/admin/utenti', 'Utenti'],
+    ['streaming', '/admin/streaming', putmio_lang('admin_streaming')],
+    ['users', '/admin/utenti', putmio_lang('admin_users')],
   ];
   foreach ($mobileLinks as [$section, $href, $label]):
     $active = putmio_admin_section() === $section;

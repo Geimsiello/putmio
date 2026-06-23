@@ -142,12 +142,68 @@ function putmio_has_unsupported_browser_audio(?string $fileName): bool
     return (bool) preg_match('/\b(AC3|DD5\.?1|EAC3|DDP|DTS|DTS-HD|TRUEHD|ATMOS)\b/', $upper);
 }
 
+/** @return array<string, array{native: string, html: string}> */
+function putmio_available_locales(): array
+{
+    return [
+        'it' => ['native' => 'Italiano', 'html' => 'it'],
+        'en' => ['native' => 'English', 'html' => 'en'],
+    ];
+}
+
+function putmio_locale(): string
+{
+    static $resolved = null;
+    if ($resolved !== null) {
+        return $resolved;
+    }
+
+    $available = putmio_available_locales();
+    $candidate = $_SESSION['user_locale'] ?? $_COOKIE['putmio_locale'] ?? 'it';
+    $resolved = isset($available[$candidate]) ? $candidate : 'it';
+
+    return $resolved;
+}
+
+function putmio_set_locale(string $locale): void
+{
+    if (!isset(putmio_available_locales()[$locale])) {
+        return;
+    }
+
+    $_SESSION['user_locale'] = $locale;
+
+    $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+    setcookie('putmio_locale', $locale, [
+        'expires' => time() + 86400 * 365,
+        'path' => '/',
+        'secure' => $secure,
+        'httponly' => false,
+        'samesite' => 'Strict',
+    ]);
+}
+
 function putmio_lang(string $key, array $replace = []): string
 {
-    static $strings = null;
-    if ($strings === null) {
-        $strings = require putmio_base_path() . '/lang/it.php';
+    static $strings = [];
+    static $loadedLocale = null;
+
+    $locale = putmio_locale();
+    if ($loadedLocale !== $locale) {
+        $basePath = putmio_base_path() . '/lang';
+        $fallback = require $basePath . '/it.php';
+        $path = $basePath . '/' . $locale . '.php';
+        $strings = is_file($path) ? require $path : [];
+        if ($locale !== 'it') {
+            $strings = array_merge($fallback, $strings);
+        } else {
+            $strings = $fallback;
+        }
+        $loadedLocale = $locale;
     }
+
     $text = $strings[$key] ?? $key;
     foreach ($replace as $k => $v) {
         $text = str_replace(':' . $k, (string) $v, $text);
@@ -568,6 +624,33 @@ function putmio_stream_bitrate_label(int $bytesSent, ?string $startedAt): string
         return round($mbps * 1000, 1) . ' Kbps';
     }
     return round($mbps, 1) . ' Mbps';
+}
+
+function putmio_format_admin_datetime(?string $datetime): string
+{
+    if ($datetime === null || $datetime === '') {
+        return '—';
+    }
+    $ts = strtotime($datetime);
+    if (!$ts) {
+        return '—';
+    }
+    if (putmio_locale() === 'en') {
+        return date('M j, Y, H:i', $ts);
+    }
+    $months = [1 => 'gen', 2 => 'feb', 3 => 'mar', 4 => 'apr', 5 => 'mag', 6 => 'giu', 7 => 'lug', 8 => 'ago', 9 => 'set', 10 => 'ott', 11 => 'nov', 12 => 'dic'];
+    return (int) date('j', $ts) . ' ' . ($months[(int) date('n', $ts)] ?? '') . ' ' . date('Y, H:i', $ts);
+}
+
+function putmio_user_role_label(string $role): string
+{
+    if ($role === 'admin') {
+        return putmio_lang('role_admin');
+    }
+    if ($role === 'user') {
+        return putmio_lang('role_user');
+    }
+    return $role;
 }
 
 /** Etichetta lingua sottotitoli da codice ISO 639-1. */

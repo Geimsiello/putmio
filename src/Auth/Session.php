@@ -76,6 +76,7 @@ final class Session
         $_SESSION['user_name'] = $user['display_name'];
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_theme'] = $user['theme'] ?? 'dark';
+        $_SESSION['user_locale'] = $user['locale'] ?? $_COOKIE['putmio_locale'] ?? 'it';
     }
 
     public static function logout(): void

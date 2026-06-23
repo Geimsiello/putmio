@@ -101,6 +101,7 @@ final class AdminController
                     'toastSaved' => putmio_lang('putio_friends_saved'),
                     'toastSaveError' => putmio_lang('putio_friends_save_error'),
                     'toastSyncRunning' => putmio_lang('putio_sync_running'),
+                    'toastSyncError' => putmio_lang('admin_sync_error'),
                     'toastSubtitlesTesting' => putmio_lang('subtitles_test_running'),
                     'toastSubtitlesTestOk' => putmio_lang('subtitles_test_ok'),
                     'toastSubtitlesTestError' => putmio_lang('subtitles_test_error'),
@@ -176,7 +177,7 @@ final class AdminController
         @unlink(putmio_base_path() . '/storage/.opensubtitles_token');
         Config::load();
 
-        $_SESSION['flash_success'] = 'Impostazioni salvate.';
+        $_SESSION['flash_success'] = putmio_lang('admin_settings_saved');
         putmio_redirect('admin/impostazioni');
     }
 
@@ -185,7 +186,7 @@ final class AdminController
         Session::requireAdmin();
         $code = $_GET['code'] ?? null;
         if (!$code) {
-            $_SESSION['flash_error'] = 'Autorizzazione put.io annullata.';
+            $_SESSION['flash_error'] = putmio_lang('admin_putio_auth_cancelled');
             putmio_redirect('admin/impostazioni');
         }
         try {
@@ -205,7 +206,7 @@ final class AdminController
             } catch (\Throwable $e) {
                 // Lista amici opzionale al collegamento; l'admin può aggiornarla dalle impostazioni.
             }
-            $_SESSION['flash_success'] = 'put.io collegato con successo.';
+            $_SESSION['flash_success'] = putmio_lang('admin_putio_connected');
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
         }
@@ -218,7 +219,7 @@ final class AdminController
         Csrf::requireValid($_POST['_csrf'] ?? null);
         (new FriendService())->clearAll();
         (new Client())->disconnect();
-        $_SESSION['flash_success'] = 'put.io disconnesso.';
+        $_SESSION['flash_success'] = putmio_lang('admin_putio_disconnected');
         putmio_redirect('admin/impostazioni');
     }
 
@@ -228,7 +229,7 @@ final class AdminController
         Csrf::requireValid($_POST['_csrf'] ?? null);
         try {
             $count = (new FriendService())->refreshFromApi();
-            $_SESSION['flash_success'] = 'Lista amici aggiornata (' . $count . ' amici).';
+            $_SESSION['flash_success'] = putmio_lang('admin_friends_refreshed', ['count' => (string) $count]);
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
         }
@@ -241,11 +242,10 @@ final class AdminController
         Csrf::requireValid($_POST['_csrf'] ?? null);
         try {
             $result = (new SyncService())->sync();
-            $msg = 'Sync completata: ' . $result['imported'] . ' elementi aggiornati';
-            if (!empty($result['removed'])) {
-                $msg .= ', ' . $result['removed'] . ' rimossi';
-            }
-            $msg .= '.';
+            $msg = putmio_lang('putio_sync_toast', [
+                'imported' => (string) ($result['imported'] ?? 0),
+                'removed' => (string) ($result['removed'] ?? 0),
+            ]);
             $_SESSION['flash_success'] = $msg;
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();
@@ -335,7 +335,7 @@ final class AdminController
         }
 
         $pdo = Database::pdo();
-        $titleFinal = $title !== '' ? $title : 'Senza titolo';
+        $titleFinal = $title !== '' ? $title : putmio_lang('admin_untitled');
         $pdo->prepare(
             'UPDATE `' . Config::table('media_items') . '`
              SET media_type = ?, title = ?, classification_status = ?, updated_at = NOW()
@@ -379,7 +379,7 @@ final class AdminController
         )->fetchColumn();
 
         View::render('admin/streaming', [
-            'title' => 'Streaming',
+            'title' => putmio_lang('admin_streaming'),
             'active' => $active,
             'todayBytes' => $todayBytes,
             'putmioExtra' => [
@@ -402,10 +402,10 @@ final class AdminController
         $stopped = StreamProxy::terminateAllActive();
         if ($stopped > 0) {
             $_SESSION['flash_success'] = $stopped === 1
-                ? '1 sessione di streaming interrotta.'
-                : $stopped . ' sessioni di streaming interrotte.';
+                ? putmio_lang('admin_streams_stopped_one')
+                : putmio_lang('admin_streams_stopped_many', ['count' => (string) $stopped]);
         } else {
-            $_SESSION['flash_success'] = 'Nessuno stream attivo da interrompere.';
+            $_SESSION['flash_success'] = putmio_lang('admin_no_streams_to_stop');
         }
 
         putmio_redirect('admin/streaming');
@@ -418,7 +418,7 @@ final class AdminController
         $users = $pdo->query('SELECT id, email, display_name, role, status, last_login_at FROM `' . Config::table('users') . '` ORDER BY id')->fetchAll();
 
         View::render('admin/users', [
-            'title' => 'Utenti',
+            'title' => putmio_lang('admin_users'),
             'users' => $users,
             'success' => $_SESSION['flash_success'] ?? null,
             'error' => $_SESSION['flash_error'] ?? null,

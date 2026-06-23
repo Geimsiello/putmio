@@ -15,6 +15,6 @@ DirectoryIndex front.php
     RewriteRule . front.php [L]
 </IfModule>
 
-<FilesMatch "^(config\.php|\.gitignore|\.user\.ini)$">
+<FilesMatch "^(config\.php|cron-sync\.php|\.gitignore|\.user\.ini)$">
     Require all denied
 </FilesMatch>

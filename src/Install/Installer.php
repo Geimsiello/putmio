@@ -173,8 +173,8 @@ final class Installer
         ]);
 
         $stmt = $pdo->prepare(
-            'INSERT INTO `' . $prefix . 'users` (email, password_hash, display_name, role, status, theme)
-             VALUES (?, ?, ?, \'admin\', \'active\', \'dark\')'
+            'INSERT INTO `' . $prefix . 'users` (email, password_hash, display_name, role, status, theme, locale)
+             VALUES (?, ?, ?, \'admin\', \'active\', \'dark\', \'it\')'
         );
         $stmt->execute([
             strtolower(trim($email)),

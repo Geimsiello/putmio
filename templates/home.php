@@ -25,7 +25,7 @@ $appUrl = rtrim(Config::get('app.url'), '/');
   <div class="flex justify-between items-end mb-6 gap-4">
     <h2 class="text-headline-lg font-headline-lg text-on-surface"><?= putmio_lang('continue_watching') ?></h2>
     <a class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 shrink-0" href="<?= putmio_e($appUrl) ?>/in-corso">
-      Vedi tutto <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <?= putmio_lang('view_all') ?> <span class="material-symbols-outlined text-sm">chevron_right</span>
     </a>
   </div>
   <?php ob_start(); ?>
@@ -73,7 +73,7 @@ $appUrl = rtrim(Config::get('app.url'), '/');
   <div class="flex justify-between items-end mb-6 md:mb-8 gap-4">
     <h2 class="text-headline-lg font-headline-lg text-on-surface"><?= putmio_lang('recently_added') ?></h2>
     <a href="<?= putmio_e($appUrl) ?>/catalogo" class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 shrink-0">
-      Vedi tutto <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <?= putmio_lang('view_all') ?> <span class="material-symbols-outlined text-sm">chevron_right</span>
     </a>
   </div>
   <?php if (empty($recent)): ?>
@@ -96,7 +96,7 @@ $appUrl = rtrim(Config::get('app.url'), '/');
   <div class="flex justify-between items-end mb-6 gap-4">
     <h2 class="text-headline-lg font-headline-lg text-on-surface"><?= putmio_e($genreRow['name']) ?></h2>
     <a href="<?= putmio_e($appUrl) ?>/catalogo?genre=<?= (int) $genreRow['id'] ?>" class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 shrink-0">
-      Vedi tutto <span class="material-symbols-outlined text-sm">chevron_right</span>
+      <?= putmio_lang('view_all') ?> <span class="material-symbols-outlined text-sm">chevron_right</span>
     </a>
   </div>
   <?php ob_start(); ?>

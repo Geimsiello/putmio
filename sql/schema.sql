@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}users` (
   `role` ENUM('admin','user') NOT NULL DEFAULT 'user',
   `status` ENUM('active','disabled') NOT NULL DEFAULT 'active',
   `theme` ENUM('light','dark') NOT NULL DEFAULT 'dark',
+  `locale` VARCHAR(5) NOT NULL DEFAULT 'it',
   `last_login_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

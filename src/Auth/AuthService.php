@@ -75,6 +75,16 @@ final class AuthService
             ->execute([$theme, $userId]);
     }
 
+    public function updateLocale(int $userId, string $locale): void
+    {
+        if (!isset(putmio_available_locales()[$locale])) {
+            return;
+        }
+        $pdo = Database::pdo();
+        $pdo->prepare('UPDATE `' . Config::table('users') . '` SET locale = ? WHERE id = ?')
+            ->execute([$locale, $userId]);
+    }
+
     public function createPasswordReset(string $email): bool
     {
         $pdo = Database::pdo();

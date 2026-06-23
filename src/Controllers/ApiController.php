@@ -36,6 +36,22 @@ final class ApiController
         putmio_json(['ok' => true, 'theme' => $theme]);
     }
 
+    public function locale(): void
+    {
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+        $locale = (string) ($_POST['locale'] ?? 'it');
+        if (!isset(putmio_available_locales()[$locale])) {
+            putmio_json(['ok' => false], 400);
+        }
+
+        if (Session::userId()) {
+            (new AuthService())->updateLocale((int) Session::userId(), $locale);
+        }
+
+        putmio_set_locale($locale);
+        putmio_json(['ok' => true, 'locale' => $locale]);
+    }
+
     public function watchProgress(): void
     {
         Session::requireAuth();
@@ -90,7 +106,7 @@ final class ApiController
         $id = (int) ($_GET['id'] ?? 0);
         $tmdbType = ($_GET['type'] ?? '') === 'tv' ? 'tv' : 'movie';
         if ($id <= 0) {
-            putmio_json(['error' => 'ID non valido'], 400);
+            putmio_json(['error' => putmio_lang('admin_invalid_id')], 400);
         }
         try {
             $client = new TmdbClient();
@@ -155,7 +171,7 @@ final class ApiController
         Session::requireAdmin();
         $mediaId = (int) ($_GET['media_id'] ?? 0);
         if ($mediaId <= 0) {
-            putmio_json(['error' => 'ID non valido'], 400);
+            putmio_json(['error' => putmio_lang('admin_invalid_id')], 400);
         }
 
         try {
@@ -229,7 +245,7 @@ final class ApiController
         Csrf::requireValid($_POST['_csrf'] ?? null);
 
         if (!(new \PutMio\PutIO\Client())->isConnected()) {
-            putmio_json(['ok' => false, 'error' => 'put.io non collegato'], 400);
+            putmio_json(['ok' => false, 'error' => putmio_lang('admin_putio_not_connected')], 400);
         }
 
         $enabledFriends = array_map('intval', (array) ($_POST['sync_friends'] ?? []));
