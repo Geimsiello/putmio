@@ -1,45 +1,10 @@
 (function () {
-  document.querySelectorAll('[data-pm-locale-menu]').forEach(function (menu) {
-    var trigger = menu.querySelector('.pm-locale-menu__trigger');
-    var panel = menu.querySelector('.pm-locale-menu__panel');
-    if (!trigger || !panel) return;
-
-    function closePanel() {
-      panel.classList.add('hidden');
-      trigger.setAttribute('aria-expanded', 'false');
-    }
-
-    function openPanel() {
-      panel.classList.remove('hidden');
-      trigger.setAttribute('aria-expanded', 'true');
-    }
-
-    trigger.addEventListener('click', function (evt) {
-      evt.stopPropagation();
-      if (panel.classList.contains('hidden')) {
-        openPanel();
-      } else {
-        closePanel();
-      }
-    });
-
-    document.addEventListener('click', function (evt) {
-      if (!menu.contains(evt.target)) {
-        closePanel();
-      }
-    });
-
-    document.addEventListener('keydown', function (evt) {
-      if (evt.key === 'Escape') {
-        closePanel();
-      }
-    });
-
-    panel.querySelectorAll('[data-locale]').forEach(function (option) {
+  function bindLocaleOptions(menu, closePanel) {
+    menu.querySelectorAll('[data-locale]').forEach(function (option) {
       option.addEventListener('click', async function () {
         var locale = option.getAttribute('data-locale') || '';
         if (!locale || option.getAttribute('aria-selected') === 'true') {
-          closePanel();
+          if (closePanel) closePanel();
           return;
         }
         if (!window.PUTMIO || !window.PUTMIO.csrf) {
@@ -66,7 +31,108 @@
         }
       });
     });
+  }
+
+  document.querySelectorAll('[data-pm-locale-menu]').forEach(function (menu) {
+    var trigger = menu.querySelector('.pm-locale-menu__trigger');
+    var panel = menu.querySelector('.pm-locale-menu__panel');
+    var closePanel = null;
+
+    if (trigger && panel) {
+      closePanel = function () {
+        panel.classList.add('hidden');
+        trigger.setAttribute('aria-expanded', 'false');
+      };
+
+      function openPanel() {
+        panel.classList.remove('hidden');
+        trigger.setAttribute('aria-expanded', 'true');
+      }
+
+      trigger.addEventListener('click', function (evt) {
+        evt.stopPropagation();
+        if (panel.classList.contains('hidden')) {
+          openPanel();
+        } else {
+          closePanel();
+        }
+      });
+
+      document.addEventListener('click', function (evt) {
+        if (!menu.contains(evt.target)) {
+          closePanel();
+        }
+      });
+
+      document.addEventListener('keydown', function (evt) {
+        if (evt.key === 'Escape') {
+          closePanel();
+        }
+      });
+    }
+
+    bindLocaleOptions(menu, closePanel);
   });
+
+  var mobileNav = document.getElementById('pm-mobile-nav');
+  var mobileNavToggle = document.getElementById('pm-mobile-nav-toggle');
+  var mobileNavClose = document.getElementById('pm-mobile-nav-close');
+  if (mobileNav && mobileNavToggle) {
+    function setMobileNavOpen(isOpen) {
+      mobileNav.classList.toggle('hidden', !isOpen);
+      mobileNav.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      mobileNavToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      document.body.classList.toggle('pm-mobile-nav-open', isOpen);
+      if (!isOpen) {
+        mobileNav.querySelectorAll('.pm-locale-menu__panel').forEach(function (panel) {
+          panel.classList.add('hidden');
+        });
+        mobileNav.querySelectorAll('.pm-locale-menu__trigger').forEach(function (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+        });
+      }
+    }
+
+    function closeMobileNav() {
+      setMobileNavOpen(false);
+    }
+
+    mobileNavToggle.addEventListener('click', function () {
+      setMobileNavOpen(mobileNav.classList.contains('hidden'));
+    });
+
+    if (mobileNavClose) {
+      mobileNavClose.addEventListener('click', closeMobileNav);
+    }
+
+    mobileNav.querySelectorAll('a.pm-mobile-nav__link').forEach(function (link) {
+      link.addEventListener('click', closeMobileNav);
+    });
+
+    document.addEventListener('keydown', function (evt) {
+      if (evt.key !== 'Escape' || mobileNav.classList.contains('hidden')) {
+        return;
+      }
+      var openLocalePanel = mobileNav.querySelector('.pm-locale-menu__panel:not(.hidden)');
+      if (openLocalePanel) {
+        openLocalePanel.classList.add('hidden');
+        var localeMenu = openLocalePanel.closest('[data-pm-locale-menu]');
+        if (localeMenu) {
+          var trigger = localeMenu.querySelector('.pm-locale-menu__trigger');
+          if (trigger) trigger.setAttribute('aria-expanded', 'false');
+        }
+        evt.preventDefault();
+        return;
+      }
+      closeMobileNav();
+    }, true);
+
+    window.addEventListener('resize', function () {
+      if (window.matchMedia('(min-width: 768px)').matches) {
+        closeMobileNav();
+      }
+    });
+  }
 
   const btn = document.getElementById('theme-toggle');
   if (btn && window.PUTMIO) {

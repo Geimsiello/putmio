@@ -119,20 +119,24 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
       <?php endforeach; ?>
     </nav>
   </div>
-  <div class="flex items-center gap-2 md:gap-3 shrink-0">
-    <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
+  <div class="pm-header-actions flex items-center gap-2 md:gap-3 shrink-0">
+    <div class="hidden md:block">
+      <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
+    </div>
     <button type="button" id="theme-toggle" class="hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_lang('theme_dark') ?>">
       <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
       <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
     </button>
-    <div class="flex items-center gap-2 px-3 py-1 bg-surface-container dark:bg-surface-container rounded-full border border-outline-variant/20">
-      <span class="text-label-md font-label-md text-on-surface hidden sm:inline"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
+    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container dark:bg-surface-container rounded-full border border-outline-variant/20">
+      <span class="text-label-md font-label-md text-on-surface"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
       <a href="<?= putmio_e($appUrl) ?>/logout" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_lang('logout') ?>">
         <span class="material-symbols-outlined text-base">logout</span>
       </a>
     </div>
+    <?php $mobileNavPart = 'toggle'; require putmio_base_path() . '/templates/partials/mobile-nav.php'; unset($mobileNavPart); ?>
   </div>
 </header>
+<?php $mobileNavPart = 'drawer'; require putmio_base_path() . '/templates/partials/mobile-nav.php'; unset($mobileNavPart); ?>
 <?php endif; ?>
 <?php
 $adminSection = putmio_admin_section();
