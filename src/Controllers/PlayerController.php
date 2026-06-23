@@ -155,6 +155,7 @@ final class PlayerController
                 'showSourcePicker' => $mp4Available && $isOriginalNonMp4,
                 'nextEpisode' => $nextEpisodePayload,
                 'tvMode' => putmio_tv_mode(),
+                'isTvDevice' => putmio_is_tv_user_agent(),
                 'playerLabels' => [
                     'nextUp' => putmio_lang('player_next_up'),
                     'playNow' => putmio_lang('player_play_next'),

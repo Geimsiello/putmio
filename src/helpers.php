@@ -185,6 +185,65 @@ function putmio_set_locale(string $locale): void
     ]);
 }
 
+function putmio_is_tv_user_agent(?string $ua = null): bool
+{
+    $ua = $ua ?? ($_SERVER['HTTP_USER_AGENT'] ?? '');
+    if ($ua === '') {
+        return false;
+    }
+
+    $patterns = [
+        'Tizen',
+        'SmartTV',
+        'Smart-TV',
+        'Android TV',
+        'GoogleTV',
+        'Apple TV',
+        'tvOS',
+        'Web0S',
+        'WebOS',
+        'HbbTV',
+        'AFT',
+    ];
+
+    foreach ($patterns as $needle) {
+        if (stripos($ua, $needle) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function putmio_tv_mode(): bool
+{
+    static $resolved = null;
+    if ($resolved !== null) {
+        return $resolved;
+    }
+
+    if (putmio_is_tv_user_agent()) {
+        return $resolved = true;
+    }
+
+    $sessionMode = $_SESSION['user_ui_mode'] ?? null;
+    if ($sessionMode === 'tv' || $sessionMode === 'standard') {
+        return $resolved = $sessionMode === 'tv';
+    }
+
+    $cookieMode = $_COOKIE['putmio_ui_mode'] ?? null;
+    if ($cookieMode === 'tv' || $cookieMode === 'standard') {
+        return $resolved = $cookieMode === 'tv';
+    }
+
+    return $resolved = false;
+}
+
+function putmio_admin_ui_enabled(): bool
+{
+    return \PutMio\Auth\Session::isAdmin() && !putmio_tv_mode();
+}
+
 function putmio_lang(string $key, array $replace = []): string
 {
     static $strings = [];
