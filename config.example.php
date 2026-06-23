@@ -13,6 +13,8 @@ return [
         'stream_complete_ratio' => 0.90,
         'stream_min_progress_ratio' => 0.05,
         'max_concurrent_streams_per_ip' => 4,
+        // true = redirect al CDN put.io dopo auth (consigliato su hosting condiviso OVH)
+        'stream_via_redirect' => true,
     ],
     'db' => [
         'host' => 'localhost',

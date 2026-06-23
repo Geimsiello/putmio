@@ -96,8 +96,9 @@ Via FTP elimina `config.php` e `storage/.installed`, poi ricarica `/putmio/` per
 | Pagina bianca | Controlla PHP 7.4+ e log in `storage/logs/app.log` |
 | Wizard non parte | Verifica che `config.php` non esista già |
 | Video non riproduce | Controlla collegamento put.io; usa la sorgente **MP4 put.io** nel player se disponibile |
+| Video si interrompe a metà | Di default PutMio reindirizza al CDN put.io (`stream_via_redirect` in `config.php`). Se usi il proxy PHP, l’hosting può troncare connessioni lunghe — imposta `stream_via_redirect` a `true` |
 | Video senza audio / barra a 0:00 | Seleziona **MP4 put.io** nel player; per MKV/AC3 apri il file su put.io per generare la conversione |
-| Errore 429 sullo stream | Sessioni stream bloccate: attendi 3 minuti o svuota `stream_sessions` (active=0); in `config.php` puoi alzare `max_concurrent_streams_per_ip` |
+| Errore 429 sullo stream | Sessioni stream bloccate: attendi 10 minuti o svuota `stream_sessions` (active=0); in `config.php` puoi alzare `max_concurrent_streams_per_ip` |
 | Sync fallisce | Token scaduto → ricollega put.io in Impostazioni |
 | Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni (API key, username, password) |
 | Invito email non parte | Verifica SMTP in Admin → Impostazioni; controlla `storage/logs/app.log` |

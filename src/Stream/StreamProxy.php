@@ -55,6 +55,13 @@ final class StreamProxy
         $fallbackMime = $format === 'mp4'
             ? 'video/mp4'
             : putmio_browser_playback_mime($fileInfo['name'] ?? null, $fileInfo['mime'] ?? null);
+
+        if (Config::get('app.stream_via_redirect', true)) {
+            header('Cache-Control: private, no-store');
+            header('Location: ' . $remoteUrl, true, 302);
+            exit;
+        }
+
         $ended = false;
         $endSession = function () use (&$ended, $sessionId): void {
             if ($ended) {
@@ -187,7 +194,7 @@ final class StreamProxy
         $pdo->exec(
             'UPDATE `' . Config::table('stream_sessions') . '`
              SET active = 0, ended_at = NOW()
-             WHERE active = 1 AND started_at < DATE_SUB(NOW(), INTERVAL 3 MINUTE)'
+             WHERE active = 1 AND started_at < DATE_SUB(NOW(), INTERVAL 10 MINUTE)'
         );
     }
 
@@ -231,7 +238,12 @@ final class StreamProxy
         $stmt->execute([$userId, $putioFileId, $ip]);
         $existing = $stmt->fetch();
         if ($existing) {
-            return (int) $existing['id'];
+            $id = (int) $existing['id'];
+            $pdo->prepare(
+                'UPDATE `' . Config::table('stream_sessions') . '` SET started_at = NOW() WHERE id = ?'
+            )->execute([$id]);
+
+            return $id;
         }
 
         $mediaId = null;

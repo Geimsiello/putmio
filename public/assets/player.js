@@ -34,6 +34,9 @@
   let loading = false;
   let leaving = false;
   let playbackFormat = window.PUTMIO.playbackFormat || 'mp4';
+  let errorRetries = 0;
+  const MAX_ERROR_RETRIES = 2;
+  const playerLabels = window.PUTMIO.playerLabels || {};
 
   function defaultStartAt() {
     if (resumeBtn && startAt > 0) {
@@ -49,10 +52,11 @@
   }
 
   function setSource() {
-    const url = buildStreamUrl(playbackFormat);
+    const url = new URL(buildStreamUrl(playbackFormat), window.location.origin);
+    url.searchParams.set('_', String(Date.now()));
     player.src({
-      src: url,
-      type: 'video/mp4'
+      src: url.toString(),
+      type: window.PUTMIO.streamMime || 'video/mp4'
     });
   }
 
@@ -154,6 +158,8 @@
       if (done) return;
       done = true;
       loading = false;
+      errorRetries = 0;
+      hideStreamError();
       player.off('loadedmetadata', onReady);
       player.off('canplay', onReady);
       startPlayback(at);
@@ -214,14 +220,133 @@
     if (err) {
       console.error('[PutMio] Errore player:', err.code, err.message);
     }
+
+    if (leaving || errorRetries >= MAX_ERROR_RETRIES) {
+      showStreamError();
+      return;
+    }
+
+    errorRetries++;
+    const pos = Math.floor(player.currentTime() || 0);
+    const wasPlaying = !player.paused();
+    started = false;
+    loading = true;
+    showStreamRetrying();
+
+    window.setTimeout(function () {
+      begin(pos);
+      if (wasPlaying) {
+        player.one('playing', function onRecovered() {
+          player.off('playing', onRecovered);
+          errorRetries = 0;
+          hideStreamError();
+        });
+      }
+    }, 800);
   });
 
   const playerWrap = document.querySelector('.putmio-player-wrap');
+
+  function ensureStreamErrorEl() {
+    if (!playerWrap) return null;
+    let el = playerWrap.querySelector('.pm-stream-error');
+    if (el) return el;
+
+    el = document.createElement('div');
+    el.className = 'pm-stream-error';
+    el.hidden = true;
+    el.setAttribute('role', 'alert');
+    el.innerHTML =
+      '<p class="pm-stream-error__title"></p>' +
+      '<p class="pm-stream-error__message"></p>' +
+      '<button type="button" class="pm-stream-error__retry">' +
+        '<span class="material-symbols-outlined" aria-hidden="true">refresh</span>' +
+        '<span class="pm-stream-error__retry-label"></span>' +
+      '</button>';
+    el.querySelector('.pm-stream-error__title').textContent =
+      playerLabels.errorTitle || 'Riproduzione interrotta';
+    el.querySelector('.pm-stream-error__message').textContent =
+      playerLabels.errorMessage || 'Lo stream si è interrotto.';
+    el.querySelector('.pm-stream-error__retry-label').textContent =
+      playerLabels.errorRetry || 'Riprova';
+
+    el.querySelector('.pm-stream-error__retry').addEventListener('click', function () {
+      errorRetries = 0;
+      hideStreamError();
+      const pos = Math.floor(player.currentTime() || 0);
+      started = false;
+      loading = false;
+      begin(pos);
+    });
+
+    playerWrap.appendChild(el);
+    return el;
+  }
+
+  function showStreamRetrying() {
+    const el = ensureStreamErrorEl();
+    if (!el) return;
+    el.hidden = false;
+    el.classList.add('pm-stream-error--retrying');
+    el.querySelector('.pm-stream-error__message').textContent =
+      playerLabels.errorRetrying || 'Riconnessione in corso…';
+    el.querySelector('.pm-stream-error__retry').hidden = true;
+  }
+
+  function showStreamError() {
+    const el = ensureStreamErrorEl();
+    if (!el) return;
+    el.hidden = false;
+    el.classList.remove('pm-stream-error--retrying');
+    el.querySelector('.pm-stream-error__message').textContent =
+      playerLabels.errorMessage || 'Lo stream si è interrotto.';
+    el.querySelector('.pm-stream-error__retry').hidden = false;
+  }
+
+  function hideStreamError() {
+    const el = playerWrap && playerWrap.querySelector('.pm-stream-error');
+    if (!el) return;
+    el.hidden = true;
+    el.classList.remove('pm-stream-error--retrying');
+    el.querySelector('.pm-stream-error__retry').hidden = false;
+  }
 
   function setPlayerPlayingState(isPlaying) {
     if (!playerWrap) return;
     playerWrap.classList.toggle('putmio-player-wrap--playing', isPlaying);
   }
+
+  function isRemotePlaybackActive(el) {
+    const remote = el.remote;
+    if (!remote || !remote.state) return false;
+    return remote.state === 'connecting' || remote.state === 'connected';
+  }
+
+  function syncNativeCastOverlay() {
+    const tech = player.tech(true);
+    const el = tech && tech.el ? tech.el() : null;
+    if (!el || typeof el.disableRemotePlayback === 'undefined') return;
+
+    if (isRemotePlaybackActive(el)) {
+      el.disableRemotePlayback = false;
+      return;
+    }
+
+    el.disableRemotePlayback = !player.userActive();
+  }
+
+  player.on('useractive', syncNativeCastOverlay);
+  player.on('userinactive', syncNativeCastOverlay);
+  player.ready(function () {
+    const tech = player.tech(true);
+    const el = tech && tech.el ? tech.el() : null;
+    if (el && el.remote) {
+      el.remote.addEventListener('connecting', syncNativeCastOverlay);
+      el.remote.addEventListener('connected', syncNativeCastOverlay);
+      el.remote.addEventListener('disconnect', syncNativeCastOverlay);
+    }
+    syncNativeCastOverlay();
+  });
 
   player.on('play', function () {
     if (!started && !loading) {
@@ -342,7 +467,6 @@
   window.addEventListener('pagehide', teardownPlayer);
 
   const nextEpisode = window.PUTMIO.nextEpisode;
-  const playerLabels = window.PUTMIO.playerLabels || {};
   const NEXT_SHOW_SEC = 30;
   let nextToastEl = null;
   let nextToastDismissed = false;
