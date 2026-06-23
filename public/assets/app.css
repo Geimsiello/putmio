@@ -798,6 +798,282 @@ input.pm-input:focus {
   box-shadow: 0 0 0 2px rgba(128, 131, 255, 0.3);
 }
 
+/* Serie TV — lista episodi con tab stagioni */
+.pm-series-episodes__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(70, 69, 84, 0.25);
+}
+
+.pm-series-episodes__tabs {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+  padding-bottom: 0;
+}
+
+.pm-series-episodes__tab {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: #908fa0;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+
+.pm-series-episodes__tab:hover {
+  color: #c7c4d7;
+}
+
+.pm-series-episodes__tab.is-active {
+  color: #dae2fd;
+  border-bottom-color: #8083ff;
+}
+
+.pm-series-episodes__badge {
+  flex-shrink: 0;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(45, 52, 73, 0.8);
+  border: 1px solid rgba(70, 69, 84, 0.3);
+  color: #c7c4d7;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1rem;
+  letter-spacing: 0.02em;
+}
+
+.pm-episode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pm-episode-card {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(70, 69, 84, 0.25);
+  background: rgba(23, 31, 51, 0.55);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, background-color 0.2s, transform 0.15s;
+}
+
+.pm-episode-card:hover {
+  border-color: rgba(128, 131, 255, 0.35);
+  background: rgba(34, 42, 61, 0.75);
+}
+
+.pm-episode-card--active {
+  border-color: rgba(128, 131, 255, 0.55);
+  background: rgba(34, 42, 61, 0.85);
+  box-shadow: 0 0 0 1px rgba(128, 131, 255, 0.15);
+}
+
+.pm-episode-card__status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.pm-episode-card__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.pm-episode-card__check .material-symbols-outlined {
+  font-size: 1.125rem;
+  font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+}
+
+.pm-episode-card__code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #908fa0;
+  letter-spacing: 0.04em;
+}
+
+.pm-episode-card--active .pm-episode-card__code {
+  color: #c0c1ff;
+}
+
+.pm-episode-card__thumb {
+  position: relative;
+  flex-shrink: 0;
+  width: 8.5rem;
+  aspect-ratio: 16 / 9;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #131b2e;
+  border: 1px solid rgba(70, 69, 84, 0.25);
+}
+
+.pm-episode-card__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pm-episode-card__thumb-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  background: #8083ff;
+  border-radius: 0 2px 0 0;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pm-episode-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  flex: 1;
+  padding-top: 0.125rem;
+}
+
+.pm-episode-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pm-episode-card__number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #908fa0;
+  letter-spacing: 0.05em;
+}
+
+.pm-episode-card__badge {
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  background: rgba(128, 131, 255, 0.15);
+  color: #c0c1ff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pm-episode-card__title {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.375rem;
+  color: #dae2fd;
+}
+
+.pm-episode-card:hover .pm-episode-card__title {
+  color: #c0c1ff;
+}
+
+.pm-episode-card__synopsis {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  color: #908fa0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pm-episode-card__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  padding-left: 0.5rem;
+}
+
+.pm-episode-card__percent {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c0c1ff;
+}
+
+.pm-episode-card__duration {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #908fa0;
+}
+
+@media (max-width: 639px) {
+  .pm-series-episodes__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pm-series-episodes__badge {
+    align-self: flex-start;
+  }
+
+  .pm-episode-card {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .pm-episode-card__status {
+    width: auto;
+    order: 1;
+  }
+
+  .pm-episode-card__thumb {
+    order: 2;
+    width: 6.5rem;
+  }
+
+  .pm-episode-card__body {
+    order: 4;
+    flex-basis: 100%;
+  }
+
+  .pm-episode-card__aside {
+    order: 3;
+    margin-left: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    padding-left: 0;
+  }
+}
+
 .auth-shell input.auth-input:-webkit-autofill,
 .auth-shell input.auth-input:-webkit-autofill:hover,
 .auth-shell input.auth-input:-webkit-autofill:focus,

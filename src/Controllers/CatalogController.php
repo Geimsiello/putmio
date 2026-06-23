@@ -76,6 +76,7 @@ final class CatalogController
         $isSeries = $this->catalog->isSeries($media);
         $episodesBySeason = $isSeries ? $this->catalog->episodesBySeason($id) : [];
         $episodeProgress = $isSeries ? $this->catalog->episodeProgressForUser($userId, $id) : [];
+        $seriesPlayTarget = $isSeries ? $this->catalog->seriesPlayTarget($userId, $id) : null;
 
         $fileName = (string) ($media['file_name'] ?? '');
         $tmdbSuggestedQuery = putmio_guess_title_from_filename($fileName) ?? $media['title'];
@@ -101,6 +102,7 @@ final class CatalogController
             'isSeries' => $isSeries,
             'episodesBySeason' => $episodesBySeason,
             'episodeProgress' => $episodeProgress,
+            'seriesPlayTarget' => $seriesPlayTarget,
             'catalogReturnUrl' => putmio_catalog_return_url($_GET['from'] ?? null),
             'subtitleCount' => $subtitleCount,
             'availableSubtitles' => $availableSubtitles,

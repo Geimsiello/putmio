@@ -391,7 +391,7 @@ final class CatalogService
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
-            'SELECT wp.media_id, wp.position_sec, wp.duration_sec, wp.completed
+            'SELECT wp.media_id, wp.position_sec, wp.duration_sec, wp.completed, wp.last_watched_at
              FROM `' . Config::table('watch_progress') . '` wp
              JOIN `' . Config::table('media_items') . '` mi ON mi.id = wp.media_id
              WHERE wp.user_id = ? AND mi.series_id = ?'
@@ -403,6 +403,77 @@ final class CatalogService
         }
 
         return $map;
+    }
+
+    /**
+     * Episodio da riprendere o da avviare per una serie.
+     *
+     * @return array{episode: array<string, mixed>, progress: ?array<string, mixed>, resume: bool}|null
+     */
+    public function seriesPlayTarget(int $userId, int $seriesId): ?array
+    {
+        $episodesBySeason = $this->episodesBySeason($seriesId);
+        if ($episodesBySeason === []) {
+            return null;
+        }
+
+        $progress = $this->episodeProgressForUser($userId, $seriesId);
+
+        $resumeCandidate = null;
+        $resumeLastWatched = null;
+        foreach ($episodesBySeason as $episodes) {
+            foreach ($episodes as $episode) {
+                $episodeId = (int) $episode['id'];
+                $episodeProgress = $progress[$episodeId] ?? null;
+                if (
+                    $episodeProgress
+                    && empty($episodeProgress['completed'])
+                    && ($episodeProgress['position_sec'] ?? 0) > 0
+                ) {
+                    $lastWatched = $episodeProgress['last_watched_at'] ?? null;
+                    if ($resumeLastWatched === null || ($lastWatched !== null && $lastWatched > $resumeLastWatched)) {
+                        $resumeLastWatched = $lastWatched;
+                        $resumeCandidate = [
+                            'episode' => $episode,
+                            'progress' => $episodeProgress,
+                            'resume' => true,
+                        ];
+                    }
+                }
+            }
+        }
+
+        if ($resumeCandidate !== null) {
+            return $resumeCandidate;
+        }
+
+        foreach ($episodesBySeason as $episodes) {
+            foreach ($episodes as $episode) {
+                $episodeId = (int) $episode['id'];
+                $episodeProgress = $progress[$episodeId] ?? null;
+                if (!$episodeProgress || empty($episodeProgress['completed'])) {
+                    return [
+                        'episode' => $episode,
+                        'progress' => $episodeProgress,
+                        'resume' => false,
+                    ];
+                }
+            }
+        }
+
+        $firstSeason = array_key_first($episodesBySeason);
+        $firstEpisode = $episodesBySeason[$firstSeason][0] ?? null;
+        if ($firstEpisode === null) {
+            return null;
+        }
+
+        $firstId = (int) $firstEpisode['id'];
+
+        return [
+            'episode' => $firstEpisode,
+            'progress' => $progress[$firstId] ?? null,
+            'resume' => false,
+        ];
     }
 
     /** @return list<string> */

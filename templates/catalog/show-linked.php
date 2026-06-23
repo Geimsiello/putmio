@@ -5,6 +5,7 @@
 /** @var bool $isSeries */
 /** @var array<int, list<array<string, mixed>>> $episodesBySeason */
 /** @var array<int, array<string, mixed>> $episodeProgress */
+/** @var array{episode: array<string, mixed>, progress: ?array<string, mixed>, resume: bool}|null $seriesPlayTarget */
 /** @var \PutMio\CatalogService $catalog */
 /** @var string $catalogReturnUrl */
 use PutMio\Config;
@@ -71,6 +72,26 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
       </div>
     </div>
 
+    <?php if ($isSeries && $seriesPlayTarget !== null): ?>
+    <?php
+      $seriesEpisode = $seriesPlayTarget['episode'];
+      $seriesEpisodeCode = putmio_episode_code($seriesEpisode);
+      $seriesPlayLabel = putmio_lang(
+          $seriesPlayTarget['resume'] ? 'resume_episode' : 'play_episode',
+          ['code' => $seriesEpisodeCode]
+      );
+    ?>
+    <div class="mb-8 max-w-xl">
+      <a
+        href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $seriesEpisode['id'] ?>"
+        class="pm-btn-primary w-full sm:w-auto inline-flex justify-center px-6 py-3 text-base shadow-lg shadow-primary/20"
+      >
+        <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+        <?= putmio_e($seriesPlayLabel) ?>
+      </a>
+    </div>
+    <?php endif; ?>
+
     <?php if (\PutMio\Auth\Session::isAdmin()): ?>
     <div class="flex flex-wrap gap-3 items-center mb-8">
       <?php
@@ -116,9 +137,7 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
     </div>
     <?php endif; ?>
 
-    <?php if ($isSeries && $episodesBySeason !== []): ?>
-      <?php require putmio_base_path() . '/templates/partials/series-episodes.php'; ?>
-    <?php else: ?>
+    <?php if (!$isSeries): ?>
     <div class="mt-auto space-y-3 max-w-xl" data-media-actions="<?= $mediaId ?>">
       <div class="flex flex-col sm:flex-row gap-3">
         <a href="<?= putmio_e($appUrl) ?>/play?id=<?= $mediaId ?>" class="pm-btn-primary flex-1 justify-center px-6 py-3 text-base shadow-lg shadow-primary/20">
@@ -151,7 +170,11 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
   </div>
 </div>
 
-<?php if (!$isSeries || $episodesBySeason === []): ?>
+<?php if ($isSeries && $episodesBySeason !== []): ?>
+  <?php require putmio_base_path() . '/templates/partials/series-episodes.php'; ?>
+<?php endif; ?>
+
+<?php if (!$isSeries): ?>
 <script>
 (function () {
   const root = document.querySelector('[data-media-actions="<?= $mediaId ?>"]');

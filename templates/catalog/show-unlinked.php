@@ -5,6 +5,7 @@
 /** @var bool $isSeries */
 /** @var array<int, list<array<string, mixed>>> $episodesBySeason */
 /** @var array<int, array<string, mixed>> $episodeProgress */
+/** @var array{episode: array<string, mixed>, progress: ?array<string, mixed>, resume: bool}|null $seriesPlayTarget */
 /** @var \PutMio\CatalogService $catalog */
 /** @var string $catalogReturnUrl */
 use PutMio\Config;
@@ -32,6 +33,26 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
     <p class="text-on-surface-variant font-label-md text-label-md mb-6">
       <?= putmio_e($typeLabel) ?><?= $media['year'] ? ' · ' . (int)$media['year'] : '' ?><?= $episodeCount > 0 ? ' · ' . $episodeCount . ' ' . putmio_lang('episodes') : '' ?>
     </p>
+
+    <?php if ($isSeries && $seriesPlayTarget !== null): ?>
+    <?php
+      $seriesEpisode = $seriesPlayTarget['episode'];
+      $seriesEpisodeCode = putmio_episode_code($seriesEpisode);
+      $seriesPlayLabel = putmio_lang(
+          $seriesPlayTarget['resume'] ? 'resume_episode' : 'play_episode',
+          ['code' => $seriesEpisodeCode]
+      );
+    ?>
+    <div class="mb-6">
+      <a
+        href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $seriesEpisode['id'] ?>"
+        class="pm-btn-primary inline-flex px-5 py-2.5"
+      >
+        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+        <?= putmio_e($seriesPlayLabel) ?>
+      </a>
+    </div>
+    <?php endif; ?>
 
     <?php if (!$isSeries): ?>
     <div class="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 mb-6 flex items-start gap-3">
@@ -65,11 +86,12 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
     </div>
     <?php endif; ?>
 
-    <?php if ($isSeries && $episodesBySeason !== []): ?>
-      <?php require putmio_base_path() . '/templates/partials/series-episodes.php'; ?>
-    <?php endif; ?>
   </div>
 </div>
+
+<?php if ($isSeries && $episodesBySeason !== []): ?>
+  <?php require putmio_base_path() . '/templates/partials/series-episodes.php'; ?>
+<?php endif; ?>
 
 <?php if (\PutMio\Auth\Session::isAdmin()): ?>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

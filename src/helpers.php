@@ -244,6 +244,46 @@ function putmio_format_runtime_label(?int $seconds): ?string
     return $m . ' min';
 }
 
+function putmio_format_runtime_short(?int $seconds): ?string
+{
+    if ($seconds === null || $seconds <= 0) {
+        return null;
+    }
+    $h = intdiv($seconds, 3600);
+    $m = intdiv($seconds % 3600, 60);
+    if ($h > 0) {
+        return $m > 0 ? $h . 'h ' . $m . 'm' : $h . 'h';
+    }
+
+    return $m . 'm';
+}
+
+/** @param array<string, mixed> $episode */
+function putmio_episode_card_title(array $episode): string
+{
+    $raw = trim((string) ($episode['title'] ?? ''));
+    if (preg_match('/^S\d{2}E\d{2}\s*·\s*(.+)$/u', $raw, $matches)) {
+        return trim($matches[1]);
+    }
+    if (preg_match('/^S\d{2}E\d{2}$/u', $raw)) {
+        $number = (int) ($episode['episode_number'] ?? 0);
+
+        return $number > 0 ? putmio_lang('episode') . ' ' . $number : $raw;
+    }
+
+    return $raw !== '' ? $raw : putmio_lang('episode');
+}
+
+/** @param array<string, mixed> $episode */
+function putmio_episode_code(array $episode): string
+{
+    return sprintf(
+        'S%02dE%02d',
+        (int) ($episode['season_number'] ?? 0),
+        (int) ($episode['episode_number'] ?? 0)
+    );
+}
+
 /** @return array{ext: ?string, codec: ?string, resolution: ?string} */
 function putmio_file_technical_labels(?string $fileName): array
 {
