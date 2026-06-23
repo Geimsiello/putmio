@@ -77,6 +77,27 @@ final class Session
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_theme'] = $user['theme'] ?? 'dark';
         $_SESSION['user_locale'] = $user['locale'] ?? $_COOKIE['putmio_locale'] ?? 'it';
+
+        $uiMode = (string) ($user['ui_mode'] ?? 'standard');
+        if ($uiMode !== 'tv' && putmio_is_tv_user_agent()) {
+            $uiMode = 'tv';
+            (new AuthService())->updateUiMode((int) $user['id'], 'tv');
+        }
+        $_SESSION['user_ui_mode'] = $uiMode;
+        putmio_set_ui_mode_cookie($uiMode);
+        if ($uiMode === 'tv') {
+            $_SESSION['user_theme'] = 'dark';
+            (new AuthService())->updateTheme((int) $user['id'], 'dark');
+            $secure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+            setcookie('putmio_theme', 'dark', [
+                'expires' => time() + 86400 * 365,
+                'path' => '/',
+                'secure' => $secure,
+                'httponly' => false,
+                'samesite' => 'Strict',
+            ]);
+        }
     }
 
     public static function logout(): void
@@ -117,9 +138,26 @@ final class Session
     public static function requireAdmin(): void
     {
         self::requireAuth();
+        if (putmio_tv_mode()) {
+            if (self::wantsJson()) {
+                putmio_json(['error' => putmio_lang('tv_admin_unavailable')], 403);
+            }
+            $_SESSION['flash_error'] = putmio_lang('tv_admin_unavailable');
+            putmio_redirect('/');
+        }
         if (!self::isAdmin()) {
             http_response_code(403);
             exit('Accesso negato.');
         }
+    }
+
+    private static function wantsJson(): bool
+    {
+        $path = putmio_request_path();
+        if (str_starts_with($path, '/api/')) {
+            return true;
+        }
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        return str_contains($accept, 'application/json');
     }
 }

@@ -85,6 +85,16 @@ final class AuthService
             ->execute([$locale, $userId]);
     }
 
+    public function updateUiMode(int $userId, string $uiMode): void
+    {
+        if (!in_array($uiMode, ['standard', 'tv'], true)) {
+            return;
+        }
+        $pdo = Database::pdo();
+        $pdo->prepare('UPDATE `' . Config::table('users') . '` SET ui_mode = ? WHERE id = ?')
+            ->execute([$uiMode, $userId]);
+    }
+
     public function createPasswordReset(string $email): bool
     {
         $pdo = Database::pdo();

@@ -8,7 +8,7 @@ $hasError = !empty($error);
 $brandTagline = putmio_lang('tagline');
 $brandAppUrl = $appUrl;
 $brandUseIcon = false;
-$loginMode = ($_GET['mode'] ?? '') === 'device' ? 'device' : 'email';
+$loginMode = ($_GET['mode'] ?? '') === 'email' ? 'email' : (($_GET['mode'] ?? '') === 'device' || putmio_is_tv_user_agent() ? 'device' : 'email');
 ?>
 <div class="w-full max-w-[400px]">
   <?php require putmio_base_path() . '/templates/partials/brand-header.php'; ?>

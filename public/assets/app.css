@@ -1583,3 +1583,294 @@ input.pm-input:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(128, 131, 255, 0.3);
 }
+
+/* ——— TV mode (10-foot UI) ——— */
+html.tv-mode .glass-header {
+  backdrop-filter: none;
+}
+
+html.tv-mode .putmio-shimmer,
+html.tv-mode .poster-overlay {
+  display: none !important;
+}
+
+html.tv-mode .pm-tv-header {
+  backdrop-filter: none;
+}
+
+html.tv-mode .pm-tv-header__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.65rem 1.1rem;
+  border-radius: 0.5rem;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #c7c4d7;
+  transition: background-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+html.tv-mode .pm-tv-header__link--active,
+html.tv-mode .pm-tv-header__link:focus-visible {
+  color: #c0c1ff;
+  background: rgb(128 131 255 / 0.12);
+  box-shadow: 0 0 0 3px #8083ff;
+  outline: none;
+}
+
+html.tv-mode .pm-tv-header__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(70 69 84 / 0.5);
+  background: #222a3d;
+  color: #dae2fd;
+  font-size: 0.95rem;
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+
+html.tv-mode .pm-tv-header__action:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px #8083ff;
+}
+
+html.tv-mode .pm-tv-info-rail {
+  margin-bottom: 1.5rem;
+}
+
+html.tv-mode .pm-tv-info-rail__inner {
+  background: #222a3d;
+  border: 1px solid rgb(70 69 84 / 0.45);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+html.tv-mode .pm-tv-info-rail__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #dae2fd;
+  margin: 0 0 0.35rem;
+}
+
+html.tv-mode .pm-tv-info-rail__meta {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 1rem;
+  color: #c0c1ff;
+  margin: 0 0 0.5rem;
+}
+
+html.tv-mode .pm-tv-info-rail__synopsis {
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: #c7c4d7;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+html.tv-mode [data-pm-tv-focus]:focus {
+  outline: 3px solid #8083ff;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(128, 131, 255, 0.45);
+}
+
+html.tv-mode [data-pm-tv-focus]:focus-visible {
+  box-shadow: 0 0 0 4px #8083ff;
+  transform: scale(1.04);
+  z-index: 2;
+  position: relative;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.tv-mode [data-pm-tv-focus]:focus-visible {
+    transform: none;
+  }
+}
+
+html.tv-mode .pm-tv-card-caption {
+  display: none;
+}
+
+html.tv-mode .pm-tv-poster-badge {
+  display: none;
+}
+
+html.tv-mode .pm-slider .flex-shrink-0 {
+  width: 11rem;
+}
+
+@media (min-width: 640px) {
+  html.tv-mode .pm-slider .flex-shrink-0 {
+    width: 12rem;
+  }
+}
+
+html.tv-mode [data-pm-tv-focus] .poster-card .absolute.inset-0.flex,
+html.tv-mode [data-pm-tv-focus]:focus-visible .poster-card .pm-tv-play-overlay {
+  opacity: 1;
+}
+
+html.tv-mode .pm-tv-play-overlay {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+html.tv-mode .grid[data-catalog-grid] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  html.tv-mode .grid[data-catalog-grid] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2rem;
+  }
+}
+
+html.tv-mode .putmio-player-tv .putmio-player-meta,
+html.tv-mode .putmio-player-tv [data-player-actions],
+html.tv-mode .putmio-player-tv .putmio-player-details {
+  display: none;
+}
+
+html.tv-mode .putmio-player-tv.putmio-player-tv--idle .putmio-player-meta {
+  display: block;
+}
+
+html.tv-mode .pm-stream-error {
+  font-size: 1.125rem;
+  text-align: center;
+}
+
+html.tv-mode .pm-series-episodes__tab:focus-visible {
+  box-shadow: 0 0 0 3px #8083ff;
+  outline: none;
+}
+
+html.tv-mode .pm-episode-card:focus-visible {
+  box-shadow: 0 0 0 4px #8083ff;
+  outline: none;
+}
+
+html.tv-mode .pm-catalog-tv-hero {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+html.tv-mode .pm-catalog-tv-hero__meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 2rem;
+  margin: 1rem 0 1.25rem;
+}
+
+html.tv-mode .pm-catalog-tv-hero__meta-grid .pm-tv-meta-label {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #908fa0;
+  margin-bottom: 0.25rem;
+}
+
+html.tv-mode .pm-catalog-tv-hero__meta-grid .pm-tv-meta-value {
+  font-size: 1.125rem;
+  color: #dae2fd;
+}
+
+html.tv-mode {
+  color-scheme: dark;
+}
+
+html.tv-mode body {
+  background-color: #0b1326 !important;
+  color: #dae2fd !important;
+}
+
+html.tv-mode .pm-stream-error__retry {
+  outline: none;
+}
+
+html.tv-mode .pm-home-tv-limit section:nth-of-type(n+6) {
+  display: none;
+}
+
+/* Player TV: fullscreen CSS (non dipende dall'API del browser) */
+html.tv-mode.putmio-tv-player-immersive {
+  overflow: hidden;
+  height: 100%;
+}
+
+html.tv-mode.putmio-tv-player-immersive body {
+  height: 100%;
+  overflow: hidden;
+}
+
+html.tv-mode.putmio-tv-player-immersive .pm-tv-header,
+html.tv-mode.putmio-tv-player-immersive #pm-tv-info-rail,
+html.tv-mode.putmio-tv-player-immersive #player-back-link {
+  display: none !important;
+}
+
+html.tv-mode.putmio-tv-player-immersive main {
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-tv {
+  max-width: none;
+  margin: 0;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-tv > section:first-of-type {
+  margin: 0;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: -webkit-fill-available;
+  max-height: none;
+  border-radius: 0;
+  border: none;
+  background: #000;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-wrap .video-js {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-wrap .video-js.vjs-fluid {
+  padding-top: 0 !important;
+  height: 100% !important;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-wrap .video-js .vjs-tech {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-tv > section:first-of-type > .mt-3 {
+  display: none;
+}
+
+html.tv-mode.putmio-tv-player-immersive .putmio-player-meta {
+  display: none !important;
+}
+

@@ -142,7 +142,7 @@ final class PlayerController
                 . '<script src="' . putmio_e($appUrl) . '/public/assets/player.js" defer></script>'
                 . '<script src="' . putmio_e($appUrl) . '/public/assets/subtitles.js" defer></script>',
             'subtitlesConfigured' => $subtitlesConfigured,
-            'isAdmin' => Session::isAdmin(),
+            'isAdmin' => putmio_admin_ui_enabled(),
             'putmioExtra' => [
                 'putioId' => (int) $media['putio_id'],
                 'mediaId' => $id,
@@ -154,6 +154,7 @@ final class PlayerController
                 'mp4Available' => $mp4Available,
                 'showSourcePicker' => $mp4Available && $isOriginalNonMp4,
                 'nextEpisode' => $nextEpisodePayload,
+                'tvMode' => putmio_tv_mode(),
                 'playerLabels' => [
                     'nextUp' => putmio_lang('player_next_up'),
                     'playNow' => putmio_lang('player_play_next'),
@@ -165,7 +166,7 @@ final class PlayerController
                     'errorRetrying' => putmio_lang('player_error_retrying'),
                 ],
                 'subtitlesConfigured' => $subtitlesConfigured,
-                'isAdmin' => Session::isAdmin(),
+                'isAdmin' => putmio_admin_ui_enabled(),
                 'availableSubtitles' => $availableSubtitles,
                 'activeSubtitleId' => $subtitlePrefs['subtitle_id'],
                 'offsetMs' => $subtitlePrefs['offset_ms'],
@@ -184,7 +185,7 @@ final class PlayerController
                     'use' => putmio_lang('subtitles_use'),
                     'delete' => putmio_lang('subtitles_delete'),
                     'downloadError' => putmio_lang('subtitles_download_error'),
-                    'notConfigured' => Session::isAdmin()
+                    'notConfigured' => putmio_admin_ui_enabled()
                         ? putmio_lang('subtitles_not_configured_admin')
                         : putmio_lang('subtitles_not_configured'),
                     'offsetLabel' => putmio_lang('subtitles_offset_label'),

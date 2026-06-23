@@ -21,6 +21,9 @@ final class ApiController
         Session::requireAuth();
         Csrf::requireValid($_POST['_csrf'] ?? null);
         $theme = $_POST['theme'] ?? 'dark';
+        if (putmio_tv_mode() && $theme === 'light') {
+            putmio_json(['ok' => false, 'error' => 'light_not_allowed_tv'], 400);
+        }
         if (!in_array($theme, ['light', 'dark'], true)) {
             putmio_json(['ok' => false], 400);
         }
@@ -50,6 +53,32 @@ final class ApiController
 
         putmio_set_locale($locale);
         putmio_json(['ok' => true, 'locale' => $locale]);
+    }
+
+    public function uiMode(): void
+    {
+        Session::requireAuth();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+        $uiMode = (string) ($_POST['ui_mode'] ?? 'standard');
+        if (!in_array($uiMode, ['standard', 'tv'], true)) {
+            putmio_json(['ok' => false], 400);
+        }
+
+        (new AuthService())->updateUiMode((int) Session::userId(), $uiMode);
+        $_SESSION['user_ui_mode'] = $uiMode;
+        putmio_set_ui_mode_cookie($uiMode);
+        if ($uiMode === 'tv') {
+            (new AuthService())->updateTheme((int) Session::userId(), 'dark');
+            $_SESSION['user_theme'] = 'dark';
+            setcookie('putmio_theme', 'dark', [
+                'expires' => time() + 86400 * 365,
+                'path' => '/',
+                'secure' => true,
+                'httponly' => false,
+                'samesite' => 'Strict',
+            ]);
+        }
+        putmio_json(['ok' => true, 'ui_mode' => $uiMode]);
     }
 
     public function watchProgress(): void

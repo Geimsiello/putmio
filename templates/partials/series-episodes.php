@@ -20,6 +20,7 @@ $firstSeason = $seasons[0] ?? 1;
         aria-selected="<?= (int) $season === (int) $firstSeason ? 'true' : 'false' ?>"
         aria-controls="pm-season-panel-<?= (int) $season ?>"
         id="pm-season-tab-<?= (int) $season ?>"
+        <?php if (putmio_tv_mode()): ?>data-pm-tv-focus tabindex="0" data-pm-tv-title="<?= putmio_e(putmio_lang('season') . ' ' . (int) $season) ?>" data-pm-tv-subtitle="<?= putmio_e((string) $media['title']) ?>"<?php endif; ?>
       >
         <?= putmio_e(putmio_lang('season')) ?> <?= (int) $season ?>
       </button>
@@ -82,8 +83,16 @@ $firstSeason = $seasons[0] ?? 1;
               $cardClass .= ' pm-episode-card--active';
           }
           $synopsis = trim((string) ($episode['synopsis'] ?? ''));
+          $episodeTitle = putmio_episode_card_title($episode);
+          $episodeSubtitle = sprintf('%s %d · %s', putmio_lang('season'), (int) $season, (string) $media['title']);
+          $tvAttrs = putmio_tv_card_attrs([
+              'id' => $episodeId,
+              'title' => $episodeTitle,
+              'subtitle' => $episodeSubtitle,
+              'synopsis' => $synopsis,
+          ]);
         ?>
-        <a href="<?= putmio_e($appUrl) ?>/play?id=<?= $episodeId ?>" class="<?= $cardClass ?>">
+        <a href="<?= putmio_e(putmio_play_url($episodeId)) ?>" class="<?= $cardClass ?>" <?= $tvAttrs ?>>
           <span class="pm-episode-card__status" aria-hidden="true">
             <?php if ($epWatched): ?>
             <span class="pm-episode-card__check">
@@ -108,7 +117,7 @@ $firstSeason = $seasons[0] ?? 1;
               <span class="pm-episode-card__badge"><?= putmio_e(putmio_lang('episode_in_progress')) ?></span>
               <?php endif; ?>
             </span>
-            <span class="pm-episode-card__title"><?= putmio_e(putmio_episode_card_title($episode)) ?></span>
+            <span class="pm-episode-card__title"><?= putmio_e($episodeTitle) ?></span>
             <?php if ($synopsis !== ''): ?>
             <span class="pm-episode-card__synopsis"><?= putmio_e($synopsis) ?></span>
             <?php endif; ?>

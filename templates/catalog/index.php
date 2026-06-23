@@ -102,7 +102,7 @@ $loadMoreQuery = http_build_query($queryBase);
 <?php endif; ?>
 <?php endif; ?>
 
-<?php if (\PutMio\Auth\Session::isAdmin()): ?>
+<?php if (putmio_admin_ui_enabled()): ?>
 <?php
 $mediaId = 0;
 $tmdbSuggestedQuery = '';

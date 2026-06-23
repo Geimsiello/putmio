@@ -4,13 +4,20 @@
   const playerEl = document.getElementById('putmio-player');
   if (!playerEl) return;
 
+  const tvMode = !!(window.PUTMIO && window.PUTMIO.tvMode);
+  const playerOptions = {
+    responsive: true,
+    fluid: true,
+    aspectRatio: '16:9'
+  };
+  if (tvMode) {
+    playerOptions.userActions = { hotkeys: false };
+    playerOptions.enableDocumentPictureInPicture = false;
+  }
+
   let player = videojs.getPlayer('putmio-player');
   if (!player) {
-    player = videojs('putmio-player', {
-      responsive: true,
-      fluid: true,
-      aspectRatio: '16:9'
-    });
+    player = videojs('putmio-player', playerOptions);
   }
 
   function syncPlayerAspectRatio() {
@@ -37,6 +44,116 @@
   let errorRetries = 0;
   const MAX_ERROR_RETRIES = 2;
   const playerLabels = window.PUTMIO.playerLabels || {};
+  let tvFullscreenDone = false;
+  let tvFullscreenAttempts = 0;
+  let tvLastKeyStamp = { code: 0, at: 0 };
+
+  function enterTvImmersive() {
+    document.documentElement.classList.add('putmio-tv-player-immersive');
+    const shell = document.querySelector('.putmio-player-tv');
+    if (shell) {
+      shell.classList.remove('putmio-player-tv--idle');
+    }
+  }
+
+  function exitTvImmersive() {
+    document.documentElement.classList.remove('putmio-tv-player-immersive');
+    const shell = document.querySelector('.putmio-player-tv');
+    if (shell) {
+      shell.classList.add('putmio-player-tv--idle');
+    }
+  }
+
+  function requestFullscreenOn(el) {
+    if (!el) return null;
+    const fn = el.requestFullscreen
+      || el.webkitRequestFullscreen
+      || el.webkitEnterFullscreen
+      || el.mozRequestFullScreen
+      || el.msRequestFullscreen;
+    if (!fn) return null;
+    try {
+      const result = fn.call(el);
+      return result && typeof result.then === 'function' ? result : Promise.resolve();
+    } catch (e) {
+      return Promise.reject(e);
+    }
+  }
+
+  function enterTvFullscreen() {
+    if (tvFullscreenDone || document.fullscreenElement) {
+      tvFullscreenDone = true;
+      return;
+    }
+    if (tvFullscreenAttempts > 16) return;
+    tvFullscreenAttempts++;
+
+    function markDone() {
+      tvFullscreenDone = true;
+      try {
+        const root = player.el();
+        if (root) {
+          root.setAttribute('tabindex', '0');
+          root.focus();
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    const root = player.el();
+    const video = root ? root.querySelector('video') : null;
+    const wrap = document.querySelector('.putmio-player-wrap');
+    const chain = [
+      function () { return player.requestFullscreen ? player.requestFullscreen() : null; },
+      function () { return requestFullscreenOn(video); },
+      function () { return requestFullscreenOn(root); },
+      function () { return requestFullscreenOn(wrap); },
+      function () { return requestFullscreenOn(document.documentElement); }
+    ];
+
+    function tryNext(index) {
+      if (index >= chain.length) return;
+      let req;
+      try {
+        req = chain[index]();
+      } catch (e) {
+        tryNext(index + 1);
+        return;
+      }
+      if (req && typeof req.then === 'function') {
+        req.then(markDone).catch(function () {
+          tryNext(index + 1);
+        });
+        return;
+      }
+      if (document.fullscreenElement) {
+        markDone();
+        return;
+      }
+      tryNext(index + 1);
+    }
+
+    tryNext(0);
+  }
+
+  function scheduleTvFullscreenRetry() {
+    if (tvFullscreenDone || document.fullscreenElement) {
+      tvFullscreenDone = true;
+      return;
+    }
+    if (tvFullscreenAttempts > 16) return;
+    enterTvFullscreen();
+    window.setTimeout(function () {
+      if (!tvFullscreenDone && !document.fullscreenElement && tvFullscreenAttempts <= 16) {
+        scheduleTvFullscreenRetry();
+      }
+    }, 400);
+  }
+
+  function onTvPlaybackStart() {
+    if (!tvMode) return;
+    enterTvImmersive();
+    scheduleTvFullscreenRetry();
+  }
 
   function defaultStartAt() {
     if (resumeBtn && startAt > 0) {
@@ -175,12 +292,18 @@
     }
 
     if (started && player.currentSrc()) {
+      if (tvMode) {
+        onTvPlaybackStart();
+      }
       startPlayback(at);
       return;
     }
 
     started = true;
     loading = true;
+    if (tvMode) {
+      onTvPlaybackStart();
+    }
     setSource();
     waitForReady(at);
   }
@@ -355,6 +478,9 @@
       return;
     }
     setPlayerPlayingState(true);
+    if (tvMode) {
+      onTvPlaybackStart();
+    }
   });
 
   player.on('pause', function () {
@@ -365,6 +491,9 @@
 
   player.on('ended', function () {
     setPlayerPlayingState(false);
+    if (tvMode) {
+      exitTvImmersive();
+    }
   });
 
   if (player.audioTracks) {
@@ -421,10 +550,161 @@
     });
   }
 
-  if (!resumeBtn && !playBtn) {
-    begin(startAt > 30 ? 0 : startAt);
-  } else if (!resumeBtn && playBtn && startAt < 30) {
-    begin(0);
+  function tvNormalizeKey(evt) {
+    if (typeof window.putmioNormalizeTvKey === 'function') {
+      return window.putmioNormalizeTvKey(evt);
+    }
+    const code = evt.keyCode || evt.which;
+    const key = evt.key || '';
+    if (key === 'ArrowLeft' || code === 37 || code === 21) return 'left';
+    if (key === 'ArrowRight' || code === 39 || code === 22) return 'right';
+    if (key === 'ArrowUp' || code === 38 || code === 19) return 'up';
+    if (key === 'ArrowDown' || code === 40 || code === 20) return 'down';
+    if (key === 'Enter' || code === 13 || code === 23) return 'enter';
+    if (code === 4 || key === 'Back' || key === 'GoBack' || key === 'Escape' || code === 27 || code === 8) return 'back';
+    if (key === 'MediaPlayPause' || code === 179 || code === 85) return 'playpause';
+    if (key === 'MediaFastForward' || code === 228 || code === 417) return 'ff';
+    if (key === 'MediaRewind' || code === 227 || code === 412) return 'rw';
+    return null;
+  }
+
+  function shouldHandleTvPlayerKey(evt) {
+    if (evt.type === 'keydown') return true;
+    if (evt.type !== 'keyup') return false;
+    if (!window.PUTMIO || !window.PUTMIO.tvKeyUpFallback) return false;
+    return typeof window.putmioIsTvRemoteKey === 'function' && window.putmioIsTvRemoteKey(evt);
+  }
+
+  function isDuplicateTvKey(evt) {
+    const code = evt.keyCode || evt.which || 0;
+    const now = Date.now();
+    if (code === tvLastKeyStamp.code && now - tvLastKeyStamp.at < 100) {
+      return true;
+    }
+    tvLastKeyStamp = { code: code, at: now };
+    return false;
+  }
+
+  function seekTvPlayer(stepSec) {
+    if (!started) {
+      begin(defaultStartAt());
+      return;
+    }
+    const next = Math.max(0, (player.currentTime() || 0) + stepSec);
+    player.currentTime(next);
+    if (!tvFullscreenDone) {
+      scheduleTvFullscreenRetry();
+    }
+  }
+
+  function handleTvPlayerKey(evt) {
+    if (!tvMode || !document.querySelector('.putmio-player-tv')) return;
+    if (!shouldHandleTvPlayerKey(evt)) return;
+    if (isDuplicateTvKey(evt)) return;
+
+    if (!tvFullscreenDone && !document.fullscreenElement) {
+      scheduleTvFullscreenRetry();
+    }
+
+    const dir = tvNormalizeKey(evt);
+    if (!dir) return;
+
+    if (dir === 'back') {
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (document.fullscreenElement || (player.isFullscreen && player.isFullscreen())) {
+        if (player.exitFullscreen) {
+          player.exitFullscreen();
+        } else if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+      exitTvImmersive();
+      return;
+    }
+
+    if (dir === 'playpause') {
+      evt.preventDefault();
+      evt.stopPropagation();
+      if (!started) {
+        begin(defaultStartAt());
+        return;
+      }
+      if (player.paused()) {
+        player.play().catch(function () {});
+      } else {
+        player.pause();
+      }
+      return;
+    }
+
+    if (dir === 'ff' || dir === 'right') {
+      evt.preventDefault();
+      evt.stopPropagation();
+      seekTvPlayer(10);
+      return;
+    }
+
+    if (dir === 'rw' || dir === 'left') {
+      evt.preventDefault();
+      evt.stopPropagation();
+      seekTvPlayer(-10);
+      return;
+    }
+
+    if (dir === 'enter' && !started) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      begin(defaultStartAt());
+    }
+  }
+
+  if (!tvMode) {
+    if (!resumeBtn && !playBtn) {
+      begin(startAt > 30 ? 0 : startAt);
+    } else if (!resumeBtn && playBtn && startAt < 30) {
+      begin(0);
+    }
+  }
+
+  if (tvMode) {
+    enterTvImmersive();
+
+    player.on('playing', onTvPlaybackStart);
+    player.on('loadeddata', scheduleTvFullscreenRetry);
+
+    player.ready(function () {
+      const root = player.el();
+      if (root) {
+        root.setAttribute('tabindex', '0');
+        try { root.focus(); } catch (e) { /* ignore */ }
+      }
+      begin(defaultStartAt());
+    });
+
+    window.addEventListener('keydown', handleTvPlayerKey, true);
+    window.addEventListener('keyup', handleTvPlayerKey, true);
+
+    document.addEventListener('fullscreenchange', function () {
+      const shell = document.querySelector('.putmio-player-tv');
+      if (document.fullscreenElement) {
+        tvFullscreenDone = true;
+        if (shell) {
+          shell.classList.remove('putmio-player-tv--idle');
+        }
+        try {
+          player.el().focus();
+        } catch (e) { /* ignore */ }
+        return;
+      }
+      if (shell && !document.documentElement.classList.contains('putmio-tv-player-immersive')) {
+        shell.classList.add('putmio-player-tv--idle');
+        const back = document.getElementById('player-back-link');
+        if (back) {
+          back.focus();
+        }
+      }
+    });
   }
 
   if (actionsRoot) {
@@ -738,6 +1018,10 @@
       windowColor: '#000',
       windowOpacity: '0',
     };
+
+    if (window.PUTMIO && window.PUTMIO.tvMode) {
+      defaults.fontPercent = '1.35';
+    }
 
     let hasSaved = false;
     try {

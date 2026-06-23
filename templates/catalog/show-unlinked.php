@@ -64,7 +64,7 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
       <a href="<?= putmio_e($appUrl) ?>/play?id=<?= $mediaId ?>" class="pm-btn-primary px-5 py-2.5">
         <?= $hasProgress ? putmio_lang('resume') : putmio_lang('play') ?>
       </a>
-      <?php if (\PutMio\Auth\Session::isAdmin()): ?>
+      <?php if (putmio_admin_ui_enabled()): ?>
         <?php
         $tmdbShowTrigger = true;
         $tmdbCatalogMode = false;
@@ -72,7 +72,7 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
         ?>
       <?php endif; ?>
     </div>
-    <?php elseif (\PutMio\Auth\Session::isAdmin()): ?>
+    <?php elseif (putmio_admin_ui_enabled()): ?>
     <div class="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 mb-6 flex items-start gap-3">
       <span class="material-symbols-outlined text-warning shrink-0" style="font-variation-settings: 'FILL' 1;">info</span>
       <p class="text-body-md text-warning/90">Collega la serie ai metadati TMDB per completare titolo, poster e descrizione.</p>
@@ -93,7 +93,7 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
   <?php require putmio_base_path() . '/templates/partials/series-episodes.php'; ?>
 <?php endif; ?>
 
-<?php if (\PutMio\Auth\Session::isAdmin()): ?>
+<?php if (putmio_admin_ui_enabled()): ?>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>[x-cloak]{display:none!important}</style>
 <?php endif; ?>

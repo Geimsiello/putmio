@@ -83,6 +83,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Sezione **In corso** con ripresa visione
 - Tema light / dark per utente
 - Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
+- **Modalità TV** per Smart TV / telecomando: layout 10-foot, navigazione a frecce, pannello info al focus, play in fullscreen automatico; admin solo su desktop
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
 - **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone). I link di autorizzazione TV (`/authorize-device`) sono configurati per aprirsi nell'app installata quando possibile (Android/Chrome); su iOS usare il menu **Autorizza TV** nell'app

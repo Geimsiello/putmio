@@ -92,6 +92,7 @@ final class Router
                 '/registrati' => [AuthController::class, 'register'],
                 '/api/preferences/theme' => [ApiController::class, 'theme'],
                 '/api/preferences/locale' => [ApiController::class, 'locale'],
+                '/api/preferences/ui-mode' => [ApiController::class, 'uiMode'],
                 '/api/watch-progress' => [ApiController::class, 'watchProgress'],
                 '/api/tmdb/apply' => [ApiController::class, 'tmdbApply'],
                 '/api/tmdb/classify-apply' => [ApiController::class, 'tmdbClassifyApplyBulk'],
@@ -118,8 +119,22 @@ final class Router
             return;
         }
 
+        if (putmio_tv_mode() && str_starts_with($path, '/admin')) {
+            if ($method === 'POST' || self::wantsJsonRequest()) {
+                putmio_json(['error' => putmio_lang('tv_admin_unavailable')], 403);
+            }
+            $_SESSION['flash_error'] = putmio_lang('tv_admin_unavailable');
+            putmio_redirect('/');
+        }
+
         [$class, $action] = $handler;
         (new $class())->$action();
+    }
+
+    private static function wantsJsonRequest(): bool
+    {
+        $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+        return str_contains($accept, 'application/json');
     }
 
     private function path(): string

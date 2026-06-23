@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}users` (
   `status` ENUM('active','disabled') NOT NULL DEFAULT 'active',
   `theme` ENUM('light','dark') NOT NULL DEFAULT 'dark',
   `locale` VARCHAR(5) NOT NULL DEFAULT 'it',
+  `ui_mode` ENUM('standard','tv') NOT NULL DEFAULT 'standard',
   `last_login_at` DATETIME NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
