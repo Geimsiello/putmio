@@ -65,13 +65,6 @@ final class DeviceAuthController
         }
 
         Session::login($user);
-        setcookie('putmio_theme', $user['theme'] ?? 'dark', [
-            'expires' => time() + 86400 * 365,
-            'path' => '/',
-            'secure' => true,
-            'httponly' => false,
-            'samesite' => 'Strict',
-        ]);
         $userLocale = $user['locale'] ?? putmio_locale();
         putmio_set_locale($userLocale);
 

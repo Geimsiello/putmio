@@ -65,16 +65,6 @@ final class AuthService
         return $user ?: null;
     }
 
-    public function updateTheme(int $userId, string $theme): void
-    {
-        if (!in_array($theme, ['light', 'dark'], true)) {
-            return;
-        }
-        $pdo = Database::pdo();
-        $pdo->prepare('UPDATE `' . Config::table('users') . '` SET theme = ? WHERE id = ?')
-            ->execute([$theme, $userId]);
-    }
-
     public function updateLocale(int $userId, string $locale): void
     {
         if (!isset(putmio_available_locales()[$locale])) {

@@ -1,7 +1,7 @@
 <?php use PutMio\Config; $appUrl = rtrim(Config::get('app.url'), '/'); ?>
 <h1 class="text-2xl font-bold mb-6"><?= putmio_lang('in_progress') ?></h1>
 <?php if (empty($items)): ?>
-<p class="text-slate-500">Nessun titolo in corso.</p>
+<p class="text-on-surface-variant">Nessun titolo in corso.</p>
 <?php else: ?>
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 <?php foreach ($items as $item): ?>
@@ -20,7 +20,7 @@
         <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-700"><div class="h-full bg-indigo-500" style="width:<?= $pct ?>%"></div></div>
       </div>
       <p class="mt-2 text-sm font-medium truncate"><?= putmio_e($displayTitle) ?></p>
-      <p class="text-xs text-slate-500">
+      <p class="text-xs text-on-surface-variant">
         <?php if ($episodeLabel): ?>
           <?= putmio_e($episodeLabel) ?> · Ancora <?= putmio_format_duration($remaining) ?>
         <?php else: ?>

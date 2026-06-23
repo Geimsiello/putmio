@@ -34,7 +34,7 @@ $userName = trim((string) ($_SESSION['user_name'] ?? ''));
 ?>
 <div
   id="pm-mobile-nav"
-  class="pm-mobile-nav hidden md:hidden bg-slate-50 dark:bg-background text-slate-900 dark:text-on-surface"
+  class="pm-mobile-nav hidden md:hidden bg-background text-on-surface"
   role="dialog"
   aria-modal="true"
   aria-hidden="true"

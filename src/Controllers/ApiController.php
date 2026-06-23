@@ -16,26 +16,6 @@ use PutMio\View;
 
 final class ApiController
 {
-    public function theme(): void
-    {
-        Session::requireAuth();
-        Csrf::requireValid($_POST['_csrf'] ?? null);
-        $theme = $_POST['theme'] ?? 'dark';
-        if (!in_array($theme, ['light', 'dark'], true)) {
-            putmio_json(['ok' => false], 400);
-        }
-        (new AuthService())->updateTheme((int) Session::userId(), $theme);
-        $_SESSION['user_theme'] = $theme;
-        setcookie('putmio_theme', $theme, [
-            'expires' => time() + 86400 * 365,
-            'path' => '/',
-            'secure' => true,
-            'httponly' => false,
-            'samesite' => 'Strict',
-        ]);
-        putmio_json(['ok' => true, 'theme' => $theme]);
-    }
-
     public function locale(): void
     {
         Csrf::requireValid($_POST['_csrf'] ?? null);

@@ -90,7 +90,6 @@ final class Router
                 '/forgot-password' => [AuthController::class, 'forgot'],
                 '/reset-password' => [AuthController::class, 'reset'],
                 '/registrati' => [AuthController::class, 'register'],
-                '/api/preferences/theme' => [ApiController::class, 'theme'],
                 '/api/preferences/locale' => [ApiController::class, 'locale'],
                 '/api/watch-progress' => [ApiController::class, 'watchProgress'],
                 '/api/tmdb/apply' => [ApiController::class, 'tmdbApply'],

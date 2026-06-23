@@ -81,7 +81,6 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - TMDB on-demand (admin)
 - Player **Video.js** con proxy streaming Range HTTP e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
-- Tema light / dark per utente
 - Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
 - **Modalità TV** per Smart TV / telecomando: layout 10-foot, navigazione a frecce, pannello info al focus, play in fullscreen automatico solo su dispositivi TV (non desktop); admin solo su desktop
 - Dashboard admin streaming (banda, sessioni attive)

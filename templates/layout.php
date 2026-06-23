@@ -4,15 +4,13 @@ use PutMio\Auth\Session;
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url', putmio_detect_base_url()), '/');
-$userTheme = $_SESSION['user_theme'] ?? $_COOKIE['putmio_theme'] ?? 'dark';
-$isDark = $userTheme === 'dark';
 $appLocale = putmio_locale();
 $htmlLang = putmio_available_locales()[$appLocale]['html'] ?? 'it';
 $pageTitle = putmio_e($title ?? 'PutMio');
 $showFab = ($showSearchFab ?? false) && Session::userId();
 ?>
 <!DOCTYPE html>
-<html lang="<?= putmio_e($htmlLang) ?>" class="<?= $isDark ? 'dark' : '' ?>">
+<html lang="<?= putmio_e($htmlLang) ?>" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,7 +24,7 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
   <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/icons/icon-192.png">
   <script>
-    (function(){var t=localStorage.getItem('putmio_theme')||document.cookie.match(/putmio_theme=(dark|light)/)?.[1]||'<?= $isDark ? 'dark' : 'light' ?>';if(t==='dark')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();
+    (function(){document.documentElement.classList.add('dark');try{localStorage.setItem('putmio_theme','dark');}catch(e){}document.cookie='putmio_theme=dark;path=/;max-age=31536000;SameSite=Strict';})();
   </script>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -99,11 +97,11 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
   <link rel="stylesheet" href="<?= putmio_e($appUrl) ?>/public/assets/app.css">
   <?= $extraHead ?? '' ?>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-background dark:text-on-surface selection:bg-primary/30">
+<body class="min-h-screen bg-background text-on-surface selection:bg-primary/30">
 <?php if (Session::userId()): ?>
 <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-margin-desktop h-16 glass-header border-b border-outline-variant/30 shadow-sm">
   <div class="flex items-center gap-6 md:gap-8 min-w-0">
-    <a href="<?= putmio_e($appUrl) ?>/" class="text-headline-md font-headline-md font-extrabold text-primary dark:text-primary-fixed-dim shrink-0">PutMio</a>
+    <a href="<?= putmio_e($appUrl) ?>/" class="text-headline-md font-headline-md font-extrabold text-primary-fixed-dim shrink-0">PutMio</a>
     <nav class="hidden md:flex gap-6">
       <?php
       $navItems = [
@@ -117,7 +115,7 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
       foreach ($navItems as [$href, $label]):
         $active = putmio_nav_is_active($href);
         $linkClass = $active
-          ? 'text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 text-label-md font-label-md'
+          ? 'text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 text-label-md font-label-md'
           : 'text-on-surface-variant hover:text-primary transition-colors text-label-md font-label-md';
       ?>
       <a href="<?= putmio_e($appUrl . ($href === '/' ? '/' : $href)) ?>" class="<?= $linkClass ?>"><?= putmio_e($label) ?></a>
@@ -128,11 +126,7 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
     <div class="hidden md:block">
       <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
     </div>
-    <button type="button" id="theme-toggle" class="hover:scale-105 transition-transform duration-100 p-2 rounded-full hover:bg-surface-variant" title="<?= putmio_lang('theme_dark') ?>">
-      <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
-      <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
-    </button>
-    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container dark:bg-surface-container rounded-full border border-outline-variant/20">
+    <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/20">
       <span class="text-label-md font-label-md text-on-surface"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
       <a href="<?= putmio_e($appUrl) ?>/logout" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_lang('logout') ?>">
         <span class="material-symbols-outlined text-base">logout</span>
@@ -155,10 +149,6 @@ $isAuthShell = !empty($authShell) && !Session::userId();
 </div>
 <div class="fixed top-6 right-6 md:top-8 md:right-8 z-50 flex items-center gap-2">
   <?php $localeMenuVariant = 'auth'; require putmio_base_path() . '/templates/partials/locale-menu.php'; unset($localeMenuVariant); ?>
-  <button type="button" id="theme-toggle" class="p-3 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-surface-variant transition-all active:scale-95 shadow-lg border border-outline-variant/20" title="<?= putmio_lang('theme_dark') ?>">
-    <span class="material-symbols-outlined text-primary theme-icon-dark hidden dark:inline">light_mode</span>
-    <span class="material-symbols-outlined text-primary theme-icon-light dark:hidden">dark_mode</span>
-  </button>
 </div>
 <main class="auth-shell min-h-screen flex items-center justify-center p-4 md:p-6">
   <?= $content ?>

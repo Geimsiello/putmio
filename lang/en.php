@@ -125,8 +125,6 @@ return [
     'classify_shared_from' => 'Shared by :user',
     'classify_series_episodes' => 'TV series — :count episodes grouped',
     'catalog_owner_badge' => 'Content from :user',
-    'theme_light' => 'Light theme',
-    'theme_dark' => 'Dark theme',
     'language' => 'Language',
     'nav_menu_open' => 'Open navigation menu',
     'nav_menu_close' => 'Close navigation menu',

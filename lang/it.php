@@ -125,8 +125,6 @@ return [
     'classify_shared_from' => 'Condiviso da :user',
     'classify_series_episodes' => 'Serie TV — :count episodi raggruppati',
     'catalog_owner_badge' => 'Contenuto di :user',
-    'theme_light' => 'Tema chiaro',
-    'theme_dark' => 'Tema scuro',
     'language' => 'Lingua',
     'nav_menu_open' => 'Apri menu di navigazione',
     'nav_menu_close' => 'Chiudi menu di navigazione',
