@@ -11,7 +11,7 @@
   <?php $appUrl = rtrim(putmio_detect_base_url(), '/'); ?>
   <link rel="icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="<?= putmio_e($appUrl) ?>/public/assets/favicon.svg">
-  <link rel="stylesheet" href="<?= putmio_e($appUrl) ?>/public/assets/install.css">
+  <link rel="stylesheet" href="<?= putmio_e(putmio_asset('public/assets/install.css')) ?>">
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -118,6 +118,6 @@ $isComplete = $currentStep === 6;
     </div>
   </main>
 
-  <script src="<?= putmio_e($appUrl) ?>/public/assets/install.js" defer></script>
+  <script src="<?= putmio_e(putmio_asset('public/assets/install.js')) ?>" defer></script>
 </body>
 </html>

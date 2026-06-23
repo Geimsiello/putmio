@@ -99,7 +99,7 @@ $viewportContent = $tvUa
       },
     };
   </script>
-  <link rel="stylesheet" href="<?= putmio_e($appUrl) ?>/public/assets/app.css">
+  <link rel="stylesheet" href="<?= putmio_e(putmio_asset('public/assets/app.css')) ?>">
   <?= $extraHead ?? '' ?>
 </head>
 <body class="min-h-screen bg-background text-on-surface selection:bg-primary/30">
@@ -183,7 +183,7 @@ $isAuthShell = !empty($authShell) && !Session::userId();
     'isTvDevice' => $tvUa,
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
-<script src="<?= putmio_e($appUrl) ?>/public/assets/app.js" defer></script>
+<script src="<?= putmio_e(putmio_asset('public/assets/app.js')) ?>" defer></script>
 <?= $extraScripts ?? '' ?>
 </body>
 </html>

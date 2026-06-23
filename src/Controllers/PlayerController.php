@@ -139,8 +139,8 @@ final class PlayerController
             'posterUrl' => $posterUrl,
             'extraHead' => '<link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet">',
             'extraScripts' => '<script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>'
-                . '<script src="' . putmio_e($appUrl) . '/public/assets/player.js" defer></script>'
-                . '<script src="' . putmio_e($appUrl) . '/public/assets/subtitles.js" defer></script>',
+                . '<script src="' . putmio_e(putmio_asset('public/assets/player.js')) . '" defer></script>'
+                . '<script src="' . putmio_e(putmio_asset('public/assets/subtitles.js')) . '" defer></script>',
             'subtitlesConfigured' => $subtitlesConfigured,
             'isAdmin' => putmio_admin_ui_enabled(),
             'putmioExtra' => [

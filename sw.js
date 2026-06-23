@@ -1,8 +1,12 @@
 /* PutMio — service worker (cache asset statici, niente HTML/API autenticate) */
-const CACHE = 'putmio-static-v1';
+const CACHE = 'putmio-static-v2';
+/*
+ * CSS e JS NON sono precache-ati: gli URL contengono la versione nel nome
+ * (es. app.v1718900000.css), quindi a ogni aggiornamento cambia l'URL e la
+ * cache-first qui sotto scarica automaticamente l'ultima versione. Restano
+ * in precache solo gli asset con nome stabile (icone, favicon, placeholder).
+ */
 const ASSETS = [
-  'public/assets/app.css',
-  'public/assets/app.js',
   'public/assets/favicon.svg',
   'public/assets/no-poster.svg',
   'public/assets/icons/icon-192.png',

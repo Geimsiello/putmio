@@ -189,5 +189,5 @@ $putmioExtra = array_merge($putmioExtra ?? [], [
     ],
 ]);
 $extraScripts = '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>'
-    . '<script src="' . putmio_e($appUrl) . '/public/assets/device-login.js" defer></script>';
+    . '<script src="' . putmio_e(putmio_asset('public/assets/device-login.js')) . '" defer></script>';
 ?>

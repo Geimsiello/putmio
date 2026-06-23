@@ -60,5 +60,5 @@ $putmioExtra = array_merge($putmioExtra ?? [], [
         'loginNext' => 'authorize-device?code=' . rawurlencode($code),
     ],
 ]);
-$extraScripts = '<script src="' . putmio_e($appUrl) . '/public/assets/device-pwa-launch.js" defer></script>';
+$extraScripts = '<script src="' . putmio_e(putmio_asset('public/assets/device-pwa-launch.js')) . '" defer></script>';
 ?>
