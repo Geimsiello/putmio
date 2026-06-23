@@ -85,7 +85,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
-- **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone)
+- **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone). I link di autorizzazione TV (`/authorize-device`) sono configurati per aprirsi nell'app installata quando possibile (Android/Chrome); su iOS usare il menu **Autorizza TV** nell'app
 
 ## Struttura
 

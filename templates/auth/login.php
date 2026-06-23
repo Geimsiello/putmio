@@ -157,7 +157,7 @@ $loginMode = ($_GET['mode'] ?? '') === 'device' ? 'device' : 'email';
             <span class="font-body-md text-body-md"><?= putmio_lang('device_login_waiting') ?></span>
           </div>
 
-          <p class="font-body-sm text-body-sm text-on-surface-variant/70"><?= putmio_lang('device_login_hint') ?></p>
+          <p class="font-body-sm text-body-sm text-on-surface-variant/70"><?= putmio_lang('device_login_pwa_hint') ?></p>
 
           <button type="button" id="device-login-refresh" class="auth-btn-secondary w-full py-3 px-6 flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-[18px]">refresh</span>

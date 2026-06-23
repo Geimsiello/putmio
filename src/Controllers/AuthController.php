@@ -27,6 +27,12 @@ final class AuthController
         if (Session::userId()) {
             putmio_redirect('');
         }
+
+        $next = trim((string) ($_GET['next'] ?? ''));
+        if ($next !== '' && str_starts_with($next, 'authorize-device')) {
+            $_SESSION['login_next'] = '/' . ltrim($next, '/');
+        }
+
         View::render('auth/login', [
             'title' => putmio_lang('login'),
             'error' => $_SESSION['flash_error'] ?? null,
@@ -62,8 +68,18 @@ final class AuthController
     public function authorizeDeviceForm(): void
     {
         $code = trim((string) ($_GET['code'] ?? ''));
+        $forceBrowser = isset($_GET['browser']);
 
         if (!Session::userId()) {
+            if ($code !== '' && !$forceBrowser) {
+                View::render('auth/authorize-device-launch', [
+                    'title' => putmio_lang('device_authorize_title'),
+                    'authShell' => true,
+                    'code' => $code,
+                ]);
+                return;
+            }
+
             $next = '/authorize-device';
             if ($code !== '') {
                 $next .= '?code=' . rawurlencode($code);
@@ -82,6 +98,10 @@ final class AuthController
             'authShell' => true,
             'code' => $code,
             'request' => $request,
+            'authorizeUrl' => $code !== ''
+                ? rtrim(Config::get('app.url', putmio_detect_base_url()), '/')
+                    . '/authorize-device?code=' . rawurlencode($code)
+                : '',
             'success' => $_SESSION['flash_device_success'] ?? null,
             'error' => $_SESSION['flash_device_error'] ?? null,
         ]);

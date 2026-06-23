@@ -110,6 +110,7 @@ $showFab = ($showSearchFab ?? false) && Session::userId();
         ['/', putmio_lang('home')],
         ['/catalogo', putmio_lang('catalog')],
         ['/in-corso', putmio_lang('in_progress')],
+        ['/authorize-device', putmio_lang('device_authorize_nav')],
       ];
       if (Session::isAdmin()) {
         $navItems[] = ['/admin', putmio_lang('admin')];

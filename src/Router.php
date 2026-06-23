@@ -79,6 +79,7 @@ final class Router
                 '/poster' => [CatalogController::class, 'poster'],
                 '/backdrop' => [CatalogController::class, 'backdrop'],
                 '/manifest.webmanifest' => [PwaController::class, 'manifest'],
+                '/.well-known/web-app-origin-association' => [PwaController::class, 'originAssociation'],
             ],
             'POST' => [
                 '/login' => [AuthController::class, 'login'],

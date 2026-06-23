@@ -40,6 +40,21 @@ $brandUseIcon = false;
     </div>
     <?php endif; ?>
 
+    <div id="device-pwa-browser-hint" class="hidden mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20" role="note">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-primary text-[22px] shrink-0">install_mobile</span>
+        <div class="space-y-2">
+          <p class="font-body-md text-body-md text-on-surface"><?= putmio_lang('device_pwa_in_browser_hint') ?></p>
+          <?php if (!empty($authorizeUrl)): ?>
+          <a href="<?= putmio_e($authorizeUrl) ?>" class="inline-flex items-center gap-1.5 font-label-md text-label-md text-primary hover:text-primary-fixed-dim transition-colors">
+            <span><?= putmio_lang('device_pwa_launch_open_app') ?></span>
+            <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+          </a>
+          <?php endif; ?>
+        </div>
+      </div>
+    </div>
+
     <?php if ($hasRequest): ?>
     <div class="space-y-5">
       <div class="p-4 rounded-lg bg-surface-container-low border border-outline-variant/20 space-y-3">
@@ -111,6 +126,7 @@ $putmioExtra = array_merge($putmioExtra ?? [], [
         'approved' => putmio_lang('device_authorize_success'),
         'denied' => putmio_lang('device_authorize_denied'),
         'error' => putmio_lang('device_authorize_error'),
+        'authorizeUrl' => $authorizeUrl ?? '',
     ],
 ]);
 $extraScripts = '<script src="' . putmio_e($appUrl) . '/public/assets/device-authorize.js" defer></script>';

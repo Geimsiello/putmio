@@ -41,7 +41,17 @@
     return res.json();
   }
 
+  function isStandalone() {
+    return (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+      || window.navigator.standalone === true;
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    if (!isStandalone()) {
+      var hint = document.getElementById('device-pwa-browser-hint');
+      if (hint) hint.classList.remove('hidden');
+    }
+
     var form = document.getElementById('device-authorize-form');
     if (form) {
       form.addEventListener('submit', function (e) {
