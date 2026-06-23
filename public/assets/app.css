@@ -1538,6 +1538,25 @@ input.pm-input:focus {
   transform: scale(0.98);
 }
 
+.auth-shell .auth-btn-secondary {
+  background-color: transparent;
+  color: #c7c4d7;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(70, 69, 84, 0.5);
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.auth-shell .auth-btn-secondary:hover {
+  background-color: rgba(45, 52, 73, 0.6);
+  color: #dae2fd;
+  border-color: rgba(144, 143, 160, 0.4);
+}
+
+.auth-shell .auth-btn-secondary:active {
+  transform: scale(0.98);
+}
+
 .auth-shell input.auth-checkbox {
   width: 1rem;
   height: 1rem;

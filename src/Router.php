@@ -12,6 +12,7 @@ use PutMio\Controllers\ApiController;
 use PutMio\Controllers\AuthController;
 use PutMio\Controllers\CatalogController;
 use PutMio\Controllers\CronController;
+use PutMio\Controllers\DeviceAuthController;
 use PutMio\Controllers\HomeController;
 use PutMio\Controllers\PlayerController;
 use PutMio\Controllers\PwaController;
@@ -50,6 +51,7 @@ final class Router
         $routes = [
             'GET' => [
                 '/login' => [AuthController::class, 'loginForm'],
+                '/authorize-device' => [AuthController::class, 'authorizeDeviceForm'],
                 '/logout' => [AuthController::class, 'logout'],
                 '/forgot-password' => [AuthController::class, 'forgotForm'],
                 '/reset-password' => [AuthController::class, 'resetForm'],
@@ -69,6 +71,7 @@ final class Router
                 '/api/tmdb/search' => [ApiController::class, 'tmdbSearch'],
                 '/api/tmdb/details' => [ApiController::class, 'tmdbDetails'],
                 '/api/tmdb/classify-suggest' => [ApiController::class, 'tmdbClassifySuggest'],
+                '/api/auth/device/status' => [DeviceAuthController::class, 'status'],
                 '/api/catalog/items' => [ApiController::class, 'catalogItems'],
                 '/api/subtitles' => [SubtitleController::class, 'list'],
                 '/api/subtitles/search' => [SubtitleController::class, 'search'],
@@ -79,6 +82,10 @@ final class Router
             ],
             'POST' => [
                 '/login' => [AuthController::class, 'login'],
+                '/api/auth/device/start' => [DeviceAuthController::class, 'start'],
+                '/api/auth/device/complete' => [DeviceAuthController::class, 'complete'],
+                '/api/auth/device/approve' => [DeviceAuthController::class, 'approve'],
+                '/api/auth/device/deny' => [DeviceAuthController::class, 'deny'],
                 '/forgot-password' => [AuthController::class, 'forgot'],
                 '/reset-password' => [AuthController::class, 'reset'],
                 '/registrati' => [AuthController::class, 'register'],

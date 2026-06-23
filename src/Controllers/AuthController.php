@@ -6,6 +6,7 @@ namespace PutMio\Controllers;
 
 use PutMio\Auth\AuthService;
 use PutMio\Auth\Csrf;
+use PutMio\Auth\DeviceLoginService;
 use PutMio\Auth\RememberMe;
 use PutMio\Auth\Session;
 use PutMio\Config;
@@ -55,7 +56,54 @@ final class AuthController
         ]);
         $userLocale = $user['locale'] ?? putmio_locale();
         putmio_set_locale($userLocale);
-        putmio_redirect('');
+        putmio_redirect($this->consumeLoginNext());
+    }
+
+    public function authorizeDeviceForm(): void
+    {
+        $code = trim((string) ($_GET['code'] ?? ''));
+
+        if (!Session::userId()) {
+            $next = '/authorize-device';
+            if ($code !== '') {
+                $next .= '?code=' . rawurlencode($code);
+            }
+            $_SESSION['login_next'] = $next;
+            putmio_redirect('login');
+        }
+
+        $request = null;
+        if ($code !== '') {
+            $request = (new DeviceLoginService())->findPendingByCode($code);
+        }
+
+        View::render('auth/authorize-device', [
+            'title' => putmio_lang('device_authorize_title'),
+            'authShell' => true,
+            'code' => $code,
+            'request' => $request,
+            'success' => $_SESSION['flash_device_success'] ?? null,
+            'error' => $_SESSION['flash_device_error'] ?? null,
+        ]);
+        unset($_SESSION['flash_device_success'], $_SESSION['flash_device_error']);
+    }
+
+    private function consumeLoginNext(): string
+    {
+        $next = (string) ($_SESSION['login_next'] ?? '');
+        unset($_SESSION['login_next']);
+
+        if ($next === '' || !str_starts_with($next, '/authorize-device')) {
+            return '';
+        }
+
+        $appPath = parse_url(Config::get('app.url', putmio_detect_base_url()), PHP_URL_PATH) ?? '';
+        $appPath = rtrim((string) $appPath, '/');
+        if ($appPath !== '' && str_starts_with($next, $appPath)) {
+            $next = substr($next, strlen($appPath)) ?: '/';
+        }
+
+        return ltrim($next, '/');
     }
 
     public function logout(): void
