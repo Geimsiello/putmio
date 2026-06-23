@@ -95,6 +95,7 @@ return [
     'duration' => 'Duration',
     'year' => 'Year',
     'type' => 'Type',
+    'quality' => 'Quality',
     'continue_watching' => 'Continue watching',
     'recently_added' => 'Recently added',
     'classify' => 'Classify',

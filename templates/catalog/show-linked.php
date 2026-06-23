@@ -26,6 +26,10 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
 /** @var bool $subtitlesConfigured */
 $subtitleCount = $subtitleCount ?? 0;
 $subtitlesConfigured = $subtitlesConfigured ?? false;
+$resolutionLabel = null;
+if (!$isSeries) {
+    $resolutionLabel = putmio_file_technical_labels($media['file_name'] ?? null)['resolution'] ?? null;
+}
 ?>
 <a href="<?= putmio_e($catalogReturnUrl) ?>" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-8 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
@@ -57,7 +61,7 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
     <p class="text-on-surface-variant font-body-md leading-relaxed mb-8"><?= nl2br(putmio_e($media['synopsis'])) ?></p>
     <?php endif; ?>
 
-    <div class="grid grid-cols-3 gap-4 sm:gap-8 border-t border-outline-variant/20 pt-6 mb-10">
+    <div class="grid <?= $isSeries ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-4' ?> gap-4 sm:gap-8 border-t border-outline-variant/20 pt-6 mb-10">
       <div>
         <span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1"><?= putmio_lang('duration') ?></span>
         <span class="font-body-md text-on-surface"><?= putmio_e($runtimeLabel ?? '—') ?></span>
@@ -70,6 +74,12 @@ $subtitlesConfigured = $subtitlesConfigured ?? false;
         <span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1"><?= putmio_lang('type') ?></span>
         <span class="font-body-md text-on-surface"><?= putmio_e($typeLabel) ?></span>
       </div>
+      <?php if (!$isSeries): ?>
+      <div>
+        <span class="block font-label-sm text-outline uppercase tracking-widest text-[10px] mb-1"><?= putmio_lang('quality') ?></span>
+        <span class="font-body-md text-on-surface"><?= putmio_e($resolutionLabel ?? '—') ?></span>
+      </div>
+      <?php endif; ?>
     </div>
 
     <?php if ($isSeries && $seriesPlayTarget !== null): ?>
