@@ -670,7 +670,86 @@ function putmio_admin_section(): ?string
     if (str_starts_with($path, '/admin/aggiornamenti')) {
         return 'updates';
     }
+    if (str_starts_with($path, '/admin/dispositivi')) {
+        return 'devices';
+    }
     return null;
+}
+
+function putmio_account_section(): ?string
+{
+    if (!\PutMio\Auth\Session::userId() || \PutMio\Auth\Session::isAdmin()) {
+        return null;
+    }
+    $path = putmio_request_path();
+    if ($path === '/account') {
+        return 'general';
+    }
+    if (str_starts_with($path, '/account/dispositivi')) {
+        return 'devices';
+    }
+    if (str_starts_with($path, '/account/contenuti')) {
+        return 'content';
+    }
+    return null;
+}
+
+function putmio_account_nav_link_class(string $section): string
+{
+    $active = putmio_account_section() === $section;
+    if ($active) {
+        return 'flex items-center gap-4 px-4 py-3 rounded-lg text-primary font-bold border-r-4 border-primary bg-primary/5 transition-transform hover:translate-x-1';
+    }
+    return 'flex items-center gap-4 px-4 py-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/20 transition-transform hover:translate-x-1';
+}
+
+/** @return array{devices: list<array<string, mixed>>, currentDeviceId: ?int} */
+function putmio_user_devices_context(int $userId): array
+{
+    $devices = \PutMio\Auth\TrustedDevice::listForUser($userId);
+    $currentDeviceId = null;
+
+    $raw = (string) ($_COOKIE['putmio_device'] ?? '');
+    if (preg_match('/^([a-f0-9]{32}):/', $raw, $matches)) {
+        $selector = $matches[1];
+        $pdo = \PutMio\Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT id FROM `' . \PutMio\Config::table('user_devices') . '`
+             WHERE user_id = ? AND selector = ? AND expires_at > NOW()
+             LIMIT 1'
+        );
+        $stmt->execute([$userId, $selector]);
+        $row = $stmt->fetch();
+        if ($row) {
+            $currentDeviceId = (int) $row['id'];
+        }
+    }
+
+    return [
+        'devices' => $devices,
+        'currentDeviceId' => $currentDeviceId,
+    ];
+}
+
+function putmio_device_icon_for_label(string $label): string
+{
+    $lower = mb_strtolower($label);
+    if (str_contains($lower, 'tv') || str_contains($lower, 'webos') || str_contains($lower, 'tizen')) {
+        return 'tv';
+    }
+    if (str_contains($lower, 'android')) {
+        return 'android';
+    }
+    if (str_contains($lower, 'iphone') || str_contains($lower, 'ipad') || str_contains($lower, 'apple')) {
+        return 'phone_iphone';
+    }
+    if (str_contains($lower, 'mobile') || str_contains($lower, 'tablet') || str_contains($lower, 'telefono')) {
+        return 'smartphone';
+    }
+    if (str_contains($lower, 'console') || str_contains($lower, 'playstation') || str_contains($lower, 'xbox')) {
+        return 'sports_esports';
+    }
+    return 'devices';
 }
 
 /** @return array{unclassified: int} */

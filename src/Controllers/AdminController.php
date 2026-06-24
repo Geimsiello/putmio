@@ -6,6 +6,7 @@ namespace PutMio\Controllers;
 
 use PutMio\Auth\Csrf;
 use PutMio\Auth\Session;
+use PutMio\Auth\TrustedDevice;
 use PutMio\CatalogService;
 use PutMio\Config;
 use PutMio\Database;
@@ -516,6 +517,52 @@ final class AdminController
         $_SESSION['flash_success'] = putmio_lang('admin_updates_refreshed');
 
         putmio_redirect('admin/aggiornamenti');
+    }
+
+    public function devices(): void
+    {
+        Session::requireAdmin();
+
+        $userId = (int) Session::userId();
+        $ctx = putmio_user_devices_context($userId);
+        $appUrl = rtrim(Config::get('app.url'), '/');
+
+        View::render('admin/devices', [
+            'title' => putmio_lang('account_devices'),
+            'devices' => $ctx['devices'],
+            'currentDeviceId' => $ctx['currentDeviceId'],
+            'revokeAction' => $appUrl . '/admin/dispositivi/revoca',
+            'success' => $_SESSION['flash_success'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null,
+        ]);
+        unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+    }
+
+    public function revokeDevice(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $userId = (int) Session::userId();
+        $deviceId = (int) ($_POST['device_id'] ?? 0);
+        if ($deviceId <= 0) {
+            $_SESSION['flash_error'] = putmio_lang('account_device_revoke_error');
+            putmio_redirect('admin/dispositivi');
+        }
+
+        $ctx = putmio_user_devices_context($userId);
+        $isCurrent = $ctx['currentDeviceId'] !== null && $ctx['currentDeviceId'] === $deviceId;
+
+        if (TrustedDevice::revokeById($userId, $deviceId)) {
+            if ($isCurrent) {
+                TrustedDevice::forget();
+            }
+            $_SESSION['flash_success'] = putmio_lang('account_device_revoked');
+        } else {
+            $_SESSION['flash_error'] = putmio_lang('account_device_revoke_error');
+        }
+
+        putmio_redirect('admin/dispositivi');
     }
 
     private function writeConfig(array $config): void

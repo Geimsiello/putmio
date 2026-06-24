@@ -42,6 +42,13 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
         <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_users_hint')) ?></span>
       </div>
     </a>
+    <a href="<?= putmio_e($appUrl) ?>/admin/dispositivi" class="<?= putmio_admin_nav_link_class('devices') ?>">
+      <span class="material-symbols-outlined">devices</span>
+      <div class="flex flex-col min-w-0">
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('account_devices')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_devices_hint')) ?></span>
+      </div>
+    </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/aggiornamenti" class="<?= putmio_admin_nav_link_class('updates') ?>">
       <span class="material-symbols-outlined">system_update</span>
       <div class="flex flex-col min-w-0">
@@ -69,6 +76,7 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
     ['classify', '/admin/classificazione', putmio_lang('classify')],
     ['streaming', '/admin/streaming', putmio_lang('admin_streaming')],
     ['users', '/admin/utenti', putmio_lang('admin_users')],
+    ['devices', '/admin/dispositivi', putmio_lang('account_devices')],
     ['updates', '/admin/aggiornamenti', putmio_lang('admin_updates')],
   ];
   foreach ($mobileLinks as [$section, $href, $label]):

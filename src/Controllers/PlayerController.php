@@ -26,6 +26,12 @@ final class PlayerController
             exit('Media non trovato');
         }
 
+        $userId = (int) Session::userId();
+        if (!$catalog->isMediaVisibleForUser($userId, $media)) {
+            http_response_code(404);
+            exit('Media non trovato');
+        }
+
         if ($catalog->isSeries($media)) {
             putmio_redirect('media?id=' . $id);
         }
@@ -220,6 +226,13 @@ final class PlayerController
             $format = 'hls';
         }
         $userId = (int) Session::userId();
+        $catalog = new CatalogService();
+        $media = $catalog->findMediaByPutioId($putioId);
+        if ($media && !$catalog->isMediaVisibleForUser($userId, $media)) {
+            http_response_code(404);
+            exit('Media non trovato');
+        }
+
         Session::release();
         (new StreamProxy())->stream($putioId, $userId, $format);
     }

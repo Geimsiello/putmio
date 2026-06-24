@@ -42,7 +42,7 @@ final class CatalogController
             'items' => $items,
             'filters' => $filters,
             'genres' => $this->catalog->listGenres(),
-            'sharers' => $this->catalog->listSharedByUsernames(),
+            'sharers' => $this->catalog->listSharedByUsernamesForCatalog(),
             'page' => $page,
             'total' => $total,
             'hasMore' => $total > count($items),
@@ -66,12 +66,18 @@ final class CatalogController
             return;
         }
 
+        $userId = (int) Session::userId();
+        if (!$this->catalog->isMediaVisibleForUser($userId, $media)) {
+            http_response_code(404);
+            View::render('errors/404', ['title' => 'Non trovato']);
+            return;
+        }
+
         if (!empty($media['series_id'])) {
             $from = isset($_GET['from']) ? '&from=' . rawurlencode((string) $_GET['from']) : '';
             putmio_redirect('media?id=' . (int) $media['series_id'] . $from);
         }
 
-        $userId = (int) Session::userId();
         $progress = $this->getProgress($userId, $id);
         $isSeries = $this->catalog->isSeries($media);
         $episodesBySeason = $isSeries ? $this->catalog->episodesBySeason($id) : [];

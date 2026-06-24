@@ -7,6 +7,7 @@ namespace PutMio\Controllers;
 use PutMio\Auth\AuthService;
 use PutMio\Auth\Csrf;
 use PutMio\Auth\Session;
+use PutMio\Catalog\CatalogSourceService;
 use PutMio\CatalogService;
 use PutMio\Config;
 use PutMio\TMDB\Client as TmdbClient;
@@ -16,6 +17,25 @@ use PutMio\View;
 
 final class ApiController
 {
+    public function catalogSources(): void
+    {
+        Session::requireAuth();
+        if (Session::isAdmin()) {
+            putmio_json(['ok' => false, 'error' => 'Forbidden'], 403);
+        }
+
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $enabled = array_map('strval', (array) ($_POST['sources'] ?? []));
+        $userId = (int) Session::userId();
+        (new CatalogSourceService())->saveForUser($userId, $enabled);
+
+        putmio_json([
+            'ok' => true,
+            'message' => putmio_lang('account_content_saved'),
+        ]);
+    }
+
     public function locale(): void
     {
         Csrf::requireValid($_POST['_csrf'] ?? null);
@@ -40,6 +60,10 @@ final class ApiController
         $action = (string) ($_POST['action'] ?? '');
         $catalog = new CatalogService();
         $userId = (int) Session::userId();
+        $media = $catalog->findMedia($mediaId);
+        if (!$media || !$catalog->isMediaVisibleForUser($userId, $media)) {
+            putmio_json(['ok' => false], 404);
+        }
         Session::release();
 
         if ($action === 'complete') {

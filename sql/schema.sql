@@ -270,3 +270,10 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}user_subtitle_prefs` (
   PRIMARY KEY (`user_id`, `media_id`),
   KEY `idx_subtitle` (`subtitle_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}user_catalog_hidden_sources` (
+  `user_id` INT UNSIGNED NOT NULL,
+  `source_key` VARCHAR(120) NOT NULL,
+  PRIMARY KEY (`user_id`, `source_key`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

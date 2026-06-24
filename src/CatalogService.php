@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PutMio;
 
 use PutMio\Auth\Session;
+use PutMio\Catalog\CatalogSourceService;
 use PutMio\Config;
 use PutMio\Database;
 use PutMio\Media\ReleaseNameParser;
@@ -80,7 +81,123 @@ final class CatalogService
             $params[] = $filters['shared_by'];
         }
 
+        $catalogUserId = $this->catalogUserIdFromFilters($filters);
+        if ($catalogUserId !== null) {
+            [$sourceClause, $sourceParams] = $this->userSourceVisibilityClause($catalogUserId);
+            if ($sourceClause === '0=1') {
+                $where[] = '0=1';
+            } elseif ($sourceClause !== '') {
+                $where[] = $sourceClause;
+                $params = array_merge($params, $sourceParams);
+            }
+        }
+
         return ['where' => $where, 'params' => $params];
+    }
+
+    private function catalogUserIdFromFilters(array $filters): ?int
+    {
+        if (!empty($filters['skip_user_catalog_filter']) || Session::isAdmin()) {
+            return null;
+        }
+        if (isset($filters['catalog_user_id'])) {
+            return (int) $filters['catalog_user_id'];
+        }
+        $userId = Session::userId();
+        return $userId ? (int) $userId : null;
+    }
+
+    /** @return array{0: string, 1: list<mixed>} */
+    private function userSourceVisibilityClause(int $userId, string $mediaAlias = 'mi'): array
+    {
+        $hidden = (new CatalogSourceService())->hiddenKeysForUser($userId);
+        if ($hidden === []) {
+            return ['', []];
+        }
+
+        $sharers = $this->listSharedByUsernames();
+        $allSources = array_merge([CatalogSourceService::OWN_KEY], $sharers);
+        $enabled = array_values(array_filter(
+            $allSources,
+            static fn (string $key): bool => !in_array($key, $hidden, true)
+        ));
+
+        if ($enabled === []) {
+            return ['0=1', []];
+        }
+
+        $filesTable = Config::table('putio_files');
+        $mediaTable = Config::table('media_items');
+        $ors = [];
+        $params = [];
+
+        foreach ($enabled as $source) {
+            if ($source === CatalogSourceService::OWN_KEY) {
+                $ors[] = '(
+                    EXISTS (
+                        SELECT 1 FROM `' . $filesTable . '` pf_src
+                        WHERE pf_src.id = `' . $mediaAlias . '`.putio_file_id
+                          AND (pf_src.shared_by_username IS NULL OR pf_src.shared_by_username = \'\')
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM `' . $mediaTable . '` ep_src
+                        INNER JOIN `' . $filesTable . '` pf_ep ON pf_ep.id = ep_src.putio_file_id
+                        WHERE ep_src.series_id = `' . $mediaAlias . '`.id
+                          AND (pf_ep.shared_by_username IS NULL OR pf_ep.shared_by_username = \'\')
+                    )
+                )';
+                continue;
+            }
+
+            $ors[] = '(
+                EXISTS (
+                    SELECT 1 FROM `' . $filesTable . '` pf_src
+                    WHERE pf_src.id = `' . $mediaAlias . '`.putio_file_id
+                      AND pf_src.shared_by_username = ?
+                )
+                OR EXISTS (
+                    SELECT 1 FROM `' . $mediaTable . '` ep_src
+                    INNER JOIN `' . $filesTable . '` pf_ep ON pf_ep.id = ep_src.putio_file_id
+                    WHERE ep_src.series_id = `' . $mediaAlias . '`.id
+                      AND pf_ep.shared_by_username = ?
+                )
+            )';
+            $params[] = $source;
+            $params[] = $source;
+        }
+
+        return ['(' . implode(' OR ', $ors) . ')', $params];
+    }
+
+    public function isMediaVisibleForUser(int $userId, array $media): bool
+    {
+        if (Session::isAdmin()) {
+            return true;
+        }
+
+        $sharedBy = trim((string) ($media['shared_by_username'] ?? ''));
+
+        return (new CatalogSourceService())->isSourceEnabledForUser(
+            $userId,
+            $sharedBy !== '' ? $sharedBy : null
+        );
+    }
+
+    public function findMediaByPutioId(int $putioId): ?array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT mi.*, pf.putio_id, pf.name AS file_name, pf.size, pf.mime AS file_mime,
+                    ' . $this->mediaOwnerSelectSql() . '
+             FROM `' . Config::table('media_items') . '` mi
+             INNER JOIN `' . Config::table('putio_files') . '` pf ON pf.id = mi.putio_file_id
+             WHERE pf.putio_id = ?
+             LIMIT 1'
+        );
+        $stmt->execute([$putioId]);
+        $row = $stmt->fetch();
+
+        return $row ?: null;
     }
 
     private function mediaOrderClause(array $filters): string
@@ -177,6 +294,25 @@ final class CatalogService
         }
 
         return array_map(static fn (array $row): string => (string) $row['username'], $stmt->fetchAll());
+    }
+
+    /** @return list<string> */
+    public function listSharedByUsernamesForCatalog(): array
+    {
+        $all = $this->listSharedByUsernames();
+        if (Session::isAdmin()) {
+            return $all;
+        }
+        $userId = Session::userId();
+        if (!$userId) {
+            return $all;
+        }
+        $hidden = (new CatalogSourceService())->hiddenKeysForUser((int) $userId);
+
+        return array_values(array_filter(
+            $all,
+            static fn (string $username): bool => !in_array($username, $hidden, true)
+        ));
     }
 
     /**
@@ -538,6 +674,18 @@ final class CatalogService
         $min = (float) Config::get('app.stream_min_progress_ratio', 0.05);
         $mediaTable = Config::table('media_items');
 
+        $sourceFilter = '';
+        $sourceParams = [];
+        if (!Session::isAdmin()) {
+            [$sourceClause, $sourceParams] = $this->userSourceVisibilityClause($userId);
+            if ($sourceClause === '0=1') {
+                return [];
+            }
+            if ($sourceClause !== '') {
+                $sourceFilter = ' AND ' . $sourceClause;
+            }
+        }
+
         $stmt = $pdo->prepare(
             'SELECT mi.*, pf.putio_id, wp.position_sec, wp.duration_sec, wp.last_watched_at,
                     COALESCE(mi.poster_local_path, s.poster_local_path) AS poster_local_path,
@@ -551,10 +699,12 @@ final class CatalogService
              WHERE wp.user_id = ? AND wp.completed = 0
                AND wp.position_sec > 0
                AND (wp.duration_sec = 0 OR (wp.position_sec / wp.duration_sec) >= ?)
-               AND (wp.duration_sec = 0 OR (wp.position_sec / wp.duration_sec) < ?)
-             ORDER BY wp.last_watched_at DESC'
+               AND (wp.duration_sec = 0 OR (wp.position_sec / wp.duration_sec) < ?)'
+            . $sourceFilter .
+            ' ORDER BY wp.last_watched_at DESC'
         );
-        $stmt->execute([$userId, $min, $complete]);
+        $stmt->execute(array_merge([$userId, $min, $complete], $sourceParams));
+
         return $stmt->fetchAll();
     }
 

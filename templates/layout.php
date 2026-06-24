@@ -132,6 +132,11 @@ $viewportContent = $tvUa
       <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
     </div>
     <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/20">
+      <?php if (!Session::isAdmin()): ?>
+      <a href="<?= putmio_e($appUrl) ?>/account" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_e(putmio_lang('account_settings')) ?>">
+        <span class="material-symbols-outlined text-base">settings</span>
+      </a>
+      <?php endif; ?>
       <span class="text-label-md font-label-md text-on-surface"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
       <a href="<?= putmio_e($appUrl) ?>/logout" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_lang('logout') ?>">
         <span class="material-symbols-outlined text-base">logout</span>
@@ -145,6 +150,8 @@ $viewportContent = $tvUa
 <?php
 $adminSection = putmio_admin_section();
 $isAdminShell = $adminSection !== null;
+$accountSection = putmio_account_section();
+$isAccountShell = $accountSection !== null;
 $isAuthShell = !empty($authShell) && !Session::userId();
 ?>
 <?php if ($isAuthShell): ?>
@@ -160,6 +167,13 @@ $isAuthShell = !empty($authShell) && !Session::userId();
 </main>
 <?php elseif ($isAdminShell): ?>
 <?php require putmio_base_path() . '/templates/partials/admin-sidebar.php'; ?>
+<main class="pt-24 min-h-screen md:ml-64 bg-background">
+  <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">
+    <?= $content ?>
+  </div>
+</main>
+<?php elseif ($isAccountShell): ?>
+<?php require putmio_base_path() . '/templates/partials/account-sidebar.php'; ?>
 <main class="pt-24 min-h-screen md:ml-64 bg-background">
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">
     <?= $content ?>

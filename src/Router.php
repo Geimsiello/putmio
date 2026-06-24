@@ -8,6 +8,7 @@ use PutMio\Auth\AuthService;
 use PutMio\Auth\Csrf;
 use PutMio\Auth\Session;
 use PutMio\Controllers\AdminController;
+use PutMio\Controllers\AccountController;
 use PutMio\Controllers\ApiController;
 use PutMio\Controllers\AuthController;
 use PutMio\Controllers\CatalogController;
@@ -57,6 +58,9 @@ final class Router
                 '/reset-password' => [AuthController::class, 'resetForm'],
                 '/registrati' => [AuthController::class, 'registerForm'],
                 '/in-corso' => [CatalogController::class, 'inProgress'],
+                '/account' => [AccountController::class, 'settings'],
+                '/account/dispositivi' => [AccountController::class, 'devices'],
+                '/account/contenuti' => [AccountController::class, 'content'],
                 '/catalogo' => [CatalogController::class, 'index'],
                 '/media' => [CatalogController::class, 'show'],
                 '/play' => [PlayerController::class, 'show'],
@@ -65,6 +69,7 @@ final class Router
                 '/admin/classificazione' => [AdminController::class, 'classify'],
                 '/admin/streaming' => [AdminController::class, 'streaming'],
                 '/admin/utenti' => [AdminController::class, 'users'],
+                '/admin/dispositivi' => [AdminController::class, 'devices'],
                 '/admin/aggiornamenti' => [AdminController::class, 'updates'],
                 '/admin/oauth/putio/callback' => [AdminController::class, 'putioCallback'],
                 '/stream' => [PlayerController::class, 'stream'],
@@ -91,7 +96,9 @@ final class Router
                 '/forgot-password' => [AuthController::class, 'forgot'],
                 '/reset-password' => [AuthController::class, 'reset'],
                 '/registrati' => [AuthController::class, 'register'],
+                '/account/dispositivi/revoca' => [AccountController::class, 'revokeDevice'],
                 '/api/preferences/locale' => [ApiController::class, 'locale'],
+                '/api/account/catalog-sources' => [ApiController::class, 'catalogSources'],
                 '/api/watch-progress' => [ApiController::class, 'watchProgress'],
                 '/api/tmdb/apply' => [ApiController::class, 'tmdbApply'],
                 '/api/tmdb/classify-apply' => [ApiController::class, 'tmdbClassifyApplyBulk'],
@@ -108,6 +115,7 @@ final class Router
                 '/admin/inviti' => [AdminController::class, 'createInvite'],
                 '/admin/disconnect-putio' => [AdminController::class, 'disconnectPutio'],
                 '/admin/streaming/stop-all' => [AdminController::class, 'stopAllStreams'],
+                '/admin/dispositivi/revoca' => [AdminController::class, 'revokeDevice'],
                 '/admin/aggiornamenti/applica' => [AdminController::class, 'applyUpdate'],
                 '/admin/aggiornamenti/ricontrolla' => [AdminController::class, 'refreshUpdates'],
             ],

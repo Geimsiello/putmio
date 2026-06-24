@@ -48,6 +48,7 @@ final class Migrator
             self::runUserDevicesMigration($pdo);
             self::runLocaleMigration($pdo);
             self::runBackdropsMigration($pdo);
+            self::runUserCatalogSourcesMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
         }
@@ -253,6 +254,19 @@ final class Migrator
         }
 
         self::runBackdropBackfill();
+    }
+
+    private static function runUserCatalogSourcesMigration(\PDO $pdo): void
+    {
+        $table = Config::table('user_catalog_hidden_sources');
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS `' . $table . '` (
+              `user_id` INT UNSIGNED NOT NULL,
+              `source_key` VARCHAR(120) NOT NULL,
+              PRIMARY KEY (`user_id`, `source_key`),
+              KEY `idx_user` (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
     }
 
     private static function runBackdropBackfill(): void
