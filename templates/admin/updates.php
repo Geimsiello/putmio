@@ -26,6 +26,22 @@ $repository = (string) ($status['repository'] ?? '');
 <?php if (!empty($success)): ?>
 <div class="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary text-body-md" role="status"><?= putmio_e($success) ?></div>
 <?php endif; ?>
+<?php
+$removedFilesList = is_array($removedFiles ?? null) ? $removedFiles : [];
+if ($removedFilesList !== []):
+?>
+<details class="mb-6 glass-panel rounded-xl p-4 border border-outline-variant/20" open>
+  <summary class="cursor-pointer text-label-md font-label-md text-on-surface-variant list-none flex items-center gap-2">
+    <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+    <?= putmio_e(putmio_lang('admin_update_removed_title', ['count' => (string) count($removedFilesList)])) ?>
+  </summary>
+  <ul class="mt-3 space-y-1 text-body-sm font-mono text-on-surface-variant max-h-48 overflow-y-auto custom-scrollbar">
+    <?php foreach ($removedFilesList as $removedPath): ?>
+    <li><?= putmio_e((string) $removedPath) ?></li>
+    <?php endforeach; ?>
+  </ul>
+</details>
+<?php endif; ?>
 <?php if (!empty($error)): ?>
 <div class="mb-6 p-4 rounded-xl bg-error/10 border border-error/30 text-error text-body-md" role="alert"><?= putmio_e($error) ?></div>
 <?php endif; ?>
@@ -154,6 +170,7 @@ $repository = (string) ($status['repository'] ?? '');
         <li><?= putmio_e($path) ?></li>
         <?php endforeach; ?>
       </ul>
+      <p class="mt-4 text-body-sm text-on-surface-variant"><?= putmio_e(putmio_lang('admin_updates_cleanup_hint')) ?></p>
     </div>
   </div>
 </details>

@@ -34,8 +34,22 @@ final class CoreManifest
         'composer.json',
         'composer.lock',
         'VERSION',
+        'REMOVED_FILES.json',
         'check.php',
         'probe.php',
+    ];
+
+    /**
+     * Directory sincronizzate in mirror: file assenti nella release vengono rimossi.
+     * Non include la root né path dove possono esserci file custom fuori dal core.
+     */
+    public const MIRROR_SYNC_PATHS = [
+        'src',
+        'lang',
+        'vendor',
+        'sql',
+        'templates',
+        'public',
     ];
 
     public static function isProtected(string $relativePath): bool

@@ -113,7 +113,7 @@ final class CoreUpdater
     }
 
     /**
-     * @return array{version: string, message: string}
+     * @return array{version: string, message: string, removed_files: list<string>}
      */
     public function applyLatest(): array
     {
@@ -136,12 +136,14 @@ final class CoreUpdater
         $workDir = CoreManifest::updatesWorkDir();
         $zipPath = $workDir . '/download-' . $this->safeFilename($targetVersion) . '.zip';
         $extractBase = $workDir . '/extract-' . uniqid('', true);
+        $removedFiles = [];
 
         try {
             $this->backupCurrentCore($installedVersion);
             $this->downloadFile($zipUrl, $zipPath);
             $sourceRoot = $this->extractArchive($zipPath, $extractBase);
             $this->installFromSource($sourceRoot);
+            $removedFiles = (new CoreFileCleanup())->apply($sourceRoot, $installedVersion, $targetVersion);
             $this->clearReleaseCache();
         } finally {
             if (is_file($zipPath)) {
@@ -152,9 +154,17 @@ final class CoreUpdater
             }
         }
 
+        $messageKey = $removedFiles !== []
+            ? 'admin_update_success_with_cleanup'
+            : 'admin_update_success';
+
         return [
             'version' => $targetVersion,
-            'message' => putmio_lang('admin_update_success', ['version' => $targetVersion]),
+            'message' => putmio_lang($messageKey, [
+                'version' => $targetVersion,
+                'count' => (string) count($removedFiles),
+            ]),
+            'removed_files' => $removedFiles,
         ];
     }
 

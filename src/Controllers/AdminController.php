@@ -478,8 +478,9 @@ final class AdminController
             'updatablePaths' => CoreManifest::UPDATABLE_PATHS,
             'success' => $_SESSION['flash_success'] ?? null,
             'error' => $_SESSION['flash_error'] ?? null,
+            'removedFiles' => $_SESSION['flash_update_removed'] ?? null,
         ]);
-        unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+        unset($_SESSION['flash_success'], $_SESSION['flash_error'], $_SESSION['flash_update_removed']);
     }
 
     public function applyUpdate(): void
@@ -492,6 +493,9 @@ final class AdminController
         try {
             $result = $updater->applyLatest();
             $_SESSION['flash_success'] = $result['message'];
+            if (!empty($result['removed_files'])) {
+                $_SESSION['flash_update_removed'] = $result['removed_files'];
+            }
         } catch (\Throwable $e) {
             $code = $e->getMessage();
             $langKey = 'admin_update_error_' . $code;

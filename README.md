@@ -106,6 +106,24 @@ Su hosting condiviso (es. OVH) molti siti condividono lo stesso IP verso GitHub:
 
 L’updater aggiorna **solo il core** (codice, template, asset): `config.php`, `storage/` e i dati nel database non vengono toccati. Prima dell’aggiornamento viene creato un backup ZIP in `storage/backups/`. Le migrazioni schema necessarie partono automaticamente via `Migrator` alla prima richiesta dopo l’aggiornamento.
 
+**Pulizia file obsoleti:** dopo la copia dei file nuovi, l’updater rimuove automaticamente i file non più necessari in due modi:
+
+1. **Manifest `REMOVED_FILES.json`** — elenco per versione dei path da eliminare (es. file spostati o deprecati). All’aggiornamento da `0.1.0` a `0.3.0` vengono applicate le rimozioni delle versioni `0.2.0` e `0.3.0`.
+2. **Sync mirror** — nelle directory `src/`, `lang/`, `vendor/`, `sql/`, `templates/`, `public/`: ogni file presente in installazione ma assente nella release viene rimosso (utile per asset versionati tipo `app.v*.css`).
+
+Esempio `REMOVED_FILES.json`:
+
+```json
+{
+  "0.2.0": [
+    "public/assets/legacy-feature.js",
+    "src/Legacy/OldService.php"
+  ]
+}
+```
+
+In Admin → Aggiornamenti compare l’elenco dei file rimossi dopo ogni aggiornamento.
+
 ## Struttura
 
 ```
@@ -115,6 +133,8 @@ putmio/
   sw.js              # Service worker PWA (cache asset statici)
   cron-sync.php      # Sync automatica da cron (solo CLI)
   config.php         # Generato dal wizard (non committare)
+  VERSION            # Versione piattaforma (semver)
+  REMOVED_FILES.json # Manifest file obsoleti per release
   composer.json      # Dipendenze PHP
   vendor/            # Dipendenze installate con Composer
   src/               # Codice applicazione
