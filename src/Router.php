@@ -113,6 +113,7 @@ final class Router
                 '/admin/refresh-putio-friends' => [AdminController::class, 'refreshPutioFriends'],
                 '/admin/classificazione' => [AdminController::class, 'saveClassification'],
                 '/admin/inviti' => [AdminController::class, 'createInvite'],
+                '/admin/utenti/elimina' => [AdminController::class, 'deleteUser'],
                 '/admin/disconnect-putio' => [AdminController::class, 'disconnectPutio'],
                 '/admin/streaming/stop-all' => [AdminController::class, 'stopAllStreams'],
                 '/admin/dispositivi/revoca' => [AdminController::class, 'revokeDevice'],

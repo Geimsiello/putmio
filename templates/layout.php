@@ -131,12 +131,17 @@ $viewportContent = $tvUa
     <div class="hidden md:block">
       <?php require putmio_base_path() . '/templates/partials/locale-menu.php'; ?>
     </div>
+    <?php if (!Session::isAdmin()): ?>
+    <a
+      href="<?= putmio_e($appUrl) ?>/account"
+      class="pm-header-settings inline-flex items-center justify-center p-2 rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-variant/30 transition-colors"
+      title="<?= putmio_e(putmio_lang('account_settings')) ?>"
+      aria-label="<?= putmio_e(putmio_lang('account_settings')) ?>"
+    >
+      <span class="material-symbols-outlined text-[22px]" aria-hidden="true">settings</span>
+    </a>
+    <?php endif; ?>
     <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full border border-outline-variant/20">
-      <?php if (!Session::isAdmin()): ?>
-      <a href="<?= putmio_e($appUrl) ?>/account" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_e(putmio_lang('account_settings')) ?>">
-        <span class="material-symbols-outlined text-base">settings</span>
-      </a>
-      <?php endif; ?>
       <span class="text-label-md font-label-md text-on-surface"><?= putmio_e($_SESSION['user_name'] ?? '') ?></span>
       <a href="<?= putmio_e($appUrl) ?>/logout" class="text-on-surface-variant hover:text-primary transition-colors" title="<?= putmio_lang('logout') ?>">
         <span class="material-symbols-outlined text-base">logout</span>

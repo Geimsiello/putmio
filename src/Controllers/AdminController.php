@@ -7,6 +7,8 @@ namespace PutMio\Controllers;
 use PutMio\Auth\Csrf;
 use PutMio\Auth\Session;
 use PutMio\Auth\TrustedDevice;
+use PutMio\Auth\AuthService;
+use PutMio\Auth\UserService;
 use PutMio\CatalogService;
 use PutMio\Config;
 use PutMio\Database;
@@ -424,11 +426,42 @@ final class AdminController
         View::render('admin/users', [
             'title' => putmio_lang('admin_users'),
             'users' => $users,
+            'currentUserId' => (int) Session::userId(),
             'success' => $_SESSION['flash_success'] ?? null,
             'error' => $_SESSION['flash_error'] ?? null,
             'inviteLink' => $_SESSION['flash_invite'] ?? null,
         ]);
         unset($_SESSION['flash_success'], $_SESSION['flash_error'], $_SESSION['flash_invite']);
+    }
+
+    public function deleteUser(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $userId = (int) ($_POST['user_id'] ?? 0);
+        if ($userId <= 0) {
+            $_SESSION['flash_error'] = putmio_lang('admin_user_delete_not_found');
+            putmio_redirect('admin/utenti');
+        }
+
+        $auth = new AuthService();
+        $target = $auth->findUserById($userId);
+        $error = (new UserService())->delete($userId, (int) Session::userId());
+
+        if ($error === 'self') {
+            $_SESSION['flash_error'] = putmio_lang('admin_user_delete_self');
+        } elseif ($error === 'last_admin') {
+            $_SESSION['flash_error'] = putmio_lang('admin_user_delete_last_admin');
+        } elseif ($error === 'not_found') {
+            $_SESSION['flash_error'] = putmio_lang('admin_user_delete_not_found');
+        } else {
+            $_SESSION['flash_success'] = putmio_lang('admin_user_deleted', [
+                'name' => (string) ($target['display_name'] ?? $target['email'] ?? ''),
+            ]);
+        }
+
+        putmio_redirect('admin/utenti');
     }
 
     public function createInvite(): void

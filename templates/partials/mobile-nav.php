@@ -103,15 +103,6 @@ $userName = trim((string) ($_SESSION['user_name'] ?? ''));
         </div>
       </div>
 
-      <?php if (!Session::isAdmin()): ?>
-      <a href="<?= putmio_e($appUrl) ?>/account" class="pm-mobile-nav__link">
-        <span class="pm-mobile-nav__link-leading">
-          <span class="material-symbols-outlined pm-mobile-nav__icon" aria-hidden="true">settings</span>
-          <span><?= putmio_e(putmio_lang('account_settings')) ?></span>
-        </span>
-      </a>
-      <?php endif; ?>
-
       <a href="<?= putmio_e($appUrl) ?>/logout" class="pm-mobile-nav__link pm-mobile-nav__link--logout">
         <span class="pm-mobile-nav__link-leading">
           <span class="material-symbols-outlined pm-mobile-nav__icon" aria-hidden="true">logout</span>
