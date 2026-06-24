@@ -104,9 +104,7 @@ Configura in `config.php` (vedi `config.example.php`):
 
 Su hosting condiviso (es. OVH) molti siti condividono lo stesso IP verso GitHub: senza token compare spesso **HTTP 403 / rate limit**. Un Personal Access Token (sola lettura sul repo) porta il limite a 5000 richieste/ora. Crealo su GitHub → *Settings → Developer settings → Personal access tokens* (scope `public_repo` o token fine-grained read-only).
 
-L’updater aggiorna **solo il core** (codice, template, asset): `config.php`, `storage/` e i dati nel database non vengono toccati. Le migrazioni schema necessarie partono automaticamente via `Migrator` alla prima richiesta dopo l’aggiornamento.
-
-> Lo scheletro attuale include controllo versioni e UI admin; l’applicazione automatica del pacchetto ZIP sarà completata in una release successiva.
+L’updater aggiorna **solo il core** (codice, template, asset): `config.php`, `storage/` e i dati nel database non vengono toccati. Prima dell’aggiornamento viene creato un backup ZIP in `storage/backups/`. Le migrazioni schema necessarie partono automaticamente via `Migrator` alla prima richiesta dopo l’aggiornamento.
 
 ## Struttura
 
