@@ -1,3 +1,6 @@
+.cursor/
+.stitch/
+
 config.php
 storage/.installed
 storage/logs/*.log
