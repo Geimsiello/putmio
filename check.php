@@ -56,6 +56,26 @@ if (version_compare(PHP_VERSION, '7.4.0', '>=')) {
         echo 'sessione: ERRORE — ' . $e->getMessage() . "\n";
     }
 
+    if (putmio_is_installed()) {
+        PutMio\Config::load();
+        echo "\n--- Test aggiornamenti GitHub ---\n";
+        $client = new PutMio\Update\GithubReleaseClient();
+        echo 'github_repo: ' . ($client->isConfigured() ? $client->repository() : 'non configurato') . "\n";
+        if ($client->isConfigured()) {
+            $release = $client->fetchLatest();
+            if ($release) {
+                echo 'ultima release: ' . $release['version'] . ' (' . $release['tag'] . ")\n";
+            } else {
+                echo 'ultima release: ERRORE — ' . ($client->lastError() ?? 'sconosciuto');
+                $status = $client->lastHttpStatus();
+                if ($status > 0) {
+                    echo ' HTTP ' . $status;
+                }
+                echo "\n";
+            }
+        }
+    }
+
     if (!putmio_is_installed()) {
         echo "\n--- Test wizard ---\n";
         try {

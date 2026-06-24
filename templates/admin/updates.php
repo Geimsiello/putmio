@@ -18,6 +18,8 @@ $updateAvailable = !empty($status['update_available']);
 $canApply = !empty($status['can_apply']);
 $blockers = is_array($status['apply_blockers'] ?? null) ? $status['apply_blockers'] : [];
 $checkError = $status['check_error'] ?? null;
+$checkErrorDetail = $status['check_error_detail'] ?? null;
+$checkHttpStatus = (int) ($status['check_http_status'] ?? 0);
 $configured = !empty($status['configured']);
 $repository = (string) ($status['repository'] ?? '');
 ?>
@@ -54,7 +56,20 @@ $repository = (string) ($status['repository'] ?? '');
         <?php elseif ($checkError === 'repository_not_configured'): ?>
         <p class="text-body-md text-on-surface-variant mt-2"><?= putmio_e(putmio_lang('admin_updates_not_configured')) ?></p>
         <?php else: ?>
-        <p class="text-body-md text-on-surface-variant mt-2"><?= putmio_e(putmio_lang('admin_updates_fetch_failed')) ?></p>
+        <?php
+          $fetchKey = 'admin_updates_fetch_' . ($checkErrorDetail ?? $checkError ?? 'failed');
+          $fetchMsg = putmio_lang($fetchKey);
+          if ($fetchMsg === $fetchKey) {
+              $fetchMsg = putmio_lang('admin_updates_fetch_failed');
+          }
+        ?>
+        <p class="text-body-md text-on-surface-variant mt-2"><?= putmio_e($fetchMsg) ?></p>
+        <?php if ($checkHttpStatus > 0 || ($checkErrorDetail && str_starts_with((string) $checkErrorDetail, 'curl_error:'))): ?>
+        <p class="text-body-sm text-on-surface-variant/70 mt-2 font-mono break-all"><?= putmio_e(putmio_lang('admin_updates_fetch_debug', [
+          'status' => $checkHttpStatus > 0 ? (string) $checkHttpStatus : '—',
+          'detail' => (string) ($checkErrorDetail ?? ''),
+        ])) ?></p>
+        <?php endif; ?>
         <?php endif; ?>
       </div>
     </div>

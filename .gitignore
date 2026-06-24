@@ -6,5 +6,6 @@ storage/posters/*
 !storage/logs/.gitkeep
 storage/updates/*
 !storage/updates/.gitkeep
+storage/updates/github-release-*.json
 storage/backups/*
 !storage/backups/.gitkeep

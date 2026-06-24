@@ -97,10 +97,12 @@ Configura in `config.php` (vedi `config.example.php`):
 
 ```php
 'updates' => [
-    'github_repo' => 'tuousername/putmio',
-    'github_token' => '', // opzionale, per repo privato
+    'github_repo' => 'Geimsiello/putmio',
+    'github_token' => 'ghp_...', // consigliato: evita il rate limit GitHub (60 req/h per IP)
 ],
 ```
+
+Su hosting condiviso (es. OVH) molti siti condividono lo stesso IP verso GitHub: senza token compare spesso **HTTP 403 / rate limit**. Un Personal Access Token (sola lettura sul repo) porta il limite a 5000 richieste/ora. Crealo su GitHub → *Settings → Developer settings → Personal access tokens* (scope `public_repo` o token fine-grained read-only).
 
 L’updater aggiorna **solo il core** (codice, template, asset): `config.php`, `storage/` e i dati nel database non vengono toccati. Le migrazioni schema necessarie partono automaticamente via `Migrator` alla prima richiesta dopo l’aggiornamento.
 

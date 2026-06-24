@@ -49,7 +49,7 @@ final class CoreUpdater
         } else {
             $latest = $this->releases->fetchLatest();
             if ($latest === null) {
-                $checkError = 'release_fetch_failed';
+                $checkError = $this->releases->lastError() ?? 'release_fetch_failed';
             } else {
                 $updateAvailable = version_compare($latest['version'], $installed, '>');
             }
@@ -62,6 +62,8 @@ final class CoreUpdater
             'configured' => $configured,
             'repository' => $this->releases->repository(),
             'check_error' => $checkError,
+            'check_error_detail' => $this->releases->lastError(),
+            'check_http_status' => $this->releases->lastHttpStatus(),
             'latest' => $latest,
             'update_available' => $updateAvailable,
             'can_apply' => $updateAvailable && $blockers === [],
