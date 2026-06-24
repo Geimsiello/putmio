@@ -51,7 +51,7 @@
   let started = false;
   let loading = false;
   let leaving = false;
-  let playbackFormat = window.PUTMIO.playbackFormat || 'mp4';
+  let playbackFormat = window.PUTMIO.playbackFormat || 'hls';
   let errorRetries = 0;
   const MAX_ERROR_RETRIES = 2;
   const playerLabels = window.PUTMIO.playerLabels || {};
@@ -198,12 +198,22 @@
     return url.toString();
   }
 
+  function streamMimeFor(format) {
+    if (format === 'hls') {
+      return 'application/x-mpegURL';
+    }
+    if (format === 'original') {
+      return window.PUTMIO.streamMime || 'video/mp4';
+    }
+    return 'video/mp4';
+  }
+
   function setSource() {
     const url = new URL(buildStreamUrl(playbackFormat), window.location.origin);
     url.searchParams.set('_', String(Date.now()));
     player.src({
       src: url.toString(),
-      type: window.PUTMIO.streamMime || 'video/mp4'
+      type: streamMimeFor(playbackFormat)
     });
   }
 
@@ -285,8 +295,17 @@
     }
   }
 
-  function startPlayback(at) {
+  function scheduleAudioTrackRefresh() {
     refreshAudioTracks();
+    if (playbackFormat !== 'hls') {
+      return;
+    }
+    window.setTimeout(refreshAudioTracks, 400);
+    window.setTimeout(refreshAudioTracks, 1500);
+  }
+
+  function startPlayback(at) {
+    scheduleAudioTrackRefresh();
     if (at > 0) {
       player.currentTime(at);
     }
@@ -543,7 +562,10 @@
 
   if (sourceSelect) {
     sourceSelect.addEventListener('change', function () {
-      restartWithFormat(sourceSelect.value === 'original' ? 'original' : 'mp4');
+      const value = sourceSelect.value;
+      if (value === 'original' || value === 'mp4' || value === 'hls') {
+        restartWithFormat(value);
+      }
     });
   }
 

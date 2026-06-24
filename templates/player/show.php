@@ -12,6 +12,8 @@
 /** @var array{ext: ?string, codec: ?string, resolution: ?string} $techLabels */
 /** @var bool $audioWarning */
 /** @var bool $mp4Available */
+/** @var bool $isOriginalNonMp4 */
+/** @var bool $putioConnected */
 /** @var bool $showSourcePicker */
 /** @var string $playbackFormat */
 /** @var string $streamMime */
@@ -56,9 +58,19 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
           id="player-source-select"
           class="bg-surface-container-high border border-outline-variant/40 rounded-lg px-3 py-1.5 font-label-sm text-label-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40"
         >
-          <option value="mp4"<?= ($playbackFormat ?? 'mp4') === 'mp4' ? ' selected' : '' ?>><?= putmio_lang('player_source_mp4') ?></option>
+          <option value="hls"<?= ($playbackFormat ?? 'hls') === 'hls' ? ' selected' : '' ?>><?= putmio_lang('player_source_hls') ?></option>
+          <?php if (!empty($mp4Available)): ?>
+          <option value="mp4"<?= ($playbackFormat ?? '') === 'mp4' ? ' selected' : '' ?>><?= putmio_lang('player_source_mp4') ?></option>
+          <?php endif; ?>
+          <?php if (!empty($isOriginalNonMp4)): ?>
           <option value="original"<?= ($playbackFormat ?? '') === 'original' ? ' selected' : '' ?>><?= putmio_lang('player_source_original') ?></option>
+          <?php endif; ?>
         </select>
+      </div>
+      <?php elseif (!empty($putioConnected)): ?>
+      <div class="flex items-center gap-2 text-on-surface-variant">
+        <span class="material-symbols-outlined text-sm text-primary">check_circle</span>
+        <span class="font-label-sm text-label-sm"><?= putmio_lang('player_source_hls_active') ?></span>
       </div>
       <?php elseif (!empty($mp4Available)): ?>
       <div class="flex items-center gap-2 text-on-surface-variant">

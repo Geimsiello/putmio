@@ -73,7 +73,6 @@ final class CoreUpdater
             'update_available' => $updateAvailable,
             'can_apply' => $updateAvailable && $blockers === [],
             'apply_blockers' => $blockers,
-            'latest_from_cache' => $this->releases->isFromCache(),
         ];
     }
 

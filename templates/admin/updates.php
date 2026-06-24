@@ -22,7 +22,6 @@ $checkErrorDetail = $status['check_error_detail'] ?? null;
 $checkHttpStatus = (int) ($status['check_http_status'] ?? 0);
 $configured = !empty($status['configured']);
 $repository = (string) ($status['repository'] ?? '');
-$latestFromCache = !empty($status['latest_from_cache']);
 ?>
 <?php if (!empty($success)): ?>
 <div class="mb-6 p-4 rounded-xl bg-primary/10 border border-primary/30 text-primary text-body-md" role="status"><?= putmio_e($success) ?></div>
@@ -84,9 +83,6 @@ $latestFromCache = !empty($status['latest_from_cache']);
         <?= putmio_e(putmio_lang('admin_updates_refresh')) ?>
       </button>
     </form>
-    <?php endif; ?>
-    <?php if ($latestFromCache && $latest): ?>
-    <p class="text-body-sm text-on-surface-variant/70 mt-2"><?= putmio_e(putmio_lang('admin_updates_cached_hint')) ?></p>
     <?php endif; ?>
     <?php if ($latest && !empty($latest['html_url'])): ?>
     <a href="<?= putmio_e((string) $latest['html_url']) ?>" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-3 text-primary text-body-sm hover:underline">

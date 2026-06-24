@@ -80,7 +80,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - Catalogo film / serie / animazione con classificazione TMDB (scansione e associazione in blocco)
 - Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file; se manca il titolo serie nel file, viene usato il nome della cartella padre su put.io)
 - TMDB on-demand (admin)
-- Player **Video.js** con proxy streaming Range HTTP e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
+- Player **Video.js** con proxy streaming Range HTTP, **HLS put.io** (selezione tracce audio multi-lingua) e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
 - Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header
 - **Modalità TV** per Smart TV / telecomando: layout 10-foot, navigazione a frecce, pannello info al focus, play in fullscreen automatico solo su dispositivi TV (non desktop); admin solo su desktop

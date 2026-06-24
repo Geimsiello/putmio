@@ -68,22 +68,27 @@ final class PlayerController
         $isOriginalNonMp4 = !in_array($fileExt, ['mp4', 'm4v'], true);
 
         $mp4Available = false;
+        $putioConnected = false;
         try {
             $putio = new Client();
-            if ($putio->isConnected()) {
+            $putioConnected = $putio->isConnected();
+            if ($putioConnected) {
                 $mp4Available = $putio->isMp4Available((int) $media['putio_id']);
             }
         } catch (\Throwable $e) {
             $mp4Available = false;
+            $putioConnected = false;
         }
 
-        $playbackFormat = $mp4Available ? 'mp4' : 'original';
+        $playbackFormat = $putioConnected ? 'hls' : ($mp4Available ? 'mp4' : 'original');
         $streamUrl = $appUrl . '/stream?id=' . (int) $media['putio_id'] . '&format=' . $playbackFormat;
 
-        $audioWarning = !$mp4Available && (
+        $audioWarning = !$putioConnected && !$mp4Available && (
             putmio_has_unsupported_browser_audio($media['file_name'] ?? null)
             || $fileExt === 'mkv'
         );
+
+        $showSourcePicker = $putioConnected && ($mp4Available || $isOriginalNonMp4);
 
         $synopsis = (string) ($media['synopsis'] ?? '');
         if ($synopsis === '' && $series && !empty($series['synopsis'])) {
@@ -134,8 +139,10 @@ final class PlayerController
             'durationSec' => $runtimeSec,
             'audioWarning' => $audioWarning,
             'mp4Available' => $mp4Available,
-            'showSourcePicker' => $mp4Available && $isOriginalNonMp4,
+            'isOriginalNonMp4' => $isOriginalNonMp4,
+            'showSourcePicker' => $showSourcePicker,
             'playbackFormat' => $playbackFormat,
+            'putioConnected' => $putioConnected,
             'posterUrl' => $posterUrl,
             'extraHead' => '<link href="https://vjs.zencdn.net/8.16.1/video-js.css" rel="stylesheet">',
             'extraScripts' => '<script src="https://vjs.zencdn.net/8.16.1/video.min.js"></script>'
@@ -148,11 +155,12 @@ final class PlayerController
                 'mediaId' => $id,
                 'startAt' => $startAt,
                 'streamUrl' => $streamUrl,
-                'streamMime' => 'video/mp4',
+                'streamMime' => $streamMime,
                 'durationSec' => $runtimeSec,
                 'playbackFormat' => $playbackFormat,
                 'mp4Available' => $mp4Available,
-                'showSourcePicker' => $mp4Available && $isOriginalNonMp4,
+                'putioConnected' => $putioConnected,
+                'showSourcePicker' => $showSourcePicker,
                 'nextEpisode' => $nextEpisodePayload,
                 'tvMode' => putmio_tv_mode(),
                 'isTvDevice' => putmio_is_tv_user_agent(),
@@ -207,9 +215,9 @@ final class PlayerController
             http_response_code(400);
             exit('ID non valido');
         }
-        $format = (string) ($_GET['format'] ?? 'mp4');
-        if (!in_array($format, ['mp4', 'original'], true)) {
-            $format = 'mp4';
+        $format = (string) ($_GET['format'] ?? 'hls');
+        if (!in_array($format, ['hls', 'mp4', 'original'], true)) {
+            $format = 'hls';
         }
         $userId = (int) Session::userId();
         Session::release();

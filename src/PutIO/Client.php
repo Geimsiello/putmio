@@ -175,6 +175,37 @@ final class Client
         return $this->getDownloadUrl($fileId);
     }
 
+    public function getHlsManifest(int $fileId, string $subtitleKey = 'all'): string
+    {
+        $token = $this->getAccessToken();
+        $url = self::API_BASE . '/files/' . $fileId . '/hls/media.m3u8?' . http_build_query([
+            'subtitle_key' => $subtitleKey,
+        ]);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+            ],
+            CURLOPT_TIMEOUT => 120,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($body === false || $code < 200 || $code >= 300) {
+            throw new \RuntimeException('Manifest HLS put.io non disponibile (HTTP ' . $code . ')');
+        }
+
+        $manifest = trim((string) $body);
+        if ($manifest === '' || stripos($manifest, '#EXTM3U') !== 0) {
+            throw new \RuntimeException('Manifest HLS put.io non valido');
+        }
+
+        return $manifest;
+    }
+
     private function resolveRedirect(string $path, array $query = []): string
     {
         $url = self::API_BASE . $path;

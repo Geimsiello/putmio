@@ -18,8 +18,13 @@ final class StreamProxy
         $this->putio = $putio ?? new Client();
     }
 
-    public function stream(int $putioFileId, int $userId, string $format = 'mp4'): void
+    public function stream(int $putioFileId, int $userId, string $format = 'hls'): void
     {
+        if ($format === 'hls') {
+            $this->streamHls($putioFileId, $userId);
+            return;
+        }
+
         $fileInfo = $this->getFileInfo($putioFileId);
         $this->assertCanStream($putioFileId, $userId);
         $this->expireStaleSessions();
@@ -154,6 +159,44 @@ final class StreamProxy
                 http_response_code(502);
             }
         }
+    }
+
+    private function streamHls(int $putioFileId, int $userId): void
+    {
+        $this->assertCanStream($putioFileId, $userId);
+        $this->expireStaleSessions();
+        $this->enforceConcurrencyLimit($userId, $putioFileId);
+
+        $sessionId = $this->startSession($userId, $putioFileId);
+        $ended = false;
+        $endSession = function () use (&$ended, $sessionId): void {
+            if ($ended) {
+                return;
+            }
+            $ended = true;
+            $this->endSession($sessionId);
+        };
+        register_shutdown_function(static function () use ($endSession): void {
+            $endSession();
+        });
+
+        try {
+            $manifest = $this->putio->getHlsManifest($putioFileId);
+        } catch (\Throwable $e) {
+            $endSession();
+            http_response_code(502);
+            exit('Stream HLS non disponibile');
+        }
+
+        $bytes = strlen($manifest);
+        if ($bytes > 0) {
+            $this->addBytes($sessionId, $bytes);
+        }
+
+        header('Content-Type: application/vnd.apple.mpegurl');
+        header('Cache-Control: private, no-store');
+        echo $manifest;
+        $endSession();
     }
 
     /** @return array{name: ?string, mime: ?string, size: int} */
