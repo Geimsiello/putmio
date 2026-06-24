@@ -3,6 +3,7 @@
 docs/
 
 config.php
+!src/Config.php
 storage/.installed
 storage/logs/*.log
 storage/posters/*
