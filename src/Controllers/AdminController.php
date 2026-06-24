@@ -14,6 +14,8 @@ use PutMio\PutIO\Client;
 use PutMio\PutIO\FriendService;
 use PutMio\PutIO\SyncService;
 use PutMio\Stream\StreamProxy;
+use PutMio\Update\CoreManifest;
+use PutMio\Update\CoreUpdater;
 use PutMio\View;
 
 final class AdminController
@@ -461,6 +463,43 @@ final class AdminController
         }
 
         putmio_redirect('admin/utenti');
+    }
+
+    public function updates(): void
+    {
+        Session::requireAdmin();
+        $updater = new CoreUpdater();
+
+        View::render('admin/updates', [
+            'title' => putmio_lang('admin_updates'),
+            'status' => $updater->status(),
+            'protectedPaths' => CoreManifest::PROTECTED_PATHS,
+            'updatablePaths' => CoreManifest::UPDATABLE_PATHS,
+            'success' => $_SESSION['flash_success'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null,
+        ]);
+        unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+    }
+
+    public function applyUpdate(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $updater = new CoreUpdater();
+
+        try {
+            $result = $updater->applyLatest();
+            $_SESSION['flash_success'] = $result['message'];
+        } catch (\Throwable $e) {
+            $code = $e->getMessage();
+            $langKey = 'admin_update_error_' . $code;
+            $fallback = putmio_lang('admin_update_error_generic');
+            $message = putmio_lang($langKey);
+            $_SESSION['flash_error'] = $message !== $langKey ? $message : $fallback;
+        }
+
+        putmio_redirect('admin/aggiornamenti');
     }
 
     private function writeConfig(array $config): void

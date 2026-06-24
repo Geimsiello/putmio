@@ -7,6 +7,23 @@ function putmio_base_path(): string
     return dirname(__DIR__);
 }
 
+/** Versione semantica della piattaforma (file VERSION in root). */
+function putmio_version(): string
+{
+    static $version = null;
+    if ($version !== null) {
+        return $version;
+    }
+    $file = putmio_base_path() . '/VERSION';
+    if (is_readable($file)) {
+        $raw = trim((string) file_get_contents($file));
+        if ($raw !== '') {
+            return $version = $raw;
+        }
+    }
+    return $version = 'dev';
+}
+
 function putmio_config_path(): string
 {
     return putmio_base_path() . '/config.php';
@@ -649,6 +666,9 @@ function putmio_admin_section(): ?string
     }
     if (str_starts_with($path, '/admin/utenti')) {
         return 'users';
+    }
+    if (str_starts_with($path, '/admin/aggiornamenti')) {
+        return 'updates';
     }
     return null;
 }

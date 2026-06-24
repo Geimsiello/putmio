@@ -65,6 +65,7 @@ final class Router
                 '/admin/classificazione' => [AdminController::class, 'classify'],
                 '/admin/streaming' => [AdminController::class, 'streaming'],
                 '/admin/utenti' => [AdminController::class, 'users'],
+                '/admin/aggiornamenti' => [AdminController::class, 'updates'],
                 '/admin/oauth/putio/callback' => [AdminController::class, 'putioCallback'],
                 '/stream' => [PlayerController::class, 'stream'],
                 '/cron/sync' => [CronController::class, 'sync'],
@@ -107,6 +108,7 @@ final class Router
                 '/admin/inviti' => [AdminController::class, 'createInvite'],
                 '/admin/disconnect-putio' => [AdminController::class, 'disconnectPutio'],
                 '/admin/streaming/stop-all' => [AdminController::class, 'stopAllStreams'],
+                '/admin/aggiornamenti/applica' => [AdminController::class, 'applyUpdate'],
             ],
         ];
 

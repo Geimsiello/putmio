@@ -4,3 +4,7 @@ storage/logs/*.log
 storage/posters/*
 !storage/posters/.gitkeep
 !storage/logs/.gitkeep
+storage/updates/*
+!storage/updates/.gitkeep
+storage/backups/*
+!storage/backups/.gitkeep

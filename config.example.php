@@ -48,4 +48,9 @@ return [
         'password' => '',
         'user_agent' => 'PutMio v1.0',
     ],
+    // Aggiornamenti core da GitHub Releases (Admin → Aggiornamenti)
+    'updates' => [
+        'github_repo' => '', // es. 'tuousername/putmio'
+        'github_token' => '', // opzionale: repo privato o limite rate API
+    ],
 ];

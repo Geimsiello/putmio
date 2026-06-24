@@ -89,6 +89,23 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - **PWA** installabile su mobile/desktop («Aggiungi a schermata Home» / installazione da browser); cache offline degli asset statici (CSS/JS/icone). I link di autorizzazione TV (`/authorize-device`) sono configurati per aprirsi nell'app installata quando possibile (Android/Chrome); su iOS usare il menu **Autorizza TV** nell'app
 - **Cache-busting asset** con versione nel nome del file (es. `app.v1718900000.css`): a ogni modifica di CSS/JS l'URL cambia automaticamente (basato su `filemtime`), così tutti i client — incluse le Smart TV, dove svuotare la cache è scomodo — caricano sempre l'ultima versione senza hard-refresh manuale. Richiede `mod_rewrite` (regola in `.htaccess`)
 
+## Aggiornamenti piattaforma
+
+La versione installata è nel file `VERSION` (root). In **Admin → Aggiornamenti** (`/admin/aggiornamenti`) puoi confrontare la versione locale con l’ultima release su GitHub.
+
+Configura in `config.php` (vedi `config.example.php`):
+
+```php
+'updates' => [
+    'github_repo' => 'tuousername/putmio',
+    'github_token' => '', // opzionale, per repo privato
+],
+```
+
+L’updater aggiorna **solo il core** (codice, template, asset): `config.php`, `storage/` e i dati nel database non vengono toccati. Le migrazioni schema necessarie partono automaticamente via `Migrator` alla prima richiesta dopo l’aggiornamento.
+
+> Lo scheletro attuale include controllo versioni e UI admin; l’applicazione automatica del pacchetto ZIP sarà completata in una release successiva.
+
 ## Struttura
 
 ```
@@ -101,6 +118,7 @@ putmio/
   composer.json      # Dipendenze PHP
   vendor/            # Dipendenze installate con Composer
   src/               # Codice applicazione
+  src/Update/        # Updater core (manifest, GitHub Releases)
   templates/         # Viste
   lang/              # Traduzioni interfaccia (it, en)
   public/assets/     # CSS/JS
@@ -118,24 +136,6 @@ putmio/
 ## Reinstallazione
 
 Elimina `config.php` e `storage/.installed`, poi ricarica l’URL dell’app per ripetere il wizard.
-
-## Risoluzione problemi
-
-| Problema | Soluzione |
-|----------|-----------|
-| Errore 500 all’apertura | Apri `check.php` e `probe.php`; controlla permessi (cartelle 755, file 644) e `storage/logs/shutdown.log` |
-| Pagina bianca | Controlla PHP 7.4+ e log in `storage/logs/app.log` |
-| Wizard non parte | Verifica che `config.php` non esista già |
-| Dipendenze mancanti | Esegui `composer install --no-dev` e carica `vendor/` |
-| Video non riproduce | Controlla collegamento put.io; usa la sorgente **MP4 put.io** nel player se disponibile |
-| Video si interrompe a metà | Di default PutMio reindirizza al CDN put.io (`stream_via_redirect` in `config.php`). Se usi il proxy PHP, l’hosting può troncare connessioni lunghe — imposta `stream_via_redirect` a `true` |
-| Video senza audio / barra a 0:00 | Seleziona **MP4 put.io** nel player; per MKV/AC3 apri il file su put.io per generare la conversione |
-| Errore 429 sullo stream | Sessioni stream bloccate: attendi 10 minuti o svuota `stream_sessions` (active=0); in `config.php` puoi alzare `max_concurrent_streams_per_ip` |
-| Sync fallisce | Token put.io scaduto → ricollega put.io in Impostazioni |
-| Sottotitoli non disponibili | Configura OpenSubtitles in Admin → Impostazioni |
-| Invito email non parte | Verifica SMTP in Admin → Impostazioni; controlla `storage/logs/app.log` |
-| Cron non parte | Verifica percorso script in Impostazioni; controlla log email del provider o `storage/logs/app.log` |
-| CSS/JS aggiornati ma vecchi nel browser/TV | Verifica che `mod_rewrite` sia attivo: gli asset usano la versione nel nome (`app.v<numero>.css`) rimappata da `.htaccess`. Se gli asset danno 404, manca `mod_rewrite` o la regola in `.htaccess` |
 
 ## Roadmap
 

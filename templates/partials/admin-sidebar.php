@@ -42,7 +42,23 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
         <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_users_hint')) ?></span>
       </div>
     </a>
+    <a href="<?= putmio_e($appUrl) ?>/admin/aggiornamenti" class="<?= putmio_admin_nav_link_class('updates') ?>">
+      <span class="material-symbols-outlined">system_update</span>
+      <div class="flex flex-col min-w-0">
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('admin_updates')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_updates_hint')) ?></span>
+      </div>
+    </a>
   </nav>
+  <div class="px-4 py-4 border-t border-outline-variant/20 mt-auto shrink-0" aria-label="<?= putmio_e(putmio_lang('admin_version_aria')) ?>">
+    <div class="flex items-center gap-2.5 text-on-surface-variant/70">
+      <span class="material-symbols-outlined text-lg opacity-50" aria-hidden="true">info</span>
+      <div class="flex flex-col min-w-0">
+        <span class="text-[10px] uppercase tracking-wider font-label-md text-on-surface-variant/50 leading-none">PutMio</span>
+        <span class="font-label-sm text-label-sm text-on-surface-variant mt-1"><?= putmio_e(putmio_lang('admin_platform_version', ['version' => putmio_version()])) ?></span>
+      </div>
+    </div>
+  </div>
 </aside>
 
 <nav class="md:hidden flex gap-2 overflow-x-auto pb-2 mb-6 custom-scrollbar -mx-1 px-1" aria-label="<?= putmio_e(putmio_lang('admin_nav_aria')) ?>">
@@ -53,6 +69,7 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
     ['classify', '/admin/classificazione', putmio_lang('classify')],
     ['streaming', '/admin/streaming', putmio_lang('admin_streaming')],
     ['users', '/admin/utenti', putmio_lang('admin_users')],
+    ['updates', '/admin/aggiornamenti', putmio_lang('admin_updates')],
   ];
   foreach ($mobileLinks as [$section, $href, $label]):
     $active = putmio_admin_section() === $section;
