@@ -109,6 +109,7 @@ final class Router
                 '/admin/disconnect-putio' => [AdminController::class, 'disconnectPutio'],
                 '/admin/streaming/stop-all' => [AdminController::class, 'stopAllStreams'],
                 '/admin/aggiornamenti/applica' => [AdminController::class, 'applyUpdate'],
+                '/admin/aggiornamenti/ricontrolla' => [AdminController::class, 'refreshUpdates'],
             ],
         ];
 

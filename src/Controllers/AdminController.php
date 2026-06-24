@@ -16,6 +16,7 @@ use PutMio\PutIO\SyncService;
 use PutMio\Stream\StreamProxy;
 use PutMio\Update\CoreManifest;
 use PutMio\Update\CoreUpdater;
+use PutMio\Update\GithubReleaseClient;
 use PutMio\View;
 
 final class AdminController
@@ -498,6 +499,17 @@ final class AdminController
             $message = putmio_lang($langKey);
             $_SESSION['flash_error'] = $message !== $langKey ? $message : $fallback;
         }
+
+        putmio_redirect('admin/aggiornamenti');
+    }
+
+    public function refreshUpdates(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        (new GithubReleaseClient())->clearCache();
+        $_SESSION['flash_success'] = putmio_lang('admin_updates_refreshed');
 
         putmio_redirect('admin/aggiornamenti');
     }

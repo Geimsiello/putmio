@@ -11,7 +11,8 @@ use PutMio\Config;
  */
 final class GithubReleaseClient
 {
-    private const CACHE_TTL = 1800; // 30 minuti
+    private const CACHE_TTL = 300; // 5 minuti
+    private const STALE_CACHE_TTL = 3600; // 1 ora max se GitHub è in rate limit
 
     private string $repo;
     private string $token;
@@ -84,43 +85,34 @@ final class GithubReleaseClient
         $raw = $this->request($latestUrl);
         $data = $raw !== null ? json_decode($raw, true) : null;
 
-        if ((!is_array($data) || empty($data['tag_name'])) && $this->lastHttpStatus === 404) {
-            $listUrl = 'https://api.github.com/repos/' . $this->repo . '/releases?per_page=5';
-            $listRaw = $this->request($listUrl);
-            $list = $listRaw !== null ? json_decode($listRaw, true) : null;
-            if (is_array($list)) {
-                foreach ($list as $release) {
-                    if (!is_array($release) || !empty($release['draft']) || !empty($release['prerelease'])) {
-                        continue;
-                    }
-                    if (!empty($release['tag_name'])) {
-                        $data = $release;
-                        break;
-                    }
-                }
-            }
+        if ((!is_array($data) || empty($data['tag_name'])) && in_array($this->lastHttpStatus, [404], true)) {
+            $data = $this->fetchNewestFromList();
         }
 
+        // Se /releases/latest fallisce (es. rate limit), prova la lista e scegli la versione più alta
         if (!is_array($data) || empty($data['tag_name'])) {
-            $stale = $this->readCache(null);
-            if ($stale !== null) {
-                $this->fromCache = true;
-                $this->lastError = $this->lastError === 'github_rate_limit' ? 'github_rate_limit_cached' : null;
-                return $stale;
-            }
-
-            if ($this->lastError === null) {
-                $this->lastError = $this->lastHttpStatus === 404
-                    ? 'release_not_found'
-                    : 'release_fetch_failed';
-            }
-            return null;
+            $data = $this->fetchNewestFromList();
         }
 
-        $mapped = $this->mapRelease($data);
-        $this->writeCache($mapped);
+        if (is_array($data) && !empty($data['tag_name'])) {
+            $mapped = $this->mapRelease($data);
+            $this->writeCache($mapped);
+            return $mapped;
+        }
 
-        return $mapped;
+        $stale = $this->readCache(self::STALE_CACHE_TTL);
+        if ($stale !== null) {
+            $this->fromCache = true;
+            $this->lastError = $this->lastError === 'github_rate_limit' ? 'github_rate_limit_cached' : null;
+            return $stale;
+        }
+
+        if ($this->lastError === null) {
+            $this->lastError = $this->lastHttpStatus === 404
+                ? 'release_not_found'
+                : 'release_fetch_failed';
+        }
+        return null;
     }
 
     /**
@@ -218,6 +210,47 @@ final class GithubReleaseClient
         }
 
         return $release;
+    }
+
+    public function clearCache(): void
+    {
+        $path = $this->cachePath();
+        if (is_file($path)) {
+            @unlink($path);
+        }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function fetchNewestFromList(): ?array
+    {
+        $listUrl = 'https://api.github.com/repos/' . $this->repo . '/releases?per_page=10';
+        $listRaw = $this->request($listUrl);
+        $list = $listRaw !== null ? json_decode($listRaw, true) : null;
+        if (!is_array($list)) {
+            return null;
+        }
+
+        $newest = null;
+        $newestVersion = '';
+
+        foreach ($list as $release) {
+            if (!is_array($release) || !empty($release['draft']) || !empty($release['prerelease'])) {
+                continue;
+            }
+            $tag = (string) ($release['tag_name'] ?? '');
+            if ($tag === '') {
+                continue;
+            }
+            $version = ltrim($tag, 'vV');
+            if ($newest === null || version_compare($version, $newestVersion, '>')) {
+                $newest = $release;
+                $newestVersion = $version;
+            }
+        }
+
+        return $newest;
     }
 
     /**
