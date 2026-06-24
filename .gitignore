@@ -1,5 +1,6 @@
 .cursor/
 .stitch/
+docs/
 
 config.php
 storage/.installed
