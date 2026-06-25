@@ -268,7 +268,7 @@ final class ApiController
         Csrf::requireValid($_POST['_csrf'] ?? null);
 
         try {
-            $result = (new \PutMio\PutIO\SyncService())->sync();
+            $result = (new \PutMio\PutIO\SyncService(null, null, 'admin', (int) Session::userId()))->sync();
             $message = putmio_lang('putio_sync_toast', [
                 'imported' => (string) ($result['imported'] ?? 0),
                 'removed' => (string) ($result['removed'] ?? 0),

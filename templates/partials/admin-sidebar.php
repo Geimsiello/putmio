@@ -35,6 +35,13 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
         <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_streaming_hint')) ?></span>
       </div>
     </a>
+    <a href="<?= putmio_e($appUrl) ?>/admin/sincronizzazioni" class="<?= putmio_admin_nav_link_class('sync-log') ?>">
+      <span class="material-symbols-outlined">sync_saved_locally</span>
+      <div class="flex flex-col min-w-0">
+        <span class="font-label-md text-label-md"><?= putmio_e(putmio_lang('admin_sync_log')) ?></span>
+        <span class="text-[10px] text-on-surface-variant/60 font-normal leading-none mt-0.5"><?= putmio_e(putmio_lang('admin_nav_sync_log_hint')) ?></span>
+      </div>
+    </a>
     <a href="<?= putmio_e($appUrl) ?>/admin/utenti" class="<?= putmio_admin_nav_link_class('users') ?>">
       <span class="material-symbols-outlined">group</span>
       <div class="flex flex-col min-w-0">
@@ -97,6 +104,13 @@ $adminMobileLinks = [
     'label' => putmio_lang('admin_streaming'),
     'hint' => putmio_lang('admin_nav_streaming_hint'),
     'icon' => 'lan',
+  ],
+  [
+    'section' => 'sync-log',
+    'href' => '/admin/sincronizzazioni',
+    'label' => putmio_lang('admin_sync_log'),
+    'hint' => putmio_lang('admin_nav_sync_log_hint'),
+    'icon' => 'sync_saved_locally',
   ],
   [
     'section' => 'users',

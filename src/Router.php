@@ -68,6 +68,7 @@ final class Router
                 '/admin/impostazioni' => [AdminController::class, 'settings'],
                 '/admin/classificazione' => [AdminController::class, 'classify'],
                 '/admin/streaming' => [AdminController::class, 'streaming'],
+                '/admin/sincronizzazioni' => [AdminController::class, 'syncLog'],
                 '/admin/utenti' => [AdminController::class, 'users'],
                 '/admin/dispositivi' => [AdminController::class, 'devices'],
                 '/admin/aggiornamenti' => [AdminController::class, 'updates'],

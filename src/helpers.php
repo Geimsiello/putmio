@@ -664,6 +664,9 @@ function putmio_admin_section(): ?string
     if (str_starts_with($path, '/admin/streaming')) {
         return 'streaming';
     }
+    if (str_starts_with($path, '/admin/sincronizzazioni')) {
+        return 'sync-log';
+    }
     if (str_starts_with($path, '/admin/utenti')) {
         return 'users';
     }

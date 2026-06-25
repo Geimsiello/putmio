@@ -32,7 +32,7 @@ PutMio\Database\Migrator::runPending();
 date_default_timezone_set(PutMio\Config::get('app.timezone', 'Europe/Rome'));
 
 try {
-    $result = (new PutMio\PutIO\SyncService())->sync();
+    $result = (new PutMio\PutIO\SyncService(null, null, 'cron_cli'))->sync();
     echo json_encode([
         'ok' => true,
         'imported' => $result['imported'],

@@ -15,47 +15,72 @@ final class SyncService
     /** @var FriendService */
     private $friends;
 
+    /** @var SyncRunLogger */
+    private $logger;
+
     /** @var array<int, true> putio_id visti nell'ultimo sync */
     private $seenPutioIds = [];
 
-    public function __construct(?Client $client = null, ?FriendService $friends = null)
+    public function __construct(
+        ?Client $client = null,
+        ?FriendService $friends = null,
+        string $triggerSource = 'unknown',
+        ?int $triggeredByUserId = null,
+        ?SyncRunLogger $logger = null
+    )
     {
         $this->client = $client ?? new Client();
         $this->friends = $friends ?? new FriendService($this->client);
+        $this->logger = $logger ?? new SyncRunLogger($triggerSource, $triggeredByUserId);
     }
 
     public function sync(): array
     {
-        if (!$this->client->isConnected()) {
-            throw new \RuntimeException('put.io non collegato');
-        }
-
-        $this->seenPutioIds = [];
-
         $conn = $this->client->getConnection();
-        $rootId = (int) ($conn['sync_root_folder_id'] ?? -1);
-        $imported = 0;
+        $this->logger->start($conn);
 
-        $imported += $this->syncOwnFiles($rootId);
-        $imported += $this->syncSelectedFriends();
+        try {
+            if (!$conn || empty($conn['access_token_enc'])) {
+                throw new \RuntimeException('put.io non collegato');
+            }
 
-        $enabledUsernames = array_map(
-            static fn (array $row): string => (string) $row['username'],
-            $this->friends->listEnabled()
-        );
-        $this->pruneDeselectedShared($enabledUsernames);
-        $removed = $this->pruneMissingOnPutio();
+            $this->seenPutioIds = [];
 
-        $pdo = Database::pdo();
-        $pdo->prepare(
-            'UPDATE `' . Config::table('putio_connection') . '`
-             SET last_sync_at = NOW(), last_sync_file_count = ?, updated_at = NOW() WHERE id = 1'
-        )->execute([$imported]);
+            $rootId = (int) ($conn['sync_root_folder_id'] ?? -1);
+            $imported = 0;
 
-        $this->ensureMediaStubs();
-        (new \PutMio\Media\SeriesGrouper())->groupAll();
+            $imported += $this->syncOwnFiles($rootId);
+            $imported += $this->syncSelectedFriends();
 
-        return ['imported' => $imported, 'removed' => $removed];
+            $enabledUsernames = array_map(
+                static fn (array $row): string => (string) $row['username'],
+                $this->friends->listEnabled()
+            );
+            $removed = $this->pruneDeselectedShared($enabledUsernames);
+            $removed += $this->pruneMissingOnPutio();
+
+            $pdo = Database::pdo();
+            $pdo->prepare(
+                'UPDATE `' . Config::table('putio_connection') . '`
+                 SET last_sync_at = NOW(), last_sync_file_count = ?, updated_at = NOW() WHERE id = 1'
+            )->execute([$imported]);
+
+            $this->ensureMediaStubs();
+            (new \PutMio\Media\SeriesGrouper())->groupAll();
+
+            $counts = $this->logger->finishSuccess();
+
+            return [
+                'imported' => $imported,
+                'removed' => $removed,
+                'added' => $counts['added'],
+                'updated' => $counts['updated'],
+                'deleted' => $counts['removed'],
+            ];
+        } catch (\Throwable $e) {
+            $this->logger->finishError($e);
+            throw $e;
+        }
     }
 
     private function syncOwnFiles(int $rootId): int
@@ -192,11 +217,10 @@ final class SyncService
     }
 
     /** @param list<string> $enabledUsernames */
-    private function pruneDeselectedShared(array $enabledUsernames): void
+    private function pruneDeselectedShared(array $enabledUsernames): int
     {
         $pdo = Database::pdo();
         $filesTable = Config::table('putio_files');
-        $mediaTable = Config::table('media_items');
 
         $normalized = array_values(array_unique(array_map(
             static fn (string $name): string => mb_strtolower(trim($name)),
@@ -204,30 +228,29 @@ final class SyncService
         )));
 
         if ($normalized === []) {
-            $pdo->exec(
-                'DELETE mi FROM `' . $mediaTable . '` mi
-                 INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-                 WHERE pf.is_shared = 1'
-            );
+            $removedFiles = $this->selectFilesForLog('is_shared = 1', []);
+            $this->logger->logRemovedFiles($removedFiles);
+            $this->deleteMediaForPutioFiles('is_shared = 1', []);
             $pdo->exec('DELETE FROM `' . $filesTable . '` WHERE is_shared = 1');
-            return;
+
+            return count($removedFiles);
         }
 
         $placeholders = implode(',', array_fill(0, count($normalized), '?'));
         $params = $normalized;
+        $where = 'is_shared = 1
+               AND (shared_by_username IS NULL OR LOWER(shared_by_username) NOT IN (' . $placeholders . '))';
 
-        $pdo->prepare(
-            'DELETE mi FROM `' . $mediaTable . '` mi
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE pf.is_shared = 1
-               AND (pf.shared_by_username IS NULL OR LOWER(pf.shared_by_username) NOT IN (' . $placeholders . '))'
-        )->execute($params);
+        $removedFiles = $this->selectFilesForLog($where, $params);
+        if ($removedFiles === []) {
+            return 0;
+        }
 
-        $pdo->prepare(
-            'DELETE FROM `' . $filesTable . '`
-             WHERE is_shared = 1
-               AND (shared_by_username IS NULL OR LOWER(shared_by_username) NOT IN (' . $placeholders . '))'
-        )->execute($params);
+        $this->logger->logRemovedFiles($removedFiles);
+        $this->deleteMediaForPutioFiles($where, $params);
+        $pdo->prepare('DELETE FROM `' . $filesTable . '` WHERE ' . $where)->execute($params);
+
+        return count($removedFiles);
     }
 
     /** Rimuove dal catalogo i file non più presenti su put.io. */
@@ -244,26 +267,44 @@ final class SyncService
                 return 0;
             }
 
+            $removedFiles = $this->selectFilesForLog('1=1', []);
+            $this->logger->logRemovedFiles($removedFiles);
             $this->deleteMediaForPutioFiles('1=1', []);
             $pdo->exec('DELETE FROM `' . $filesTable . '`');
 
-            return $count;
+            return count($removedFiles);
         }
 
         $placeholders = implode(',', array_fill(0, count($seenIds), '?'));
         $where = 'putio_id NOT IN (' . $placeholders . ')';
 
-        $stmt = $pdo->prepare('SELECT COUNT(*) FROM `' . $filesTable . '` WHERE ' . $where);
-        $stmt->execute($seenIds);
-        $count = (int) $stmt->fetchColumn();
-        if ($count === 0) {
+        $removedFiles = $this->selectFilesForLog($where, $seenIds);
+        if ($removedFiles === []) {
             return 0;
         }
 
+        $this->logger->logRemovedFiles($removedFiles);
         $this->deleteMediaForPutioFiles($where, $seenIds);
         $pdo->prepare('DELETE FROM `' . $filesTable . '` WHERE ' . $where)->execute($seenIds);
 
-        return $count;
+        return count($removedFiles);
+    }
+
+    /**
+     * @param list<int|string> $params
+     * @return list<array<string, mixed>>
+     */
+    private function selectFilesForLog(string $filesWhere, array $params): array
+    {
+        $stmt = Database::pdo()->prepare(
+            'SELECT putio_id, name, is_folder, is_shared, shared_by_username, content_type, mime
+             FROM `' . Config::table('putio_files') . '`
+             WHERE ' . $filesWhere . '
+             ORDER BY is_folder ASC, name ASC'
+        );
+        $stmt->execute($params);
+
+        return $stmt->fetchAll();
     }
 
     /** @param list<int|string> $params */
@@ -326,6 +367,11 @@ final class SyncService
         $mime = $file['mime_type'] ?? $file['content_type'] ?? null;
         $sharedFlag = $isShared || !empty($file['is_shared']) ? 1 : 0;
         $sharedByValue = $sharedFlag ? ($sharedBy ?? null) : null;
+        $existsStmt = $pdo->prepare(
+            'SELECT id FROM `' . Config::table('putio_files') . '` WHERE putio_id = ? LIMIT 1'
+        );
+        $existsStmt->execute([$putioId]);
+        $exists = (bool) $existsStmt->fetchColumn();
 
         $pdo->prepare(
             'INSERT INTO `' . Config::table('putio_files') . '`
@@ -352,6 +398,10 @@ final class SyncService
             $sharedByValue,
             $file['content_type'] ?? null,
         ]);
+
+        if (!$exists) {
+            $this->logger->logFile('added', $file, $sharedFlag === 1, $sharedByValue);
+        }
     }
 
     private function ensureMediaStubs(): void
