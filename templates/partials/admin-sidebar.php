@@ -4,7 +4,9 @@ use PutMio\Config;
 $appUrl = rtrim(Config::get('app.url'), '/');
 $navStats = putmio_admin_nav_stats();
 $unclassified = (int) ($navStats['unclassified'] ?? 0);
+$sectionNavPart = $sectionNavPart ?? 'all';
 ?>
+<?php if ($sectionNavPart !== 'mobile'): ?>
 <aside class="admin-sidebar hidden md:flex fixed left-0 top-16 bottom-0 z-40 flex-col py-6 w-64 bg-surface-container-low border-r border-surface-variant/30 shadow-xl">
   <nav class="flex-1 space-y-1 px-3">
     <a href="<?= putmio_e($appUrl) ?>/admin" class="<?= putmio_admin_nav_link_class('dashboard') ?>">
@@ -67,7 +69,9 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
     </div>
   </div>
 </aside>
+<?php endif; ?>
 
+<?php if ($sectionNavPart !== 'desktop'): ?>
 <?php
 $adminMobileLinks = [
   [
@@ -139,3 +143,4 @@ $mobileSectionNav = [
 require putmio_base_path() . '/templates/partials/section-mobile-nav.php';
 unset($mobileSectionNav, $adminMobileLinks, $adminCurrentSection, $adminCurrentLink);
 ?>
+<?php endif; ?>

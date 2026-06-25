@@ -171,16 +171,18 @@ $isAuthShell = !empty($authShell) && !Session::userId();
   <?= $content ?>
 </main>
 <?php elseif ($isAdminShell): ?>
-<?php require putmio_base_path() . '/templates/partials/admin-sidebar.php'; ?>
+<?php $sectionNavPart = 'desktop'; require putmio_base_path() . '/templates/partials/admin-sidebar.php'; unset($sectionNavPart); ?>
 <main class="pt-24 min-h-screen md:ml-64 bg-background">
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">
+    <?php $sectionNavPart = 'mobile'; require putmio_base_path() . '/templates/partials/admin-sidebar.php'; unset($sectionNavPart); ?>
     <?= $content ?>
   </div>
 </main>
 <?php elseif ($isAccountShell): ?>
-<?php require putmio_base_path() . '/templates/partials/account-sidebar.php'; ?>
+<?php $sectionNavPart = 'desktop'; require putmio_base_path() . '/templates/partials/account-sidebar.php'; unset($sectionNavPart); ?>
 <main class="pt-24 min-h-screen md:ml-64 bg-background">
   <div class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop pb-6 md:pb-10">
+    <?php $sectionNavPart = 'mobile'; require putmio_base_path() . '/templates/partials/account-sidebar.php'; unset($sectionNavPart); ?>
     <?= $content ?>
   </div>
 </main>
