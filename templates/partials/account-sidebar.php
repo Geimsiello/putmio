@@ -29,19 +29,46 @@ $appUrl = rtrim(Config::get('app.url'), '/');
   </nav>
 </aside>
 
-<nav class="md:hidden flex gap-2 overflow-x-auto pb-2 mb-6 custom-scrollbar -mx-1 px-1" aria-label="<?= putmio_e(putmio_lang('account_nav_aria')) ?>">
-  <?php
-  $mobileLinks = [
-    ['general', '/account', putmio_lang('account_settings')],
-    ['devices', '/account/dispositivi', putmio_lang('account_devices')],
-    ['content', '/account/contenuti', putmio_lang('account_content')],
-  ];
-  foreach ($mobileLinks as [$section, $href, $label]):
-    $active = putmio_account_section() === $section;
-    $cls = $active
-      ? 'shrink-0 px-3 py-1.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-label-md text-label-sm'
-      : 'shrink-0 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/30 font-label-md text-label-sm';
-  ?>
-  <a href="<?= putmio_e($appUrl . $href) ?>" class="<?= $cls ?>"><?= putmio_e($label) ?></a>
-  <?php endforeach; ?>
-</nav>
+<?php
+$accountMobileLinks = [
+  [
+    'section' => 'general',
+    'href' => '/account',
+    'label' => putmio_lang('account_settings'),
+    'hint' => putmio_lang('account_nav_settings_hint'),
+    'icon' => 'language',
+  ],
+  [
+    'section' => 'devices',
+    'href' => '/account/dispositivi',
+    'label' => putmio_lang('account_devices'),
+    'hint' => putmio_lang('account_nav_devices_hint'),
+    'icon' => 'devices',
+  ],
+  [
+    'section' => 'content',
+    'href' => '/account/contenuti',
+    'label' => putmio_lang('account_content'),
+    'hint' => putmio_lang('account_nav_content_hint'),
+    'icon' => 'video_library',
+  ],
+];
+$accountCurrentSection = putmio_account_section();
+$accountCurrentLink = $accountMobileLinks[0];
+foreach ($accountMobileLinks as &$link) {
+  $link['active'] = $accountCurrentSection === $link['section'];
+  if ($link['active']) {
+    $accountCurrentLink = $link;
+  }
+}
+unset($link);
+$mobileSectionNav = [
+  'title' => putmio_lang('account'),
+  'aria' => putmio_lang('account_nav_aria'),
+  'current_label' => $accountCurrentLink['label'],
+  'current_hint' => $accountCurrentLink['hint'],
+  'links' => $accountMobileLinks,
+];
+require putmio_base_path() . '/templates/partials/section-mobile-nav.php';
+unset($mobileSectionNav, $accountMobileLinks, $accountCurrentSection, $accountCurrentLink);
+?>

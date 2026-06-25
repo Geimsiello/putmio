@@ -68,23 +68,74 @@ $unclassified = (int) ($navStats['unclassified'] ?? 0);
   </div>
 </aside>
 
-<nav class="md:hidden flex gap-2 overflow-x-auto pb-2 mb-6 custom-scrollbar -mx-1 px-1" aria-label="<?= putmio_e(putmio_lang('admin_nav_aria')) ?>">
-  <?php
-  $mobileLinks = [
-    ['dashboard', '/admin', putmio_lang('admin_dashboard')],
-    ['settings', '/admin/impostazioni', putmio_lang('settings')],
-    ['classify', '/admin/classificazione', putmio_lang('classify')],
-    ['streaming', '/admin/streaming', putmio_lang('admin_streaming')],
-    ['users', '/admin/utenti', putmio_lang('admin_users')],
-    ['devices', '/admin/dispositivi', putmio_lang('account_devices')],
-    ['updates', '/admin/aggiornamenti', putmio_lang('admin_updates')],
-  ];
-  foreach ($mobileLinks as [$section, $href, $label]):
-    $active = putmio_admin_section() === $section;
-    $cls = $active
-      ? 'shrink-0 px-3 py-1.5 rounded-full bg-primary/15 text-primary border border-primary/30 font-label-md text-label-sm'
-      : 'shrink-0 px-3 py-1.5 rounded-full bg-surface-container text-on-surface-variant border border-outline-variant/30 font-label-md text-label-sm';
-  ?>
-  <a href="<?= putmio_e($appUrl . $href) ?>" class="<?= $cls ?>"><?= putmio_e($label) ?></a>
-  <?php endforeach; ?>
-</nav>
+<?php
+$adminMobileLinks = [
+  [
+    'section' => 'dashboard',
+    'href' => '/admin',
+    'label' => putmio_lang('admin_dashboard'),
+    'hint' => putmio_lang('admin_nav_overview'),
+    'icon' => 'dashboard',
+  ],
+  [
+    'section' => 'settings',
+    'href' => '/admin/impostazioni',
+    'label' => putmio_lang('settings'),
+    'hint' => putmio_lang('admin_nav_settings_hint'),
+    'icon' => 'settings',
+  ],
+  [
+    'section' => 'classify',
+    'href' => '/admin/classificazione',
+    'label' => putmio_lang('classify'),
+    'hint' => putmio_lang('admin_nav_unclassified', ['count' => (string) $unclassified]),
+    'icon' => 'inventory_2',
+  ],
+  [
+    'section' => 'streaming',
+    'href' => '/admin/streaming',
+    'label' => putmio_lang('admin_streaming'),
+    'hint' => putmio_lang('admin_nav_streaming_hint'),
+    'icon' => 'lan',
+  ],
+  [
+    'section' => 'users',
+    'href' => '/admin/utenti',
+    'label' => putmio_lang('admin_users'),
+    'hint' => putmio_lang('admin_nav_users_hint'),
+    'icon' => 'group',
+  ],
+  [
+    'section' => 'devices',
+    'href' => '/admin/dispositivi',
+    'label' => putmio_lang('account_devices'),
+    'hint' => putmio_lang('admin_nav_devices_hint'),
+    'icon' => 'devices',
+  ],
+  [
+    'section' => 'updates',
+    'href' => '/admin/aggiornamenti',
+    'label' => putmio_lang('admin_updates'),
+    'hint' => putmio_lang('admin_nav_updates_hint'),
+    'icon' => 'system_update',
+  ],
+];
+$adminCurrentSection = putmio_admin_section();
+$adminCurrentLink = $adminMobileLinks[0];
+foreach ($adminMobileLinks as &$link) {
+  $link['active'] = $adminCurrentSection === $link['section'];
+  if ($link['active']) {
+    $adminCurrentLink = $link;
+  }
+}
+unset($link);
+$mobileSectionNav = [
+  'title' => putmio_lang('admin'),
+  'aria' => putmio_lang('admin_nav_aria'),
+  'current_label' => $adminCurrentLink['label'],
+  'current_hint' => $adminCurrentLink['hint'],
+  'links' => $adminMobileLinks,
+];
+require putmio_base_path() . '/templates/partials/section-mobile-nav.php';
+unset($mobileSectionNav, $adminMobileLinks, $adminCurrentSection, $adminCurrentLink);
+?>

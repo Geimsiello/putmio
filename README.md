@@ -82,7 +82,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - TMDB on-demand (admin)
 - Player **Video.js** con proxy streaming Range HTTP, **HLS put.io** (selezione tracce audio multi-lingua) e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione
-- Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header; **impostazioni account** per i membri (icona impostazioni in header: lingua, dispositivi collegati, **filtro contenuti** per libreria principale e amici put.io); gli admin gestiscono i propri dispositivi da **Admin → Dispositivi collegati** e vedono sempre tutti i contenuti sincronizzati
+- Interfaccia **italiano / inglese** (`lang/`) con menu lingua in header; **impostazioni account** per i membri (icona impostazioni in header: lingua, dispositivi collegati, **filtro contenuti** per libreria principale e amici put.io); su mobile le aree Account e Admin hanno un menu interno dedicato per spostarsi tra le pagine di impostazione; gli admin gestiscono i propri dispositivi da **Admin → Dispositivi collegati** e vedono sempre tutti i contenuti sincronizzati
 - **Modalità TV** per Smart TV / telecomando: layout 10-foot, navigazione a frecce, pannello info al focus, play in fullscreen automatico solo su dispositivi TV (non desktop); admin solo su desktop
 - Dashboard admin streaming (banda, sessioni attive)
 - Sync selettiva contenuti condivisi dagli amici put.io (Admin → Impostazioni)
