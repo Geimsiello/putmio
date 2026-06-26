@@ -290,6 +290,19 @@ function putmio_admin_ui_enabled(): bool
     return \PutMio\Auth\Session::isAdmin() && !putmio_tv_mode();
 }
 
+function putmio_player_preload(?string $value = null): string
+{
+    $allowed = ['none', 'metadata', 'auto'];
+
+    if ($value === null) {
+        $value = (string) \PutMio\Config::get('app.player_preload', 'none');
+    }
+
+    $value = strtolower(trim($value));
+
+    return in_array($value, $allowed, true) ? $value : 'none';
+}
+
 function putmio_lang(string $key, array $replace = []): string
 {
     static $strings = [];

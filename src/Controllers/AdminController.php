@@ -94,6 +94,7 @@ final class AdminController
             'smtpFromEmail' => (string) Config::get('smtp.from_email', ''),
             'smtpFromName' => (string) Config::get('smtp.from_name', 'PutMio'),
             'hasSmtpPass' => trim((string) Config::get('smtp.pass', '')) !== '',
+            'playerPreload' => putmio_player_preload(),
             'putioFriends' => $putioFriends,
             'friendsError' => $friendsError,
             'putmioExtra' => [
@@ -178,6 +179,8 @@ final class AdminController
         if ($fromName !== '') {
             $config['smtp']['from_name'] = $fromName;
         }
+
+        $config['app']['player_preload'] = putmio_player_preload((string) ($_POST['player_preload'] ?? 'none'));
 
         $this->writeConfig($config);
         @unlink(putmio_base_path() . '/storage/.opensubtitles_token');

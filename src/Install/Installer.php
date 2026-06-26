@@ -117,6 +117,7 @@ final class Installer
                 'stream_min_progress_ratio' => 0.05,
                 'max_concurrent_streams_per_ip' => 4,
                 'stream_via_redirect' => true,
+                'player_preload' => 'none',
             ],
             'db' => [
                 'host' => $db['host'],

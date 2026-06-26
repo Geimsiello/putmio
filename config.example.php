@@ -15,6 +15,8 @@ return [
         'max_concurrent_streams_per_ip' => 4,
         // true = redirect to put.io CDN after auth (recommended on shared hosting)
         'stream_via_redirect' => true,
+        // Player preload: none | metadata | auto (Admin → Settings)
+        'player_preload' => 'none',
     ],
     'db' => [
         'host' => 'localhost',

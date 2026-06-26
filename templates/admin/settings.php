@@ -327,6 +327,31 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
 
   <fieldset class="space-y-4">
     <legend class="flex items-center gap-2 text-headline-md font-headline-md text-on-surface mb-2">
+      <span class="material-symbols-outlined text-primary text-[22px]">play_circle</span>
+      <?= putmio_e(putmio_lang('settings_player_preload')) ?>
+    </legend>
+    <p class="text-body-md text-on-surface-variant max-w-2xl">
+      <?= putmio_e(putmio_lang('settings_player_preload_desc')) ?>
+    </p>
+    <div class="space-y-1.5">
+      <label class="font-label-md text-label-md text-on-surface-variant ml-1" for="player_preload"><?= putmio_e(putmio_lang('settings_player_preload')) ?></label>
+      <select class="pm-input max-w-md" id="player_preload" name="player_preload">
+        <?php
+        $playerPreload = $playerPreload ?? putmio_player_preload();
+        foreach ([
+            'none' => putmio_lang('settings_player_preload_none'),
+            'metadata' => putmio_lang('settings_player_preload_metadata'),
+            'auto' => putmio_lang('settings_player_preload_auto'),
+        ] as $preloadValue => $preloadLabel):
+        ?>
+        <option value="<?= putmio_e($preloadValue) ?>"<?= $playerPreload === $preloadValue ? ' selected' : '' ?>><?= putmio_e($preloadLabel) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+  </fieldset>
+
+  <fieldset class="space-y-4">
+    <legend class="flex items-center gap-2 text-headline-md font-headline-md text-on-surface mb-2">
       <span class="material-symbols-outlined text-primary text-[22px]">schedule</span>
       <?= putmio_e(putmio_lang('admin_cron_sync')) ?>
     </legend>

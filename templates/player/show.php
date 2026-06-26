@@ -18,6 +18,7 @@
 /** @var string $playbackFormat */
 /** @var string $streamMime */
 /** @var string $posterUrl */
+/** @var string $playerPreload */
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url'), '/');
@@ -28,6 +29,7 @@ $canRestart = $progress && (($progress['position_sec'] ?? 0) > 0 || !empty($prog
 $prevEpisode = $adjacent['prev'] ?? null;
 $nextEpisode = $adjacent['next'] ?? null;
 $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !empty($techLabels['resolution']);
+$playerPreload = putmio_player_preload($playerPreload ?? null);
 ?>
 <a href="<?= putmio_e($appUrl) ?>/media?id=<?= $detailMediaId ?>" id="player-back-link" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-6 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
@@ -44,7 +46,7 @@ $hasTechMeta = !empty($techLabels['ext']) || !empty($techLabels['codec']) || !em
         id="putmio-player"
         class="video-js vjs-big-play-centered"
         controls
-        preload="none"
+        preload="<?= putmio_e($playerPreload) ?>"
         playsinline
         <?php if (!empty($posterUrl)): ?>poster="<?= putmio_e($posterUrl) ?>"<?php endif; ?>
       ></video>

@@ -36,7 +36,7 @@ Screenshots (enable when ready — see image creation guide)
 ### What you get
 
 - **Cinematic catalog** — movies, TV series, and animation with posters, synopses, and automatic classification via [TMDB](https://www.themoviedb.org/)
-- **Built-in player** — proxy streaming (put.io tokens stay on the server), multi-language audio tracks, [OpenSubtitles](https://www.opensubtitles.org/) subtitles
+- **Built-in player** — proxy streaming (put.io tokens stay on the server), multi-language audio tracks, [OpenSubtitles](https://www.opensubtitles.org/) subtitles, configurable preload (Admin → Settings)
 - **Multi-user** — separate accounts for the family, per-user content filters, invites and password reset via email
 - **Smart TV & remote** — 10-foot TV mode, QR login from your phone, installable PWA
 - **Resume playback** — “Continue watching” section synced across devices

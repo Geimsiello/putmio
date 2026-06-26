@@ -52,6 +52,7 @@
   let loading = false;
   let leaving = false;
   let playbackFormat = window.PUTMIO.playbackFormat || 'hls';
+  const playerPreload = window.PUTMIO.playerPreload || 'none';
   let errorRetries = 0;
   const MAX_ERROR_RETRIES = 2;
   const playerLabels = window.PUTMIO.playerLabels || {};
@@ -217,6 +218,40 @@
     });
   }
 
+  function shouldPrefetchSource() {
+    return playerPreload === 'metadata' || playerPreload === 'auto';
+  }
+
+  function prefetchSource() {
+    if (!shouldPrefetchSource() || started || loading || player.currentSrc()) {
+      return;
+    }
+    setSource();
+  }
+
+  function begin(at, forceNewSource) {
+    if (loading) {
+      return;
+    }
+
+    const hasSource = !!player.currentSrc();
+
+    if (started && hasSource && !forceNewSource) {
+      startPlayback(at);
+      return;
+    }
+
+    started = true;
+    loading = true;
+    if (tvFullscreenEnabled) {
+      setTvPlayerLoading(true);
+    }
+    if (!hasSource || forceNewSource) {
+      setSource();
+    }
+    waitForReady(at);
+  }
+
   function mediaDuration() {
     const d = player.duration();
     if (d && isFinite(d) && d > 0) {
@@ -339,32 +374,13 @@
     player.on('canplay', onReady);
   }
 
-  function begin(at) {
-    if (loading) {
-      return;
-    }
-
-    if (started && player.currentSrc()) {
-      startPlayback(at);
-      return;
-    }
-
-    started = true;
-    loading = true;
-    if (tvFullscreenEnabled) {
-      setTvPlayerLoading(true);
-    }
-    setSource();
-    waitForReady(at);
-  }
-
   function restartWithFormat(format) {
     const at = Math.floor(player.currentTime() || 0) || defaultStartAt();
     playbackFormat = format;
     started = false;
     loading = false;
     player.pause();
-    begin(at);
+    begin(at, true);
   }
 
   function hookBigPlayButton() {
@@ -385,6 +401,7 @@
 
   player.ready(function () {
     hookBigPlayButton();
+    prefetchSource();
   });
 
   player.on('error', function () {
@@ -407,7 +424,7 @@
     showStreamRetrying();
 
     window.setTimeout(function () {
-      begin(pos);
+      begin(pos, true);
       if (wasPlaying) {
         player.one('playing', function onRecovered() {
           player.off('playing', onRecovered);
@@ -449,7 +466,7 @@
       const pos = Math.floor(player.currentTime() || 0);
       started = false;
       loading = false;
-      begin(pos);
+      begin(pos, true);
     });
 
     playerWrap.appendChild(el);
