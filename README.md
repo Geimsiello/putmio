@@ -71,23 +71,106 @@ PutMio is plain PHP: no Node, Docker, or Redis required. Works on a VPS, shared 
 
 ---
 
-## Quick install
+## Installation
 
-1. **Clone** the repository into your server’s web directory.
-2. **Install dependencies** with Composer (see below).
-3. **Create an empty MySQL database** and note host, name, user, and password.
-4. **Make `storage/` writable** by the web server.
-5. **Open the URL** in your browser: the setup wizard starts (requirements → database → admin).
-6. In **Admin → Settings**: connect put.io (OAuth), configure options, and run the first sync.
-7. In **Admin → Classification**: link titles to TMDB (manual or automatic scan).
+After install, complete setup in the browser (wizard → put.io OAuth → first sync). See [Quick setup](#quick-setup) below.
 
-### Dependencies (Composer)
+### SSH / VPS / NAS (recommended)
+
+For a home server, NAS with shell access, or any machine where you can SSH in. Dependencies are installed **on the server** — no manual SFTP upload of `vendor/`.
+
+**Prerequisites on the server**
+
+- Git, Composer 2.x, PHP CLI 7.4+ (8.x recommended) with the same extensions as the web SAPI
+- MySQL/MariaDB (local or remote)
+- Web server (Apache/Nginx) with HTTPS and URL rewriting
+
+**1. Clone and install dependencies**
 
 ```bash
-composer install --no-dev
+cd /var/www   # or your NAS web root, e.g. /volume1/web
+git clone https://github.com/Geimsiello/putmio.git putmio
+cd putmio
+composer install --no-dev --optimize-autoloader
 ```
 
-Upload `vendor/` to the server too if you install locally and deploy via SFTP/rsync.
+> **NAS tip:** enable SSH on your NAS (Synology, QNAP, etc.), open a terminal session, and use the same commands. Point your web station / virtual host at the `putmio/` folder.
+
+**2. Create the database**
+
+```bash
+mysql -u root -p -e "CREATE DATABASE putmio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p -e "CREATE USER 'putmio'@'localhost' IDENTIFIED BY 'your-strong-password';"
+mysql -u root -p -e "GRANT ALL PRIVILEGES ON putmio.* TO 'putmio'@'localhost'; FLUSH PRIVILEGES;"
+```
+
+Adjust user, host, and privileges to match your environment.
+
+**3. Permissions**
+
+The web server user must be able to write to `storage/`:
+
+```bash
+# Linux — replace www-data with your web server user (nginx, apache, http, …)
+sudo chown -R www-data:www-data storage/
+chmod -R 775 storage/
+```
+
+**4. Web server**
+
+- **Document root:** point the vhost at the PutMio folder (where `front.php` lives).
+- **Subfolder install:** if the app is not at the domain root, set `RewriteBase` in `.htaccess` to match your path (default in the repo is `/putmio/`).
+- **Apache:** `mod_rewrite` enabled; `.htaccess` is included.
+- **Nginx:** route requests to `front.php` (try files + fallback), block direct access to `config.php` and `cron-sync.php`.
+
+**5. Cron (after the wizard)**
+
+```bash
+crontab -e
+```
+
+```cron
+# Sync catalog every 6 hours (use the PHP binary your CLI uses)
+0 */6 * * * /usr/bin/php /var/www/putmio/cron-sync.php >> /var/www/putmio/storage/logs/cron-sync.log 2>&1
+```
+
+The exact CLI command is also shown in **Admin → Settings** once installed.
+
+**6. Updates via SSH**
+
+```bash
+cd /var/www/putmio
+git pull
+composer install --no-dev --optimize-autoloader
+```
+
+You can also use **Admin → Updates** for core updates from GitHub Releases (see [Updates](#updates)).
+
+---
+
+### Shared hosting (SFTP / no SSH)
+
+When you only have a control panel and file upload:
+
+1. **Clone or download** the repository on your computer.
+2. Run locally:
+
+   ```bash
+   composer install --no-dev
+   ```
+
+3. **Upload** the entire project (including `vendor/`) via SFTP/FTP to the web directory.
+4. Continue with [Quick setup](#quick-setup) below.
+
+---
+
+### Quick setup
+
+1. **Create an empty MySQL database** (panel or CLI) and note host, name, user, and password.
+2. **Make `storage/` writable** by the web server.
+3. **Open the URL** in your browser: the setup wizard starts (requirements → database → admin).
+4. In **Admin → Settings**: connect put.io (OAuth), configure options, and run the first sync.
+5. In **Admin → Classification**: link titles to TMDB (manual or automatic scan).
 
 ### put.io OAuth
 
@@ -112,6 +195,8 @@ On a 500 error at startup, open `check.php` to verify PHP, extensions, and permi
 ## Automatic sync (cron)
 
 Sync refreshes the catalog from put.io and removes titles deleted in the cloud (including watch progress and linked metadata). Schedule it every 6–12 hours or use **Sync now** from the admin panel.
+
+On SSH/VPS/NAS installs, see step 5 in the [Installation](#installation) guide. On shared hosting without shell access, use the HTTP URL below.
 
 **CLI** (recommended):
 
@@ -152,14 +237,16 @@ The token is in **Admin → Settings** (generated at install). The CLI command i
 
 The installed version is in `VERSION`. In **Admin → Updates** you can compare your local release with the latest on GitHub.
 
-Configure in `config.php` (see `config.example.php`):
+Configure in `config.php` (see `config.example.php`). By default updates are pulled from the upstream repository:
 
 ```php
 'updates' => [
-    'github_repo' => 'yourusername/putmio',
+    'github_repo' => 'Geimsiello/putmio',
     'github_token' => '', // optional: avoids GitHub API rate limits
 ],
 ```
+
+If you maintain a fork, point `github_repo` to your own `owner/repo`.
 
 A read-only Personal Access Token raises the limit from 60 to 5000 requests/hour — useful on shared hosting where many sites share the same outbound IP.
 

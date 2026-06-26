@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Sync catalogo put.io da cron del hosting.
- * Eseguire solo da CLI: percorso indicato in Admin → Impostazioni (es. ./putmio/cron-sync.php).
+ * Sync put.io catalog from hosting cron.
+ * CLI only — path shown in Admin → Settings (e.g. ./putmio/cron-sync.php).
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -17,12 +17,12 @@ require __DIR__ . '/src/Bootstrap.php';
 PutMio\Bootstrap::init();
 
 if (version_compare(PHP_VERSION, '7.4.0', '<')) {
-    fwrite(STDERR, 'PutMio richiede PHP 7.4+. Versione attuale: ' . PHP_VERSION . PHP_EOL);
+    fwrite(STDERR, 'PutMio requires PHP 7.4+. Current version: ' . PHP_VERSION . PHP_EOL);
     exit(1);
 }
 
 if (PutMio\Install\InstallGate::handleIfNotInstalled()) {
-    fwrite(STDERR, "PutMio non installato\n");
+    fwrite(STDERR, "PutMio is not installed\n");
     exit(1);
 }
 

@@ -3,14 +3,15 @@ DirectoryIndex front.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    # Set to / when installed at domain root (default below is for a /putmio/ subfolder).
     RewriteBase /putmio/
 
     RewriteCond %{HTTPS} off
     RewriteCond %{HTTP:X-Forwarded-Proto} !https
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
 
-    # Asset versionati nel nome file (es. app.v1718900000.css -> app.css).
-    # Permette il cache-busting: il file reale non cambia nome, ma l'URL sì.
+    # Versioned assets in the filename (e.g. app.v1718900000.css -> app.css).
+    # Enables cache-busting: the file on disk keeps the same name, the URL does not.
     RewriteRule ^public/assets/(.+)\.v[0-9]+\.(css|js)$ public/assets/$1.$2 [L]
 
     RewriteRule ^(index|front)\.php$ - [L]

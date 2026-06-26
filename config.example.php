@@ -1,7 +1,7 @@
 <?php
 /**
- * PutMio — Template configurazione.
- * Il file config.php viene generato automaticamente dal wizard di installazione.
+ * PutMio — Configuration template.
+ * config.php is generated automatically by the installation wizard.
  */
 return [
     'app' => [
@@ -13,7 +13,7 @@ return [
         'stream_complete_ratio' => 0.90,
         'stream_min_progress_ratio' => 0.05,
         'max_concurrent_streams_per_ip' => 4,
-        // true = redirect al CDN put.io dopo auth (consigliato su hosting condiviso OVH)
+        // true = redirect to put.io CDN after auth (recommended on shared hosting)
         'stream_via_redirect' => true,
     ],
     'db' => [
@@ -48,12 +48,10 @@ return [
         'password' => '',
         'user_agent' => 'PutMio v1.0',
     ],
-    // Aggiornamenti core da GitHub Releases (Admin → Aggiornamenti)
+    // Core updates from GitHub Releases (Admin → Updates)
     'updates' => [
-        'github_repo' => '', // es. 'tuousername/putmio'
-        // Consigliato su hosting condiviso (OVH): senza token GitHub limita a ~60 richieste/ora per IP.
-        // Crea un PAT su GitHub → Settings → Developer settings → Personal access tokens
-        // (scope "public_repo" o fine-grained read-only sul repository).
+        'github_repo' => 'Geimsiello/putmio', // change if you maintain a fork
+        // Optional PAT: raises GitHub API limit from ~60 to 5000 requests/hour per IP.
         'github_token' => '',
     ],
 ];

@@ -1,6 +1,6 @@
 {
     "name": "putmio/putmio",
-    "description": "Media center personale su put.io",
+    "description": "Personal media center for put.io",
     "type": "project",
     "require": {
         "php": ">=7.4",
