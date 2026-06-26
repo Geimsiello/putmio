@@ -755,6 +755,25 @@ function putmio_device_icon_for_label(string $label): string
     return 'devices';
 }
 
+function putmio_classify_pending_count(?\PDO $pdo = null): int
+{
+    $pdo = $pdo ?? \PutMio\Database::pdo();
+    $mediaTable = \PutMio\Config::table('media_items');
+
+    return (int) $pdo->query(
+        "SELECT COUNT(*) FROM `{$mediaTable}` mi
+         WHERE mi.classification_status = 'unclassified'
+           AND mi.series_id IS NULL
+           AND (
+             mi.putio_file_id IS NOT NULL
+             OR EXISTS (
+               SELECT 1 FROM `{$mediaTable}` ep
+               WHERE ep.series_id = mi.id AND ep.classification_status = 'unclassified'
+             )
+           )"
+    )->fetchColumn();
+}
+
 /** @return array{unclassified: int} */
 function putmio_admin_nav_stats(): array
 {
@@ -766,11 +785,8 @@ function putmio_admin_nav_stats(): array
         return $stats = ['unclassified' => 0];
     }
     try {
-        $pdo = \PutMio\Database::pdo();
         $stats = [
-            'unclassified' => (int) $pdo->query(
-                'SELECT COUNT(*) FROM `' . \PutMio\Config::table('media_items') . "` WHERE classification_status = 'unclassified'"
-            )->fetchColumn(),
+            'unclassified' => putmio_classify_pending_count(),
         ];
     } catch (\Throwable $e) {
         $stats = ['unclassified' => 0];

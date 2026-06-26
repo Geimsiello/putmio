@@ -57,6 +57,8 @@ final class RememberMe
             ->execute([(int) $row['id']]);
 
         $userId = (int) $row['user_id'];
+        $pdo->prepare('UPDATE `' . Config::table('users') . '` SET last_login_at = NOW() WHERE id = ?')
+            ->execute([$userId]);
         self::issue($userId);
 
         return [

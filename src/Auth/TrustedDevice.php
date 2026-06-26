@@ -71,6 +71,9 @@ final class TrustedDevice
         $pdo->prepare('DELETE FROM `' . Config::table('user_devices') . '` WHERE id = ?')
             ->execute([(int) $row['id']]);
 
+        $pdo->prepare('UPDATE `' . Config::table('users') . '` SET last_login_at = NOW() WHERE id = ?')
+            ->execute([$userId]);
+
         self::issue($userId, $userAgent, $clientIp, $label);
 
         return [

@@ -50,7 +50,7 @@ return [
     ],
     // Aggiornamenti core da GitHub Releases (Admin → Aggiornamenti)
     'updates' => [
-        'github_repo' => '', // es. 'Geimsiello/putmio'
+        'github_repo' => '', // es. 'tuousername/putmio'
         // Consigliato su hosting condiviso (OVH): senza token GitHub limita a ~60 richieste/ora per IP.
         // Crea un PAT su GitHub → Settings → Developer settings → Personal access tokens
         // (scope "public_repo" o fine-grained read-only sul repository).
