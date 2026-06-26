@@ -49,20 +49,16 @@ $renderItems = static function (string $action, array $items): void {
       <p class="px-4 py-4 text-body-sm text-on-surface-variant"><?= putmio_e(putmio_lang('admin_sync_no_items_for_action')) ?></p>
       <?php else: ?>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-left">
+        <table class="w-full min-w-[420px] text-left">
           <thead>
             <tr class="text-label-sm font-label-sm text-on-surface-variant/70 border-b border-outline-variant/10">
               <th class="px-4 py-3 font-medium"><?= putmio_e(putmio_lang('admin_sync_col_content')) ?></th>
               <th class="px-4 py-3 font-medium"><?= putmio_e(putmio_lang('admin_sync_col_owner')) ?></th>
-              <th class="px-4 py-3 font-medium"><?= putmio_e(putmio_lang('admin_sync_col_owner_account')) ?></th>
-              <th class="px-4 py-3 font-medium"><?= putmio_e(putmio_lang('admin_sync_col_type')) ?></th>
-              <th class="px-4 py-3 font-medium"><?= putmio_e(putmio_lang('admin_sync_col_putio_id')) ?></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-outline-variant/10">
             <?php foreach ($items as $item): ?>
             <?php
-              $isFolder = !empty($item['is_folder']);
               $isShared = !empty($item['is_shared']);
               $owner = (string) ($item['owner_username'] ?? '');
               $ownerLabel = $isShared && $owner !== ''
@@ -70,16 +66,8 @@ $renderItems = static function (string $action, array $items): void {
                   : putmio_lang('admin_sync_owner_own');
             ?>
             <tr class="hover:bg-surface-variant/10">
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-2 min-w-0">
-                  <span class="material-symbols-outlined text-[18px] text-on-surface-variant shrink-0"><?= $isFolder ? 'folder' : 'movie' ?></span>
-                  <span class="text-body-sm text-on-surface truncate"><?= putmio_e((string) ($item['name'] ?? '')) ?></span>
-                </div>
-              </td>
+              <td class="px-4 py-3 text-body-sm text-on-surface"><?= putmio_e((string) ($item['name'] ?? '')) ?></td>
               <td class="px-4 py-3 text-body-sm text-on-surface-variant"><?= putmio_e($ownerLabel) ?></td>
-              <td class="px-4 py-3 text-body-sm font-mono text-on-surface-variant"><?= putmio_e((string) ($item['owner_account'] ?? '')) ?></td>
-              <td class="px-4 py-3 text-body-sm text-on-surface-variant"><?= putmio_e($isFolder ? putmio_lang('admin_sync_type_folder') : putmio_lang('admin_sync_type_file')) ?></td>
-              <td class="px-4 py-3 text-body-sm font-mono text-on-surface-variant"><?= putmio_e((string) ($item['putio_id'] ?? '')) ?></td>
             </tr>
             <?php endforeach; ?>
           </tbody>
@@ -105,7 +93,7 @@ $renderItems = static function (string $action, array $items): void {
 </section>
 <?php else: ?>
 <div class="space-y-4">
-  <?php foreach ($runs as $index => $run): ?>
+  <?php foreach ($runs as $run): ?>
   <?php
     $runId = (int) ($run['id'] ?? 0);
     $items = $itemsByRun[$runId] ?? ['added' => [], 'removed' => [], 'updated' => []];
@@ -119,7 +107,7 @@ $renderItems = static function (string $action, array $items): void {
         $triggeredBy = trim((string) ($run['triggered_by_email'] ?? ''));
     }
   ?>
-  <details class="glass-panel rounded-2xl border border-outline-variant/20 overflow-hidden" <?= $index === 0 ? 'open' : '' ?>>
+  <details class="glass-panel rounded-2xl border border-outline-variant/20 overflow-hidden">
     <summary class="cursor-pointer list-none px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2 mb-2">

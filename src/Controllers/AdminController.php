@@ -284,7 +284,7 @@ final class AdminController
                 "SELECT *
                  FROM `{$itemsTable}`
                  WHERE run_id IN ({$placeholders})
-                 ORDER BY FIELD(action, 'added', 'removed', 'updated'), is_folder ASC, name ASC"
+                 ORDER BY FIELD(action, 'added', 'removed', 'updated'), name ASC"
             );
             $stmt->execute($runIds);
             foreach ($stmt->fetchAll() as $item) {

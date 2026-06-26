@@ -52,7 +52,7 @@ final class SyncRunLogger
             $this->runId = (int) $pdo->lastInsertId();
         } catch (\Throwable $e) {
             $this->runId = null;
-            putmio_log('Sync DLOG start fallito: ' . $e->getMessage());
+            putmio_log('Sync log start fallito: ' . $e->getMessage());
         }
     }
 
@@ -84,7 +84,7 @@ final class SyncRunLogger
                 $file['content_type'] ?? $file['mime'] ?? $file['mime_type'] ?? null,
             ]);
         } catch (\Throwable $e) {
-            putmio_log('Sync DLOG item fallito: ' . $e->getMessage());
+            putmio_log('Sync log item fallito: ' . $e->getMessage());
         }
     }
 
@@ -134,7 +134,7 @@ final class SyncRunLogger
                 }
             }
         } catch (\Throwable $e) {
-            putmio_log('Sync DLOG count fallito: ' . $e->getMessage());
+            putmio_log('Sync log count fallito: ' . $e->getMessage());
         }
 
         return $counts;
@@ -167,7 +167,7 @@ final class SyncRunLogger
                 $this->runId,
             ]);
         } catch (\Throwable $e) {
-            putmio_log('Sync DLOG finish fallito: ' . $e->getMessage());
+            putmio_log('Sync log finish fallito: ' . $e->getMessage());
         }
 
         return $counts;
@@ -222,7 +222,7 @@ final class SyncRunLogger
                 $label = $username . ' #' . $friendId;
             }
         } catch (\Throwable $e) {
-            putmio_log('Sync DLOG friend lookup fallito: ' . $e->getMessage());
+            putmio_log('Sync log friend lookup fallito: ' . $e->getMessage());
         }
 
         return $this->friendAccountCache[$key] = $label;
