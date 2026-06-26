@@ -340,10 +340,19 @@ final class AdminController
                 putmio_asset('public/assets/classify-tmdb.js'),
                 ENT_QUOTES,
                 'UTF-8'
-            ) . '" defer></script>',
+            ) . '" defer></script>'
+                . '<script src="' . htmlspecialchars(
+                    putmio_asset('public/assets/series-merge.js'),
+                    ENT_QUOTES,
+                    'UTF-8'
+                ) . '" defer></script>',
             'putmioExtra' => [
                 'classifyTmdb' => [
                     'mediaIds' => array_map(static fn (array $row): int => (int) $row['id'], $items),
+                ],
+                'seriesMergeLabels' => [
+                    'running' => putmio_lang('series_merge_running'),
+                    'error' => putmio_lang('series_merge_error'),
                 ],
                 'classifyTmdbLabels' => [
                     'film' => putmio_lang('film'),

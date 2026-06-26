@@ -42,7 +42,7 @@ final class SeriesGrouper
             );
 
             $existingSeriesId = !empty($row['series_id']) ? (int) $row['series_id'] : null;
-            if ($existingSeriesId !== null && $this->shouldKeepSeriesAssignment($pdo, $existingSeriesId, $parsed['show_title'])) {
+            if ($existingSeriesId !== null && $this->shouldKeepSeriesAssignment($pdo, $existingSeriesId, $parsed['show_title'], $row)) {
                 $pdo->prepare(
                     'UPDATE `' . $mediaTable . '`
                      SET season_number = ?, episode_number = ?, title = ?, media_type = \'serie\', updated_at = NOW()
@@ -118,7 +118,7 @@ final class SeriesGrouper
         );
 
         $existingSeriesId = !empty($row['series_id']) ? (int) $row['series_id'] : null;
-        if ($existingSeriesId !== null && $this->shouldKeepSeriesAssignment($pdo, $existingSeriesId, $parsed['show_title'])) {
+        if ($existingSeriesId !== null && $this->shouldKeepSeriesAssignment($pdo, $existingSeriesId, $parsed['show_title'], $row)) {
             $pdo->prepare(
                 'UPDATE `' . $mediaTable . '`
                  SET season_number = ?, episode_number = ?, title = ?, media_type = \'serie\', updated_at = NOW()
@@ -167,10 +167,77 @@ final class SeriesGrouper
         }
     }
 
+    /**
+     * Unisce container serie con lo stesso tmdb_id TV, preferendo $preferMediaId se presente nel gruppo.
+     * Restituisce l'id del container tenuto.
+     */
+    public function mergeSeriesByTmdbId(int $tmdbId, int $preferMediaId): int
+    {
+        if ($tmdbId <= 0) {
+            return $preferMediaId;
+        }
+
+        $pdo = Database::pdo();
+        $mediaTable = Config::table('media_items');
+        $stmt = $pdo->prepare(
+            'SELECT id, title, tmdb_id, tmdb_type, classification_status
+             FROM `' . $mediaTable . '`
+             WHERE series_id IS NULL AND putio_file_id IS NULL
+               AND tmdb_id = ? AND tmdb_type = \'tv\''
+        );
+        $stmt->execute([$tmdbId]);
+        $members = $stmt->fetchAll();
+        if ($members === []) {
+            return $preferMediaId;
+        }
+
+        $preferInList = false;
+        foreach ($members as $member) {
+            if ((int) $member['id'] === $preferMediaId) {
+                $preferInList = true;
+                break;
+            }
+        }
+
+        if (count($members) === 1) {
+            return (int) $members[0]['id'];
+        }
+
+        $keepId = $this->pickSeriesKeeper($pdo, $members, $preferInList ? $preferMediaId : null);
+        foreach ($members as $member) {
+            $duplicateId = (int) $member['id'];
+            if ($duplicateId !== $keepId) {
+                $this->mergeSeriesContainers($pdo, $keepId, $duplicateId);
+            }
+        }
+
+        return $keepId;
+    }
+
+    /**
+     * Raggruppa gli episodi e unisce i container serie duplicati (per titolo o tmdb_id TV).
+     *
+     * @return array{merged: int, containers: int}
+     */
+    public function repairDuplicateSeries(): array
+    {
+        $pdo = Database::pdo();
+        $before = $this->countSeriesContainers($pdo);
+        $this->groupAll();
+        $after = $this->countSeriesContainers($pdo);
+
+        return [
+            'merged' => max(0, $before - $after),
+            'containers' => $after,
+        ];
+    }
+
     /** @param array<string, mixed> $episodeRow */
     private function resolveSeriesId(\PDO $pdo, string $showTitle, array $episodeRow): int
     {
-        $existing = $this->findSeriesStubId($pdo, $showTitle);
+        $tmdbId = $this->episodeTmdbId($episodeRow);
+        $tmdbType = $this->episodeTmdbType($episodeRow);
+        $existing = $this->findSeriesStubId($pdo, $showTitle, $tmdbId, $tmdbType);
         if ($existing !== null) {
             return $existing;
         }
@@ -185,11 +252,12 @@ final class SeriesGrouper
         return (int) $pdo->lastInsertId();
     }
 
-    private function shouldKeepSeriesAssignment(\PDO $pdo, int $seriesId, string $parsedShowTitle): bool
+    /** @param array<string, mixed> $episodeRow */
+    private function shouldKeepSeriesAssignment(\PDO $pdo, int $seriesId, string $parsedShowTitle, array $episodeRow = []): bool
     {
         $mediaTable = Config::table('media_items');
         $stmt = $pdo->prepare(
-            'SELECT id, title FROM `' . $mediaTable . '`
+            'SELECT id, title, tmdb_id, tmdb_type FROM `' . $mediaTable . '`
              WHERE id = ? AND series_id IS NULL AND putio_file_id IS NULL
              LIMIT 1'
         );
@@ -199,13 +267,30 @@ final class SeriesGrouper
             return false;
         }
 
-        $preferredId = $this->findSeriesStubId($pdo, $parsedShowTitle);
+        $tmdbId = $this->episodeTmdbId($episodeRow);
+        $tmdbType = $this->episodeTmdbType($episodeRow);
+        if ($tmdbId === null) {
+            $parentTmdb = (int) ($parent['tmdb_id'] ?? 0);
+            if ($parentTmdb > 0 && ($parent['tmdb_type'] ?? '') === 'tv') {
+                $tmdbId = $parentTmdb;
+                $tmdbType = 'tv';
+            }
+        }
+
+        $preferredId = $this->findSeriesStubId($pdo, $parsedShowTitle, $tmdbId, $tmdbType);
 
         return $preferredId === null || $preferredId === $seriesId;
     }
 
-    private function findSeriesStubId(\PDO $pdo, string $showTitle): ?int
+    private function findSeriesStubId(\PDO $pdo, string $showTitle, ?int $tmdbId = null, ?string $tmdbType = null): ?int
     {
+        if ($tmdbId !== null && $tmdbId > 0 && $tmdbType === 'tv') {
+            $byTmdb = $this->findSeriesStubIdByTmdb($pdo, $tmdbId);
+            if ($byTmdb !== null) {
+                return $byTmdb;
+            }
+        }
+
         $mediaTable = Config::table('media_items');
         $normalized = $this->normalizeTitle($showTitle);
         $stmt = $pdo->query(
@@ -222,14 +307,7 @@ final class SeriesGrouper
                 continue;
             }
 
-            $score = 0;
-            if (!empty($series['tmdb_id'])) {
-                $score += 100;
-            }
-            if (($series['classification_status'] ?? '') === 'classified') {
-                $score += 10;
-            }
-
+            $score = $this->seriesKeeperScore($pdo, $series);
             if ($score > $bestScore || ($score === $bestScore && ($bestId === null || (int) $series['id'] < $bestId))) {
                 $bestScore = $score;
                 $bestId = (int) $series['id'];
@@ -237,6 +315,24 @@ final class SeriesGrouper
         }
 
         return $bestId;
+    }
+
+    private function findSeriesStubIdByTmdb(\PDO $pdo, int $tmdbId): ?int
+    {
+        $mediaTable = Config::table('media_items');
+        $stmt = $pdo->prepare(
+            'SELECT id, title, tmdb_id, classification_status
+             FROM `' . $mediaTable . '`
+             WHERE series_id IS NULL AND putio_file_id IS NULL
+               AND tmdb_id = ? AND tmdb_type = \'tv\''
+        );
+        $stmt->execute([$tmdbId]);
+        $rows = $stmt->fetchAll();
+        if ($rows === []) {
+            return null;
+        }
+
+        return $this->pickSeriesKeeper($pdo, $rows);
     }
 
     /** @param array<string, mixed> $episodeRow */
@@ -321,6 +417,47 @@ final class SeriesGrouper
 
     private function consolidateDuplicateSeries(\PDO $pdo): void
     {
+        $this->consolidateDuplicateSeriesByTmdb($pdo);
+        $this->consolidateDuplicateSeriesByTitle($pdo);
+    }
+
+    private function consolidateDuplicateSeriesByTmdb(\PDO $pdo): void
+    {
+        $mediaTable = Config::table('media_items');
+        $stmt = $pdo->query(
+            'SELECT id, title, tmdb_id, tmdb_type, classification_status
+             FROM `' . $mediaTable . '`
+             WHERE series_id IS NULL AND putio_file_id IS NULL
+               AND tmdb_id IS NOT NULL AND tmdb_type = \'tv\''
+        );
+        $rows = $stmt ? $stmt->fetchAll() : [];
+
+        $groups = [];
+        foreach ($rows as $series) {
+            $tmdbId = (int) ($series['tmdb_id'] ?? 0);
+            if ($tmdbId <= 0) {
+                continue;
+            }
+            $groups[$tmdbId][] = $series;
+        }
+
+        foreach ($groups as $members) {
+            if (count($members) < 2) {
+                continue;
+            }
+
+            $keepId = $this->pickSeriesKeeper($pdo, $members);
+            foreach ($members as $member) {
+                $duplicateId = (int) $member['id'];
+                if ($duplicateId !== $keepId) {
+                    $this->mergeSeriesContainers($pdo, $keepId, $duplicateId);
+                }
+            }
+        }
+    }
+
+    private function consolidateDuplicateSeriesByTitle(\PDO $pdo): void
+    {
         $mediaTable = Config::table('media_items');
         $stmt = $pdo->query(
             'SELECT id, title, tmdb_id, classification_status
@@ -343,27 +480,151 @@ final class SeriesGrouper
                 continue;
             }
 
-            usort($members, static function (array $a, array $b): int {
-                $scoreA = (!empty($a['tmdb_id']) ? 100 : 0)
-                    + (($a['classification_status'] ?? '') === 'classified' ? 10 : 0);
-                $scoreB = (!empty($b['tmdb_id']) ? 100 : 0)
-                    + (($b['classification_status'] ?? '') === 'classified' ? 10 : 0);
-                if ($scoreA !== $scoreB) {
-                    return $scoreB <=> $scoreA;
+            $keepId = $this->pickSeriesKeeper($pdo, $members);
+            foreach ($members as $member) {
+                $duplicateId = (int) $member['id'];
+                if ($duplicateId !== $keepId) {
+                    $this->mergeSeriesContainers($pdo, $keepId, $duplicateId);
                 }
-
-                return (int) $a['id'] <=> (int) $b['id'];
-            });
-
-            $keepId = (int) $members[0]['id'];
-            foreach (array_slice($members, 1) as $duplicate) {
-                $duplicateId = (int) $duplicate['id'];
-                $pdo->prepare(
-                    'UPDATE `' . $mediaTable . '` SET series_id = ? WHERE series_id = ?'
-                )->execute([$keepId, $duplicateId]);
-                $pdo->prepare('DELETE FROM `' . $mediaTable . '` WHERE id = ?')->execute([$duplicateId]);
             }
         }
+    }
+
+    /** @param list<array<string, mixed>> $members */
+    private function pickSeriesKeeper(\PDO $pdo, array $members, ?int $preferId = null): int
+    {
+        if ($preferId !== null) {
+            foreach ($members as $member) {
+                if ((int) $member['id'] === $preferId) {
+                    return $preferId;
+                }
+            }
+        }
+
+        usort($members, function (array $a, array $b) use ($pdo): int {
+            $scoreA = $this->seriesKeeperScore($pdo, $a);
+            $scoreB = $this->seriesKeeperScore($pdo, $b);
+            if ($scoreA !== $scoreB) {
+                return $scoreB <=> $scoreA;
+            }
+
+            return (int) $a['id'] <=> (int) $b['id'];
+        });
+
+        return (int) $members[0]['id'];
+    }
+
+    /** @param array<string, mixed> $series */
+    private function seriesKeeperScore(\PDO $pdo, array $series): int
+    {
+        $score = 0;
+        if (!empty($series['tmdb_id'])) {
+            $score += 100;
+        }
+        if (($series['classification_status'] ?? '') === 'classified') {
+            $score += 10;
+        }
+        $score += min(50, $this->episodeCountForSeries($pdo, (int) $series['id']));
+
+        return $score;
+    }
+
+    private function episodeCountForSeries(\PDO $pdo, int $seriesId): int
+    {
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM `' . Config::table('media_items') . '` WHERE series_id = ?'
+        );
+        $stmt->execute([$seriesId]);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    private function mergeSeriesContainers(\PDO $pdo, int $keepId, int $duplicateId): void
+    {
+        if ($keepId === $duplicateId) {
+            return;
+        }
+
+        $mediaTable = Config::table('media_items');
+        $pdo->prepare(
+            'UPDATE `' . $mediaTable . '` SET series_id = ? WHERE series_id = ?'
+        )->execute([$keepId, $duplicateId]);
+
+        $mgTable = Config::table('media_genres');
+        $pdo->prepare(
+            'INSERT IGNORE INTO `' . $mgTable . '` (media_id, genre_id)
+             SELECT ?, genre_id FROM `' . $mgTable . '` WHERE media_id = ?'
+        )->execute([$keepId, $duplicateId]);
+
+        $tagsTable = Config::table('media_tags');
+        $pdo->prepare(
+            'INSERT IGNORE INTO `' . $tagsTable . '` (media_id, tag_id)
+             SELECT ?, tag_id FROM `' . $tagsTable . '` WHERE media_id = ?'
+        )->execute([$keepId, $duplicateId]);
+
+        $pdo->prepare(
+            'DELETE FROM `' . Config::table('watch_progress') . '` WHERE media_id = ?'
+        )->execute([$duplicateId]);
+
+        $this->fillMissingSeriesMetadata($pdo, $keepId, $duplicateId);
+        $pdo->prepare('DELETE FROM `' . $mediaTable . '` WHERE id = ?')->execute([$duplicateId]);
+    }
+
+    private function fillMissingSeriesMetadata(\PDO $pdo, int $keepId, int $duplicateId): void
+    {
+        $mediaTable = Config::table('media_items');
+        $keepStmt = $pdo->prepare('SELECT * FROM `' . $mediaTable . '` WHERE id = ? LIMIT 1');
+        $keepStmt->execute([$keepId]);
+        $keep = $keepStmt->fetch();
+        $dupStmt = $pdo->prepare('SELECT * FROM `' . $mediaTable . '` WHERE id = ? LIMIT 1');
+        $dupStmt->execute([$duplicateId]);
+        $duplicate = $dupStmt->fetch();
+        if (!$keep || !$duplicate) {
+            return;
+        }
+
+        $fields = [
+            'original_title', 'year', 'synopsis',
+            'poster_local_path', 'poster_url',
+            'backdrop_local_path', 'backdrop_url',
+            'tmdb_id', 'tmdb_type', 'imdb_id', 'duration_sec',
+        ];
+        $updates = [];
+        $params = [];
+        foreach ($fields as $field) {
+            if (empty($keep[$field]) && !empty($duplicate[$field])) {
+                $updates[] = '`' . $field . '` = ?';
+                $params[] = $duplicate[$field];
+            }
+        }
+        if (($keep['classification_status'] ?? '') !== 'classified'
+            && ($duplicate['classification_status'] ?? '') === 'classified') {
+            $updates[] = 'classification_status = ?';
+            $params[] = 'classified';
+        }
+        if ($updates === []) {
+            return;
+        }
+
+        $updates[] = 'updated_at = NOW()';
+        $params[] = $keepId;
+        $pdo->prepare(
+            'UPDATE `' . $mediaTable . '` SET ' . implode(', ', $updates) . ' WHERE id = ?'
+        )->execute($params);
+    }
+
+    /** @param array<string, mixed> $episodeRow */
+    private function episodeTmdbId(array $episodeRow): ?int
+    {
+        $tmdbId = (int) ($episodeRow['tmdb_id'] ?? 0);
+
+        return $tmdbId > 0 ? $tmdbId : null;
+    }
+
+    /** @param array<string, mixed> $episodeRow */
+    private function episodeTmdbType(array $episodeRow): ?string
+    {
+        return ($episodeRow['tmdb_type'] ?? '') === 'tv' ? 'tv' : null;
     }
 
     public function syncSeriesFromEpisodes(): void
@@ -433,6 +694,16 @@ final class SeriesGrouper
         $title = preg_replace('/\s+/u', ' ', $title) ?? $title;
 
         return trim($title);
+    }
+
+    private function countSeriesContainers(\PDO $pdo): int
+    {
+        $stmt = $pdo->query(
+            'SELECT COUNT(*) FROM `' . Config::table('media_items') . '`
+             WHERE series_id IS NULL AND putio_file_id IS NULL'
+        );
+
+        return (int) ($stmt ? $stmt->fetchColumn() : 0);
     }
 
     /**

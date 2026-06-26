@@ -103,6 +103,7 @@ final class Router
                 '/api/watch-progress' => [ApiController::class, 'watchProgress'],
                 '/api/tmdb/apply' => [ApiController::class, 'tmdbApply'],
                 '/api/tmdb/classify-apply' => [ApiController::class, 'tmdbClassifyApplyBulk'],
+                '/api/series/merge-duplicates' => [ApiController::class, 'mergeDuplicateSeries'],
                 '/api/putio/sync-friends' => [ApiController::class, 'putioSyncFriends'],
                 '/api/putio/sync' => [ApiController::class, 'putioSync'],
                 '/api/subtitles/download' => [SubtitleController::class, 'download'],

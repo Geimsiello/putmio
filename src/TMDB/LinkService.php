@@ -68,6 +68,10 @@ final class LinkService
         $catalog->syncMediaGenres($mediaId, $details['genres'] ?? []);
 
         $grouper = new SeriesGrouper();
+        if ($tmdbType === 'tv') {
+            $mediaId = $grouper->mergeSeriesByTmdbId($tmdbId, $mediaId);
+        }
+
         $media = $catalog->findMedia($mediaId);
         if ($media && $catalog->isSeries($media)) {
             $catalog->syncSeriesMetadataToEpisodes($mediaId);
@@ -75,7 +79,11 @@ final class LinkService
             $grouper->groupMedia($mediaId);
             $updated = $catalog->findMedia($mediaId);
             if ($updated && !empty($updated['series_id'])) {
-                $catalog->syncSeriesMetadataToEpisodes((int) $updated['series_id']);
+                $seriesId = (int) $updated['series_id'];
+                if ($tmdbType === 'tv') {
+                    $seriesId = $grouper->mergeSeriesByTmdbId($tmdbId, $seriesId);
+                }
+                $catalog->syncSeriesMetadataToEpisodes($seriesId);
             }
         }
 

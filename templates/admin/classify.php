@@ -54,5 +54,25 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
   <div id="classify-tmdb-list" class="space-y-3"></div>
 </section>
 <?php else: ?>
-<p class="text-on-surface-variant"><?= putmio_e(putmio_lang('classify_empty')) ?></p>
+<p class="text-on-surface-variant mb-8"><?= putmio_e(putmio_lang('classify_empty')) ?></p>
 <?php endif; ?>
+
+<section class="rounded-xl border border-outline-variant/30 bg-surface-container p-5 md:p-6">
+  <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div class="min-w-0">
+      <h2 class="text-headline-md font-headline-md text-on-surface mb-1"><?= putmio_e(putmio_lang('series_merge_title')) ?></h2>
+      <p class="text-body-md text-on-surface-variant"><?= putmio_e(putmio_lang('series_merge_desc')) ?></p>
+      <p id="series-merge-status" class="text-sm text-on-surface-variant mt-3 hidden" role="status" aria-live="polite"></p>
+    </div>
+    <div class="flex flex-wrap gap-2 shrink-0">
+      <button
+        type="button"
+        id="series-merge-btn"
+        class="px-4 py-2.5 rounded-xl border border-outline-variant/40 text-on-surface font-label-md text-sm inline-flex items-center gap-2 hover:bg-surface-variant/30 transition-all active:scale-95"
+      >
+        <span id="series-merge-icon" class="material-symbols-outlined text-[18px]" aria-hidden="true">merge</span>
+        <?= putmio_e(putmio_lang('series_merge_btn')) ?>
+      </button>
+    </div>
+  </div>
+</section>

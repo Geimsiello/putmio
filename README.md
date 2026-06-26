@@ -78,7 +78,7 @@ Il token è in **Admin → Impostazioni** (generato in installazione).
 - **Accesso da TV / altro dispositivo**: tab «QR / TV» nella pagina login con codice e QR (su Smart TV LG si apre automaticamente); autorizzazione dal telefono già connesso (`/authorize-device`); dopo l’autorizzazione il dispositivo resta associato **30 giorni** (revoca al logout o al cambio password)
 - **Smart TV LG (webOS):** il browser integrato può non supportare la proprietà CSS `gap`; PutMio applica fallback con margini (`@supports`) così catalogo, slider e header mantengono le spaziature corrette
 - Catalogo film / serie / animazione con classificazione TMDB (scansione e associazione in blocco)
-- Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file; se manca il titolo serie nel file, viene usato il nome della cartella padre su put.io)
+- Episodi TV raggruppati automaticamente per serie (pattern `S01E03` nel nome file; se manca il titolo serie nel file, viene usato il nome della cartella padre su put.io); stagioni importate in momenti diversi vengono unite sotto un unico container se condividono lo stesso `tmdb_id` TV. In **Admin → Classifica** è disponibile anche **Unifica serie duplicate** per correggere manualmente duplicati già presenti
 - TMDB on-demand (admin)
 - Player **Video.js** con proxy streaming Range HTTP, **HLS put.io** (selezione tracce audio multi-lingua) e **sottotitoli OpenSubtitles** (ricerca, download condiviso, offset sync per utente)
 - Sezione **In corso** con ripresa visione

@@ -13,6 +13,7 @@ use PutMio\Config;
 use PutMio\TMDB\Client as TmdbClient;
 use PutMio\TMDB\ClassifyMatcher;
 use PutMio\TMDB\LinkService;
+use PutMio\Media\SeriesGrouper;
 use PutMio\View;
 
 final class ApiController
@@ -241,6 +242,33 @@ final class ApiController
             'errors' => $errors,
             'message' => putmio_lang('classify_tmdb_applied', ['count' => (string) count($applied)]),
         ]);
+    }
+
+    public function mergeDuplicateSeries(): void
+    {
+        Session::requireAdmin();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        try {
+            $result = (new SeriesGrouper())->repairDuplicateSeries();
+            $merged = (int) ($result['merged'] ?? 0);
+            $containers = (int) ($result['containers'] ?? 0);
+            $message = $merged > 0
+                ? putmio_lang('series_merge_done', [
+                    'merged' => (string) $merged,
+                    'containers' => (string) $containers,
+                ])
+                : putmio_lang('series_merge_none', ['containers' => (string) $containers]);
+
+            putmio_json([
+                'ok' => true,
+                'merged' => $merged,
+                'containers' => $containers,
+                'message' => $message,
+            ]);
+        } catch (\Throwable $e) {
+            putmio_json(['ok' => false, 'error' => $e->getMessage()], 500);
+        }
     }
 
     public function putioSyncFriends(): void
