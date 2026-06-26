@@ -247,7 +247,7 @@ final class AdminController
         Session::requireAdmin();
         Csrf::requireValid($_POST['_csrf'] ?? null);
         try {
-            $result = (new SyncService())->sync();
+            $result = (new SyncService(null, null, 'admin', (int) Session::userId()))->sync();
             $msg = putmio_lang('putio_sync_toast', [
                 'imported' => (string) ($result['imported'] ?? 0),
                 'removed' => (string) ($result['removed'] ?? 0),
@@ -257,6 +257,54 @@ final class AdminController
             $_SESSION['flash_error'] = $e->getMessage();
         }
         putmio_redirect('admin/impostazioni');
+    }
+
+    public function syncLog(): void
+    {
+        Session::requireAdmin();
+
+        $pdo = Database::pdo();
+        $runsTable = Config::table('putio_sync_runs');
+        $itemsTable = Config::table('putio_sync_run_items');
+        $usersTable = Config::table('users');
+
+        $runs = $pdo->query(
+            "SELECT r.*, u.display_name AS triggered_by_name, u.email AS triggered_by_email
+             FROM `{$runsTable}` r
+             LEFT JOIN `{$usersTable}` u ON u.id = r.triggered_by_user_id
+             ORDER BY r.started_at DESC, r.id DESC
+             LIMIT 30"
+        )->fetchAll();
+
+        $itemsByRun = [];
+        $runIds = array_map(static fn (array $row): int => (int) $row['id'], $runs);
+        if ($runIds !== []) {
+            $placeholders = implode(',', array_fill(0, count($runIds), '?'));
+            $stmt = $pdo->prepare(
+                "SELECT *
+                 FROM `{$itemsTable}`
+                 WHERE run_id IN ({$placeholders})
+                 ORDER BY FIELD(action, 'added', 'removed', 'updated'), is_folder ASC, name ASC"
+            );
+            $stmt->execute($runIds);
+            foreach ($stmt->fetchAll() as $item) {
+                $runId = (int) ($item['run_id'] ?? 0);
+                if (!isset($itemsByRun[$runId])) {
+                    $itemsByRun[$runId] = ['added' => [], 'removed' => [], 'updated' => []];
+                }
+                $action = (string) ($item['action'] ?? '');
+                if (!isset($itemsByRun[$runId][$action])) {
+                    $itemsByRun[$runId][$action] = [];
+                }
+                $itemsByRun[$runId][$action][] = $item;
+            }
+        }
+
+        View::render('admin/sync-log', [
+            'title' => putmio_lang('admin_sync_log'),
+            'runs' => $runs,
+            'itemsByRun' => $itemsByRun,
+        ]);
     }
 
     public function classify(): void

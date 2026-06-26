@@ -42,6 +42,7 @@ final class Migrator
             }
 
             self::runPutioFriendsMigration($pdo);
+            self::runPutioSyncLogMigration($pdo);
             self::runSubtitlesMigration($pdo);
             self::runRememberTokensMigration($pdo);
             self::runDeviceLoginMigration($pdo);
@@ -240,6 +241,55 @@ final class Migrator
                  ADD KEY `idx_shared_by` (`shared_by_username`)'
             );
         }
+    }
+
+    private static function runPutioSyncLogMigration(\PDO $pdo): void
+    {
+        $runsTable = Config::table('putio_sync_runs');
+        $itemsTable = Config::table('putio_sync_run_items');
+
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS `' . $runsTable . '` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `started_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                `finished_at` DATETIME NULL,
+                `trigger_source` ENUM(\'admin\',\'cron_http\',\'cron_cli\',\'unknown\') NOT NULL DEFAULT \'unknown\',
+                `triggered_by_user_id` INT UNSIGNED NULL,
+                `status` ENUM(\'running\',\'success\',\'error\') NOT NULL DEFAULT \'running\',
+                `error_message` TEXT NULL,
+                `putio_username` VARCHAR(120) NULL,
+                `putio_user_id` BIGINT NULL,
+                `count_added` INT UNSIGNED NOT NULL DEFAULT 0,
+                `count_updated` INT UNSIGNED NOT NULL DEFAULT 0,
+                `count_removed` INT UNSIGNED NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`),
+                KEY `idx_started` (`started_at`),
+                KEY `idx_status` (`status`),
+                KEY `idx_triggered_by` (`triggered_by_user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS `' . $itemsTable . '` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `run_id` INT UNSIGNED NOT NULL,
+                `action` ENUM(\'added\',\'updated\',\'removed\') NOT NULL,
+                `putio_id` BIGINT NOT NULL,
+                `name` VARCHAR(512) NOT NULL,
+                `is_folder` TINYINT(1) NOT NULL DEFAULT 0,
+                `is_shared` TINYINT(1) NOT NULL DEFAULT 0,
+                `shared_by_username` VARCHAR(120) NULL,
+                `owner_username` VARCHAR(120) NOT NULL,
+                `owner_account` VARCHAR(160) NOT NULL,
+                `content_type` VARCHAR(120) NULL,
+                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                KEY `idx_run` (`run_id`),
+                KEY `idx_run_action` (`run_id`, `action`),
+                KEY `idx_putio_id` (`putio_id`),
+                KEY `idx_owner` (`owner_username`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
     }
 
     private static function runBackdropsMigration(\PDO $pdo): void

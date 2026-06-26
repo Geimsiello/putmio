@@ -18,7 +18,7 @@ final class CronController
         }
 
         try {
-            $result = (new SyncService())->sync();
+            $result = (new SyncService(null, null, 'cron_http'))->sync();
             putmio_json([
                 'ok' => true,
                 'imported' => $result['imported'],
