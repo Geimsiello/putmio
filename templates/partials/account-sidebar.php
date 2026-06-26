@@ -2,7 +2,9 @@
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url'), '/');
+$sectionNavPart = $sectionNavPart ?? 'all';
 ?>
+<?php if ($sectionNavPart !== 'mobile'): ?>
 <aside class="account-sidebar hidden md:flex fixed left-0 top-16 bottom-0 z-40 flex-col py-6 w-64 bg-surface-container-low border-r border-surface-variant/30 shadow-xl">
   <nav class="flex-1 space-y-1 px-3" aria-label="<?= putmio_e(putmio_lang('account_nav_aria')) ?>">
     <a href="<?= putmio_e($appUrl) ?>/account" class="<?= putmio_account_nav_link_class('general') ?>">
@@ -28,7 +30,9 @@ $appUrl = rtrim(Config::get('app.url'), '/');
     </a>
   </nav>
 </aside>
+<?php endif; ?>
 
+<?php if ($sectionNavPart !== 'desktop'): ?>
 <?php
 $accountMobileLinks = [
   [
@@ -72,3 +76,4 @@ $mobileSectionNav = [
 require putmio_base_path() . '/templates/partials/section-mobile-nav.php';
 unset($mobileSectionNav, $accountMobileLinks, $accountCurrentSection, $accountCurrentLink);
 ?>
+<?php endif; ?>
