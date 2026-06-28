@@ -172,7 +172,7 @@ $playerPreload = putmio_player_preload($playerPreload ?? null);
     <button
       type="button"
       data-pm-watch-action="complete"
-      class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest hover:border-primary transition-all active:scale-95"
+      class="pm-btn-outline pm-btn-outline--lg"
     >
       <span class="material-symbols-outlined">check_circle</span>
       <?= putmio_lang('mark_watched') ?>
@@ -184,7 +184,7 @@ $playerPreload = putmio_player_preload($playerPreload ?? null);
       type="button"
       id="player-restart"
       data-pm-watch-action="reset"
-      class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest hover:border-primary transition-all active:scale-95"
+      class="pm-btn-outline pm-btn-outline--lg"
     >
       <span class="material-symbols-outlined">replay</span>
       <?= putmio_lang('restart_from_beginning') ?>
@@ -196,7 +196,7 @@ $playerPreload = putmio_player_preload($playerPreload ?? null);
       <?php if ($prevEpisode): ?>
       <a
         href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $prevEpisode['id'] ?>"
-        class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest transition-all active:scale-95"
+        class="pm-btn-outline pm-btn-outline--lg"
       >
         <span class="material-symbols-outlined">skip_previous</span>
         <?= putmio_lang('previous_episode') ?>
@@ -205,7 +205,7 @@ $playerPreload = putmio_player_preload($playerPreload ?? null);
       <?php if ($nextEpisode): ?>
       <a
         href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $nextEpisode['id'] ?>"
-        class="inline-flex items-center gap-2 px-6 py-3 rounded-lg border border-outline text-on-surface font-headline-md hover:bg-surface-container-highest transition-all active:scale-95"
+        class="pm-btn-outline pm-btn-outline--lg"
       >
         <span class="material-symbols-outlined">skip_next</span>
         <?= putmio_lang('next_episode') ?>

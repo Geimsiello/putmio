@@ -158,7 +158,7 @@ if (!$isSeries) {
         <button
           type="button"
           data-pm-watch-action="complete"
-          class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-outline-variant/50 text-on-surface font-label-md text-label-md hover:bg-surface-variant/30 transition-all active:scale-95"
+          class="pm-btn-outline pm-btn-outline--lg flex-1"
         >
           <span class="material-symbols-outlined text-[20px]">check_circle</span>
           <?= putmio_lang('mark_watched') ?>
@@ -169,7 +169,7 @@ if (!$isSeries) {
       <button
         type="button"
         data-pm-watch-action="reset"
-        class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-outline-variant/40 text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/20 hover:text-on-surface transition-all active:scale-95"
+        class="pm-btn-outline pm-btn-outline--lg w-full"
       >
         <span class="material-symbols-outlined text-[20px]">restart_alt</span>
         <?= putmio_lang('restart_from_beginning') ?>

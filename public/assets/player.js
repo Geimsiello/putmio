@@ -41,6 +41,7 @@
 
   const startAt = window.PUTMIO.startAt || 0;
   const knownDuration = window.PUTMIO.durationSec || 0;
+  const playerWrap = document.querySelector('.putmio-player-wrap');
   const actionsRoot = document.querySelector('[data-player-actions]');
   const sourceSelect = document.getElementById('player-source-select');
   const audioRoot = document.getElementById('player-audio-tracks');
@@ -61,7 +62,10 @@
   let tvImmersiveActive = false;
   let tvLastKeyStamp = { code: 0, at: 0 };
 
-  function setTvPlayerLoading(isLoading) {
+  function setPlayerLoading(isLoading) {
+    if (playerWrap) {
+      playerWrap.classList.toggle('putmio-player-wrap--loading', isLoading);
+    }
     const shell = document.querySelector('.putmio-player-tv');
     if (shell) {
       shell.classList.toggle('putmio-player-tv--loading', isLoading);
@@ -82,8 +86,8 @@
     const shell = document.querySelector('.putmio-player-tv');
     if (shell) {
       shell.classList.add('putmio-player-tv--idle');
-      shell.classList.remove('putmio-player-tv--loading');
     }
+    setPlayerLoading(false);
   }
 
   /** Fullscreen solo su dispositivi TV reali e quando la riproduzione è effettivamente partita. */
@@ -95,7 +99,7 @@
       return;
     }
     tvImmersiveActive = true;
-    setTvPlayerLoading(false);
+    setPlayerLoading(false);
     enterTvImmersive();
     scheduleTvFullscreenRetry();
   }
@@ -243,9 +247,7 @@
 
     started = true;
     loading = true;
-    if (tvFullscreenEnabled) {
-      setTvPlayerLoading(true);
-    }
+    setPlayerLoading(true);
     if (!hasSource || forceNewSource) {
       setSource();
     }
@@ -344,10 +346,10 @@
     if (at > 0) {
       player.currentTime(at);
     }
-    player.play().catch(function () {
-      if (tvFullscreenEnabled) {
-        setTvPlayerLoading(false);
-      }
+    player.play().then(function () {
+      setPlayerLoading(false);
+    }).catch(function () {
+      setPlayerLoading(false);
     });
   }
 
@@ -390,7 +392,7 @@
     }
 
     bigPlay.el().addEventListener('click', function (event) {
-      if (started || loading) {
+      if (loading) {
         return;
       }
       event.preventDefault();
@@ -412,6 +414,7 @@
     }
 
     if (leaving || errorRetries >= MAX_ERROR_RETRIES) {
+      setPlayerLoading(false);
       showStreamError();
       return;
     }
@@ -434,8 +437,6 @@
       }
     }, 800);
   });
-
-  const playerWrap = document.querySelector('.putmio-player-wrap');
 
   function ensureStreamErrorEl() {
     if (!playerWrap) return null;
@@ -545,6 +546,7 @@
       return;
     }
     setPlayerPlayingState(true);
+    setPlayerLoading(false);
   });
 
   player.on('pause', function () {
