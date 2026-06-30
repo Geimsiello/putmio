@@ -50,7 +50,7 @@ final class SyncService
         }
 
         $conn = $this->client->getConnection();
-        $this->logger->start($conn);
+        $this->logger->start($conn, 'subtitles');
 
         try {
             if (!$conn || empty($conn['access_token_enc'])) {
@@ -58,7 +58,10 @@ final class SyncService
             }
 
             $subtitleSync = (new SubtitleSync())->syncAll();
-            $this->logger->finishSuccess();
+            $this->logger->finishSuccess([
+                'added' => $subtitleSync['imported'],
+                'removed' => $subtitleSync['removed'],
+            ]);
 
             return [
                 'imported' => 0,

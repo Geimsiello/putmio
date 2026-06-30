@@ -24,6 +24,9 @@ final class SyncRunLogger
     /** @var array<string, string> */
     private $friendAccountCache = [];
 
+    /** @var string */
+    private $syncKind = 'catalog';
+
     public function __construct(string $triggerSource = 'unknown', ?int $triggeredByUserId = null)
     {
         $allowed = ['admin', 'cron_http', 'cron_cli', 'cron_subtitles_http', 'cron_subtitles_cli', 'unknown'];
@@ -32,19 +35,21 @@ final class SyncRunLogger
     }
 
     /** @param array<string, mixed>|null $connection */
-    public function start(?array $connection): void
+    public function start(?array $connection, string $syncKind = 'catalog'): void
     {
         $this->connection = $connection ?? [];
+        $this->syncKind = in_array($syncKind, ['catalog', 'subtitles'], true) ? $syncKind : 'catalog';
 
         try {
             $pdo = Database::pdo();
             $stmt = $pdo->prepare(
                 'INSERT INTO `' . Config::table('putio_sync_runs') . '`
-                (started_at, trigger_source, triggered_by_user_id, status, putio_username, putio_user_id)
-                VALUES (NOW(), ?, ?, \'running\', ?, ?)'
+                (started_at, trigger_source, sync_kind, triggered_by_user_id, status, putio_username, putio_user_id)
+                VALUES (NOW(), ?, ?, ?, \'running\', ?, ?)'
             );
             $stmt->execute([
                 $this->triggerSource,
+                $this->syncKind,
                 $this->triggeredByUserId,
                 $this->connection['putio_username'] ?? null,
                 $this->connection['putio_user_id'] ?? null,
@@ -101,9 +106,13 @@ final class SyncRunLogger
         }
     }
 
-    public function finishSuccess(): array
+    /**
+     * @param array{added?: int, updated?: int, removed?: int}|null $countOverrides
+     * @return array{added: int, updated: int, removed: int}
+     */
+    public function finishSuccess(?array $countOverrides = null): array
     {
-        return $this->finish('success', null);
+        return $this->finish('success', null, $countOverrides);
     }
 
     public function finishError(\Throwable $e): array
@@ -141,9 +150,16 @@ final class SyncRunLogger
     }
 
     /** @return array{added: int, updated: int, removed: int} */
-    private function finish(string $status, ?string $errorMessage): array
+    private function finish(string $status, ?string $errorMessage, ?array $countOverrides = null): array
     {
         $counts = $this->counts();
+        if ($countOverrides !== null) {
+            foreach (['added', 'updated', 'removed'] as $key) {
+                if (array_key_exists($key, $countOverrides)) {
+                    $counts[$key] = max(0, (int) $countOverrides[$key]);
+                }
+            }
+        }
         if ($this->runId === null) {
             return $counts;
         }

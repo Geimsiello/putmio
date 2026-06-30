@@ -170,7 +170,7 @@ final class PlayerController
                 'putioConnected' => $putioConnected,
                 'showSourcePicker' => $showSourcePicker,
                 'nextEpisode' => $nextEpisodePayload,
-                'tvMode' => putmio_tv_mode(),
+                'tvMode' => putmio_is_tv_user_agent(),
                 'isTvDevice' => putmio_is_tv_user_agent(),
                 'playerLabels' => [
                     'nextUp' => putmio_lang('player_next_up'),

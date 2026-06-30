@@ -10,6 +10,37 @@ $adminPageTitle = putmio_lang('admin_sync_log_title');
 $adminPageDescription = putmio_lang('admin_sync_log_desc');
 require putmio_base_path() . '/templates/partials/admin-header.php';
 
+$kindLabel = static function (string $kind): string {
+    $key = 'admin_sync_kind_' . $kind;
+    $label = putmio_lang($key);
+    return $label !== $key ? $label : $kind;
+};
+
+$resolveSyncKind = static function (array $run): string {
+    $kind = (string) ($run['sync_kind'] ?? '');
+    if ($kind !== '') {
+        return $kind;
+    }
+    $trigger = (string) ($run['trigger_source'] ?? '');
+    if (str_contains($trigger, 'subtitles')) {
+        return 'subtitles';
+    }
+
+    return 'catalog';
+};
+
+$kindClass = static function (string $kind): string {
+    if ($kind === 'subtitles') {
+        return 'bg-secondary/15 border-secondary/30 text-secondary';
+    }
+
+    return 'bg-tertiary/15 border-tertiary/30 text-tertiary';
+};
+
+$kindIcon = static function (string $kind): string {
+    return $kind === 'subtitles' ? 'subtitles' : 'video_library';
+};
+
 $triggerLabel = static function (string $trigger): string {
     $key = 'admin_sync_trigger_' . $trigger;
     $label = putmio_lang($key);
@@ -102,6 +133,13 @@ $renderItems = static function (string $action, array $items): void {
     $updated = (int) ($run['count_updated'] ?? count($items['updated'] ?? []));
     $status = (string) ($run['status'] ?? 'running');
     $trigger = (string) ($run['trigger_source'] ?? 'unknown');
+    $syncKind = $resolveSyncKind($run);
+    $addedLabel = $syncKind === 'subtitles'
+        ? putmio_lang('admin_sync_subtitles_imported')
+        : putmio_lang('admin_sync_added');
+    $removedLabel = $syncKind === 'subtitles'
+        ? putmio_lang('admin_sync_subtitles_removed')
+        : putmio_lang('admin_sync_removed');
     $triggeredBy = trim((string) ($run['triggered_by_name'] ?? ''));
     if ($triggeredBy === '') {
         $triggeredBy = trim((string) ($run['triggered_by_email'] ?? ''));
@@ -111,6 +149,10 @@ $renderItems = static function (string $action, array $items): void {
     <summary class="cursor-pointer list-none px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div class="min-w-0">
         <div class="flex flex-wrap items-center gap-2 mb-2">
+          <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-sm font-label-sm <?= putmio_e($kindClass($syncKind)) ?>">
+            <span class="material-symbols-outlined text-[16px]"><?= putmio_e($kindIcon($syncKind)) ?></span>
+            <?= putmio_e($kindLabel($syncKind)) ?>
+          </span>
           <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-label-sm font-label-sm <?= putmio_e($statusClass($status)) ?>">
             <span class="material-symbols-outlined text-[16px]"><?= $status === 'success' ? 'check_circle' : ($status === 'error' ? 'error' : 'pending') ?></span>
             <?= putmio_e($statusLabel($status)) ?>
@@ -139,11 +181,11 @@ $renderItems = static function (string $action, array $items): void {
       <div class="flex items-center gap-3 shrink-0">
         <div class="text-center rounded-xl bg-primary/10 border border-primary/20 px-4 py-2">
           <p class="text-headline-sm font-headline-sm text-primary"><?= $added ?></p>
-          <p class="text-label-sm font-label-sm text-primary/80"><?= putmio_e(putmio_lang('admin_sync_added')) ?></p>
+          <p class="text-label-sm font-label-sm text-primary/80"><?= putmio_e($addedLabel) ?></p>
         </div>
         <div class="text-center rounded-xl bg-error/10 border border-error/20 px-4 py-2">
           <p class="text-headline-sm font-headline-sm text-error"><?= $removed ?></p>
-          <p class="text-label-sm font-label-sm text-error/80"><?= putmio_e(putmio_lang('admin_sync_removed')) ?></p>
+          <p class="text-label-sm font-label-sm text-error/80"><?= putmio_e($removedLabel) ?></p>
         </div>
         <span class="material-symbols-outlined text-on-surface-variant">expand_more</span>
       </div>
@@ -154,10 +196,19 @@ $renderItems = static function (string $action, array $items): void {
         <?= putmio_e((string) $run['error_message']) ?>
       </div>
       <?php endif; ?>
+      <?php if ($syncKind === 'catalog'): ?>
       <?php $renderItems('added', $items['added'] ?? []); ?>
       <?php $renderItems('removed', $items['removed'] ?? []); ?>
       <?php if ($updated > 0): ?>
       <?php $renderItems('updated', $items['updated'] ?? []); ?>
+      <?php endif; ?>
+      <?php else: ?>
+      <p class="text-body-sm text-on-surface-variant px-1">
+        <?= putmio_e(putmio_lang('admin_sync_subtitles_summary', [
+            'imported' => (string) $added,
+            'removed' => (string) $removed,
+        ])) ?>
+      </p>
       <?php endif; ?>
     </div>
   </details>

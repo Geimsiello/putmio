@@ -43,6 +43,7 @@ final class Migrator
 
             self::runPutioFriendsMigration($pdo);
             self::runPutioSyncLogMigration($pdo);
+            self::runPutioSyncKindMigration($pdo);
             self::runSubtitlesMigration($pdo);
             self::runRememberTokensMigration($pdo);
             self::runDeviceLoginMigration($pdo);
@@ -55,6 +56,40 @@ final class Migrator
             self::runPutioSubtitleIntegrityMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
+        }
+    }
+
+    private static function runPutioSyncKindMigration(\PDO $pdo): void
+    {
+        $runsTable = Config::table('putio_sync_runs');
+
+        try {
+            $pdo->exec(
+                'ALTER TABLE `' . $runsTable . '`
+                 MODIFY `trigger_source` ENUM(
+                    \'admin\',\'cron_http\',\'cron_cli\',
+                    \'cron_subtitles_http\',\'cron_subtitles_cli\',\'unknown\'
+                 ) NOT NULL DEFAULT \'unknown\''
+            );
+        } catch (\Throwable $e) {
+            self::logMigrationError($e);
+        }
+
+        if (!self::columnExists($pdo, $runsTable, 'sync_kind')) {
+            try {
+                $pdo->exec(
+                    'ALTER TABLE `' . $runsTable . '`
+                     ADD COLUMN `sync_kind` ENUM(\'catalog\',\'subtitles\') NOT NULL DEFAULT \'catalog\'
+                     AFTER `trigger_source`'
+                );
+                $pdo->exec(
+                    'UPDATE `' . $runsTable . '`
+                     SET `sync_kind` = \'subtitles\'
+                     WHERE `trigger_source` IN (\'cron_subtitles_http\', \'cron_subtitles_cli\')'
+                );
+            } catch (\Throwable $e) {
+                self::logMigrationError($e);
+            }
         }
     }
 
@@ -256,7 +291,8 @@ final class Migrator
                 `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
                 `started_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `finished_at` DATETIME NULL,
-                `trigger_source` ENUM(\'admin\',\'cron_http\',\'cron_cli\',\'unknown\') NOT NULL DEFAULT \'unknown\',
+                `trigger_source` ENUM(\'admin\',\'cron_http\',\'cron_cli\',\'cron_subtitles_http\',\'cron_subtitles_cli\',\'unknown\') NOT NULL DEFAULT \'unknown\',
+                `sync_kind` ENUM(\'catalog\',\'subtitles\') NOT NULL DEFAULT \'catalog\',
                 `triggered_by_user_id` INT UNSIGNED NULL,
                 `status` ENUM(\'running\',\'success\',\'error\') NOT NULL DEFAULT \'running\',
                 `error_message` TEXT NULL,
