@@ -872,6 +872,36 @@ function putmio_user_role_label(string $role): string
     return $role;
 }
 
+/** ID sorgente put.io: {putio_file_id}:{subtitle_key} */
+function putmio_putio_subtitle_source_id(int $putioFileId, string $key): string
+{
+    return $putioFileId . ':' . trim($key);
+}
+
+/** Estrae la chiave put.io grezza da source_file_id (supporta formato legacy). */
+function putmio_putio_subtitle_bare_key(string $sourceFileId): string
+{
+    $sourceFileId = trim($sourceFileId);
+    if ($sourceFileId === '') {
+        return '';
+    }
+
+    if (preg_match('/^\d+:(.+)$/', $sourceFileId, $matches) === 1) {
+        return $matches[1];
+    }
+
+    return $sourceFileId;
+}
+
+/** @param list<string> $keys */
+function putmio_putio_subtitle_sync_hash(int $putioFileId, array $keys): string
+{
+    $normalized = array_values(array_unique(array_map(static fn (string $key): string => trim($key), $keys)));
+    sort($normalized, SORT_STRING);
+
+    return hash('sha256', $putioFileId . '|' . implode(',', $normalized));
+}
+
 /** Normalizza la lingua restituita da put.io (nome o codice) in codice ISO 639-1. */
 function putmio_putio_subtitle_language_code(string $language): string
 {

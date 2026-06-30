@@ -189,19 +189,21 @@ final class SubtitleService
         return $row;
     }
 
-    public function prunePutioNotInKeys(int $mediaId, array $keys): int
+    public function prunePutioNotInKeys(int $mediaId, int $putioFileId, array $bareKeys): int
     {
-        $keys = array_map(static fn ($key): string => (string) $key, $keys);
+        $bareKeys = array_values(array_unique(array_map(static fn ($key): string => trim((string) $key), $bareKeys)));
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
             'SELECT id, source_file_id FROM `' . Config::table('media_subtitles') . '`
-             WHERE media_id = ? AND source = \'putio\''
+             WHERE media_id = ? AND source = \'putio\'
+               AND (putio_file_id IS NULL OR putio_file_id = ?)'
         );
-        $stmt->execute([$mediaId]);
+        $stmt->execute([$mediaId, $putioFileId]);
 
         $removed = 0;
         foreach ($stmt->fetchAll() ?: [] as $row) {
-            if (in_array((string) $row['source_file_id'], $keys, true)) {
+            $bareKey = putmio_putio_subtitle_bare_key((string) $row['source_file_id']);
+            if (in_array($bareKey, $bareKeys, true)) {
                 continue;
             }
             $this->delete((int) $row['id']);
@@ -209,6 +211,243 @@ final class SubtitleService
         }
 
         return $removed;
+    }
+
+    /**
+     * @return array{removed: int, migrated: int}
+     */
+    public function repairPutioIntegrity(): array
+    {
+        $pdo = Database::pdo();
+        $subtitlesTable = Config::table('media_subtitles');
+        $mediaTable = Config::table('media_items');
+        $filesTable = Config::table('putio_files');
+
+        $removed = 0;
+        $migrated = 0;
+
+        $stmt = $pdo->query(
+            'SELECT ms.id, ms.media_id, ms.source_file_id, ms.putio_file_id, ms.file_path,
+                    pf.putio_id AS expected_putio_id
+             FROM `' . $subtitlesTable . '` ms
+             INNER JOIN `' . $mediaTable . '` mi ON mi.id = ms.media_id
+             LEFT JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+             WHERE ms.source = \'putio\''
+        );
+        $rows = $stmt ? $stmt->fetchAll() : [];
+
+        foreach ($rows as $row) {
+            $id = (int) $row['id'];
+            $mediaId = (int) $row['media_id'];
+            $expectedPutioId = $row['expected_putio_id'] !== null ? (int) $row['expected_putio_id'] : null;
+            $storedPutioId = $row['putio_file_id'] !== null ? (int) $row['putio_file_id'] : null;
+            $bareKey = putmio_putio_subtitle_bare_key((string) $row['source_file_id']);
+            $expectedPathPrefix = 'subtitles/' . $mediaId . '/';
+
+            $invalid = $expectedPutioId === null
+                || $expectedPutioId <= 0
+                || $storedPutioId !== $expectedPutioId
+                || !$this->isValidStoredPutioKey($bareKey)
+                || !str_starts_with((string) $row['file_path'], $expectedPathPrefix);
+
+            if ($invalid) {
+                $this->delete($id);
+                $removed++;
+                continue;
+            }
+
+            $compositeId = putmio_putio_subtitle_source_id($expectedPutioId, $bareKey);
+            if ((string) $row['source_file_id'] !== $compositeId) {
+                $pdo->prepare(
+                    'UPDATE `' . $subtitlesTable . '`
+                     SET source_file_id = ?, putio_file_id = ?
+                     WHERE id = ?'
+                )->execute([$compositeId, $expectedPutioId, $id]);
+                $migrated++;
+            }
+        }
+
+        $this->removeDuplicatePutioSubtitles();
+
+        return ['removed' => $removed, 'migrated' => $migrated];
+    }
+
+    /**
+     * @return array{putio_id: int, putio_subtitles_sync_hash: ?string, file_name: string}|null
+     */
+    public function getMediaPutioContext(int $mediaId): ?array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT pf.putio_id, mi.putio_subtitles_sync_hash, pf.name AS file_name
+             FROM `' . Config::table('media_items') . '` mi
+             INNER JOIN `' . Config::table('putio_files') . '` pf ON pf.id = mi.putio_file_id
+             WHERE mi.id = ? LIMIT 1'
+        );
+        $stmt->execute([$mediaId]);
+        $row = $stmt->fetch();
+        if (!$row || empty($row['putio_id'])) {
+            return null;
+        }
+
+        return [
+            'putio_id' => (int) $row['putio_id'],
+            'putio_subtitles_sync_hash' => $row['putio_subtitles_sync_hash'] !== null
+                ? (string) $row['putio_subtitles_sync_hash']
+                : null,
+            'file_name' => (string) ($row['file_name'] ?? ''),
+        ];
+    }
+
+    /** @return list<string> */
+    public function listPutioBareKeysForMedia(int $mediaId, int $putioFileId): array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT source_file_id FROM `' . Config::table('media_subtitles') . '`
+             WHERE media_id = ? AND source = \'putio\'
+               AND (putio_file_id IS NULL OR putio_file_id = ?)'
+        );
+        $stmt->execute([$mediaId, $putioFileId]);
+
+        $keys = [];
+        foreach ($stmt->fetchAll() ?: [] as $row) {
+            $bareKey = putmio_putio_subtitle_bare_key((string) $row['source_file_id']);
+            if ($bareKey !== '') {
+                $keys[] = $bareKey;
+            }
+        }
+
+        sort($keys, SORT_STRING);
+
+        return $keys;
+    }
+
+    public function updatePutioSyncState(int $mediaId, int $putioFileId, string $hash): void
+    {
+        $pdo = Database::pdo();
+        $pdo->prepare(
+            'UPDATE `' . Config::table('media_items') . '`
+             SET putio_subtitles_sync_hash = ?, putio_subtitles_sync_at = NOW(), updated_at = NOW()
+             WHERE id = ?'
+        )->execute([$hash, $mediaId]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function storePutioVtt(
+        int $mediaId,
+        int $putioFileId,
+        string $bareKey,
+        string $vtt,
+        string $language,
+        string $label
+    ): array {
+        $this->assertMediaPutioBinding($mediaId, $putioFileId);
+
+        $bareKey = trim($bareKey);
+        if ($bareKey === '' || !$this->isValidStoredPutioKey($bareKey)) {
+            throw new \RuntimeException('Chiave sottotitolo put.io non valida');
+        }
+
+        $foreign = $this->findPutioSubtitleOnWrongMedia($putioFileId, $bareKey, $mediaId);
+        if ($foreign !== null) {
+            $this->delete((int) $foreign['id']);
+        }
+
+        $existing = $this->findPutioSubtitle($mediaId, $putioFileId, $bareKey);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $sourceFileId = putmio_putio_subtitle_source_id($putioFileId, $bareKey);
+        $pdo = Database::pdo();
+        $pdo->prepare(
+            'INSERT INTO `' . Config::table('media_subtitles') . '`
+             (media_id, language, label, source, source_file_id, putio_file_id, file_path, downloaded_by)
+             VALUES (?, ?, ?, \'putio\', ?, ?, \'\', NULL)'
+        )->execute([$mediaId, $language, $label, $sourceFileId, $putioFileId]);
+
+        $subtitleId = (int) $pdo->lastInsertId();
+        $relativePath = 'subtitles/' . $mediaId . '/' . $subtitleId . '.vtt';
+        $fullPath = putmio_base_path() . '/storage/' . $relativePath;
+        $dir = dirname($fullPath);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        if (@file_put_contents($fullPath, $vtt, LOCK_EX) === false) {
+            $pdo->prepare('DELETE FROM `' . Config::table('media_subtitles') . '` WHERE id = ?')->execute([$subtitleId]);
+            throw new \RuntimeException('Impossibile salvare il file sottotitoli');
+        }
+
+        $pdo->prepare(
+            'UPDATE `' . Config::table('media_subtitles') . '` SET file_path = ? WHERE id = ?'
+        )->execute([$relativePath, $subtitleId]);
+
+        $row = $this->findById($subtitleId);
+        if ($row === null) {
+            throw new \RuntimeException('Sottotitolo salvato ma non trovato');
+        }
+
+        return $row;
+    }
+
+    public function belongsToMediaPutioFile(array $subtitleRow, int $mediaId): bool
+    {
+        if ((int) ($subtitleRow['media_id'] ?? 0) !== $mediaId) {
+            return false;
+        }
+
+        if (($subtitleRow['source'] ?? '') !== 'putio') {
+            return true;
+        }
+
+        $context = $this->getMediaPutioContext($mediaId);
+        if ($context === null) {
+            return false;
+        }
+
+        $expectedPutioId = (int) $context['putio_id'];
+        $storedPutioId = isset($subtitleRow['putio_file_id']) ? (int) $subtitleRow['putio_file_id'] : 0;
+        if ($storedPutioId > 0 && $storedPutioId !== $expectedPutioId) {
+            return false;
+        }
+
+        $bareKey = putmio_putio_subtitle_bare_key((string) ($subtitleRow['source_file_id'] ?? ''));
+        if (!$this->isValidStoredPutioKey($bareKey)) {
+            return false;
+        }
+
+        $expectedPath = 'subtitles/' . $mediaId . '/';
+        $filePath = (string) ($subtitleRow['file_path'] ?? '');
+
+        return str_starts_with($filePath, $expectedPath);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function findPutioSubtitle(int $mediaId, int $putioFileId, string $bareKey): ?array
+    {
+        $compositeId = putmio_putio_subtitle_source_id($putioFileId, $bareKey);
+        $row = $this->findBySourceFileId($mediaId, 'putio', $compositeId);
+        if ($row !== null) {
+            return $row;
+        }
+
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT * FROM `' . Config::table('media_subtitles') . '`
+             WHERE media_id = ? AND source = \'putio\' AND source_file_id = ?
+               AND (putio_file_id IS NULL OR putio_file_id = ?)
+             LIMIT 1'
+        );
+        $stmt->execute([$mediaId, $bareKey, $putioFileId]);
+        $legacy = $stmt->fetch();
+
+        return $legacy ?: null;
     }
 
     public function savePreference(int $userId, int $mediaId, ?int $subtitleId, int $offsetMs): void
@@ -449,6 +688,74 @@ final class SubtitleService
         $row = $stmt->fetch();
 
         return $row ?: null;
+    }
+
+    private function assertMediaPutioBinding(int $mediaId, int $putioFileId): void
+    {
+        $context = $this->getMediaPutioContext($mediaId);
+        if ($context === null || (int) $context['putio_id'] !== $putioFileId) {
+            throw new \RuntimeException('Contenuto non associato al file put.io indicato');
+        }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function findPutioSubtitleOnWrongMedia(int $putioFileId, string $bareKey, int $mediaId): ?array
+    {
+        $compositeId = putmio_putio_subtitle_source_id($putioFileId, $bareKey);
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT * FROM `' . Config::table('media_subtitles') . '`
+             WHERE source = \'putio\' AND putio_file_id = ? AND media_id != ?
+               AND (source_file_id = ? OR source_file_id = ?)
+             LIMIT 1'
+        );
+        $stmt->execute([$putioFileId, $mediaId, $compositeId, $bareKey]);
+        $row = $stmt->fetch();
+
+        return $row ?: null;
+    }
+
+    private function removeDuplicatePutioSubtitles(): void
+    {
+        $pdo = Database::pdo();
+        $subtitlesTable = Config::table('media_subtitles');
+        $mediaTable = Config::table('media_items');
+        $filesTable = Config::table('putio_files');
+
+        $stmt = $pdo->query(
+            'SELECT ms.id
+             FROM `' . $subtitlesTable . '` ms
+             INNER JOIN `' . $mediaTable . '` mi ON mi.id = ms.media_id
+             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+             INNER JOIN `' . $subtitlesTable . '` ms2
+               ON ms2.source = \'putio\'
+              AND ms2.putio_file_id = ms.putio_file_id
+              AND ms2.source_file_id = ms.source_file_id
+              AND ms2.id < ms.id
+             WHERE ms.source = \'putio\'
+               AND ms.putio_file_id = pf.putio_id'
+        );
+        $rows = $stmt ? $stmt->fetchAll() : [];
+        foreach ($rows as $row) {
+            $this->delete((int) $row['id']);
+        }
+    }
+
+    private function isValidStoredPutioKey(string $bareKey): bool
+    {
+        $bareKey = trim($bareKey);
+        if ($bareKey === '' || strlen($bareKey) < 8) {
+            return false;
+        }
+
+        $blocked = ['index', 'all', 'default', 'vtt', 'media', 'stream', 'm3u8', 'playlist', 'master'];
+        if (in_array(strtolower($bareKey), $blocked, true)) {
+            return false;
+        }
+
+        return preg_match('/\.(m3u8|vtt|srt)$/i', $bareKey) !== 1;
     }
 
     private function toVtt(string $raw): string

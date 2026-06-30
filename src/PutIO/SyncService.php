@@ -65,6 +65,8 @@ final class SyncService
                 'removed' => 0,
                 'subtitles_imported' => $subtitleSync['imported'],
                 'subtitles_removed' => $subtitleSync['removed'],
+                'subtitles_skipped' => $subtitleSync['skipped'],
+                'subtitles_repaired' => $subtitleSync['repaired'],
             ];
         } catch (\Throwable $e) {
             $this->logger->finishError($e);
@@ -131,6 +133,8 @@ final class SyncService
                 'deleted' => $counts['removed'],
                 'subtitles_imported' => $subtitleSync['imported'],
                 'subtitles_removed' => $subtitleSync['removed'],
+                'subtitles_skipped' => $subtitleSync['skipped'],
+                'subtitles_repaired' => $subtitleSync['repaired'],
                 'orphan_series_removed' => $orphanSeries,
             ];
         } catch (\Throwable $e) {

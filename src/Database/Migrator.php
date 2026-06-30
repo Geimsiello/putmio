@@ -52,6 +52,7 @@ final class Migrator
             self::runUserCatalogSourcesMigration($pdo);
             self::runUserWatchlistMigration($pdo);
             self::runPutioSubtitleSourceMigration($pdo);
+            self::runPutioSubtitleIntegrityMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
         }
@@ -330,6 +331,67 @@ final class Migrator
             'ALTER TABLE `' . $table . '`
              MODIFY `source` ENUM(\'opensubtitles\', \'putio\') NOT NULL DEFAULT \'opensubtitles\''
         );
+    }
+
+    private static function runPutioSubtitleIntegrityMigration(\PDO $pdo): void
+    {
+        $subtitlesTable = Config::table('media_subtitles');
+        $mediaTable = Config::table('media_items');
+        $filesTable = Config::table('putio_files');
+
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$subtitlesTable]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            return;
+        }
+
+        if (!self::columnExists($pdo, $subtitlesTable, 'putio_file_id')) {
+            $pdo->exec(
+                'ALTER TABLE `' . $subtitlesTable . '`
+                 ADD COLUMN `putio_file_id` BIGINT NULL AFTER `source_file_id`,
+                 ADD KEY `idx_putio_subtitle` (`putio_file_id`, `source`)'
+            );
+        }
+
+        if (!self::columnExists($pdo, $mediaTable, 'putio_subtitles_sync_at')) {
+            $pdo->exec(
+                'ALTER TABLE `' . $mediaTable . '`
+                 ADD COLUMN `putio_subtitles_sync_at` DATETIME NULL AFTER `classification_status`,
+                 ADD COLUMN `putio_subtitles_sync_hash` VARCHAR(64) NULL AFTER `putio_subtitles_sync_at`'
+            );
+        }
+
+        $flag = putmio_base_path() . '/storage/.migration_putio_subtitle_integrity';
+        if (is_file($flag)) {
+            return;
+        }
+
+        try {
+            $pdo->exec(
+                'UPDATE `' . $subtitlesTable . '` ms
+                 INNER JOIN `' . $mediaTable . '` mi ON mi.id = ms.media_id
+                 INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+                 SET ms.putio_file_id = pf.putio_id
+                 WHERE ms.source = \'putio\' AND ms.putio_file_id IS NULL'
+            );
+
+            $pdo->exec(
+                'UPDATE `' . $subtitlesTable . '` ms
+                 INNER JOIN `' . $mediaTable . '` mi ON mi.id = ms.media_id
+                 INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
+                 SET ms.source_file_id = CONCAT(pf.putio_id, \':\', ms.source_file_id)
+                 WHERE ms.source = \'putio\'
+                   AND ms.source_file_id NOT LIKE \'%:%\''
+            );
+
+            (new \PutMio\OpenSubtitles\SubtitleService())->repairPutioIntegrity();
+            @file_put_contents($flag, date('c'));
+        } catch (\Throwable $e) {
+            self::logMigrationError($e);
+        }
     }
 
     private static function runUserCatalogSourcesMigration(\PDO $pdo): void

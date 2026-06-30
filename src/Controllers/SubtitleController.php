@@ -142,6 +142,12 @@ final class SubtitleController
             exit('Sottotitolo non trovato');
         }
 
+        $mediaId = (int) ($row['media_id'] ?? 0);
+        if ($mediaId <= 0 || !$service->belongsToMediaPutioFile($row, $mediaId)) {
+            http_response_code(404);
+            exit('Sottotitolo non trovato');
+        }
+
         $path = $service->servePath($id);
         if ($path === null) {
             http_response_code(404);
@@ -149,7 +155,6 @@ final class SubtitleController
         }
 
         $userId = (int) Session::userId();
-        $mediaId = (int) ($row['media_id'] ?? 0);
         $prefs = $service->userPrefs($userId, $mediaId);
 
         $offsetMs = 0;

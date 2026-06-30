@@ -204,6 +204,8 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_items` (
   `imdb_id` VARCHAR(20) NULL,
   `duration_sec` INT UNSIGNED NULL,
   `classification_status` ENUM('unclassified','classified','ignored') NOT NULL DEFAULT 'unclassified',
+  `putio_subtitles_sync_at` DATETIME NULL,
+  `putio_subtitles_sync_hash` VARCHAR(64) NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -292,12 +294,14 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_subtitles` (
   `label` VARCHAR(80) NOT NULL,
   `source` ENUM('opensubtitles', 'putio') NOT NULL DEFAULT 'opensubtitles',
   `source_file_id` VARCHAR(64) NOT NULL,
+  `putio_file_id` BIGINT NULL,
   `file_path` VARCHAR(255) NOT NULL,
   `downloaded_by` INT UNSIGNED NULL,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_media_source_file` (`media_id`, `source`, `source_file_id`),
-  KEY `idx_media` (`media_id`)
+  KEY `idx_media` (`media_id`),
+  KEY `idx_putio_subtitle` (`putio_file_id`, `source`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `{{prefix}}user_subtitle_prefs` (

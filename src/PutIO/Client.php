@@ -180,23 +180,22 @@ final class Client
      */
     public function listSubtitles(int $fileId): array
     {
+        return $this->listSubtitlesForSync($fileId);
+    }
+
+    /**
+     * Elenco sottotitoli per sync: API first, HLS solo se vuoto e con validazione rigorosa.
+     *
+     * @return list<array{key: string, language?: string, name?: string, source?: string}>
+     */
+    public function listSubtitlesForSync(int $fileId): array
+    {
         $fromApi = $this->listSubtitlesFromApi($fileId);
-        $fromHls = $this->listSubtitlesFromHlsManifest($fileId);
-
-        if ($fromApi === [] && $fromHls === []) {
-            return [];
+        if ($fromApi !== []) {
+            return $fromApi;
         }
 
-        $merged = [];
-        foreach (array_merge($fromApi, $fromHls) as $item) {
-            $key = (string) ($item['key'] ?? '');
-            if ($key === '' || isset($merged[$key])) {
-                continue;
-            }
-            $merged[$key] = $item;
-        }
-
-        return array_values($merged);
+        return $this->listSubtitlesFromHlsManifest($fileId);
     }
 
     /**
@@ -261,7 +260,7 @@ final class Client
             $name = $this->parseHlsAttribute($line, 'NAME') ?? '';
             $language = $this->parseHlsAttribute($line, 'LANGUAGE') ?? '';
             $uri = $this->parseHlsAttribute($line, 'URI') ?? '';
-            $key = $this->extractSubtitleKeyFromUri($uri);
+            $key = $this->extractSubtitleKeyFromUri($uri, $fileId);
             if ($key === '') {
                 continue;
             }
@@ -287,20 +286,51 @@ final class Client
         return $matches[1] !== '' ? $matches[1] : null;
     }
 
-    private function extractSubtitleKeyFromUri(string $uri): string
+    private function extractSubtitleKeyFromUri(string $uri, int $fileId): string
     {
         if ($uri === '') {
             return '';
         }
 
-        if (preg_match('#/subtitles/([^/?]+)#i', $uri, $matches) === 1) {
-            return rawurldecode($matches[1]);
-        }
-        if (preg_match('#/sub/([^/?]+)#i', $uri, $matches) === 1) {
-            return rawurldecode($matches[1]);
+        if (preg_match('#/files/(\d+)/#', $uri, $fileMatch) === 1) {
+            if ((int) $fileMatch[1] !== $fileId) {
+                return '';
+            }
         }
 
-        return '';
+        $key = '';
+        if (preg_match('#/subtitles/([^/?]+)#i', $uri, $matches) === 1) {
+            $key = rawurldecode($matches[1]);
+        } elseif (preg_match('#/sub/([^/?]+)/#i', $uri, $matches) === 1) {
+            $key = rawurldecode($matches[1]);
+        } elseif (preg_match('#/sub/([^/?]+)$#i', $uri, $matches) === 1) {
+            $key = rawurldecode($matches[1]);
+        }
+
+        return $this->isValidPutioSubtitleKey($key) ? $key : '';
+    }
+
+    private function isValidPutioSubtitleKey(string $key): bool
+    {
+        $key = trim($key);
+        if ($key === '') {
+            return false;
+        }
+
+        if (strlen($key) < 8) {
+            return false;
+        }
+
+        $blocked = ['index', 'all', 'default', 'vtt', 'media', 'stream', 'm3u8', 'playlist', 'master'];
+        if (in_array(strtolower($key), $blocked, true)) {
+            return false;
+        }
+
+        if (preg_match('/\.(m3u8|vtt|srt)$/i', $key) === 1) {
+            return false;
+        }
+
+        return true;
     }
 
     public function downloadSubtitle(int $fileId, string $key, string $format = 'webvtt'): string
