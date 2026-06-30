@@ -9,8 +9,7 @@ $htmlLang = putmio_available_locales()[$appLocale]['html'] ?? 'it';
 $pageTitle = putmio_e($title ?? 'PutMio');
 $showFab = ($showSearchFab ?? false) && Session::userId();
 $tvUa = putmio_is_tv_user_agent();
-$tvMode = putmio_tv_mode();
-$htmlClasses = 'dark' . ($tvUa ? ' tv-ua' : '') . ($tvMode ? ' tv-mode' : '');
+$htmlClasses = 'dark' . ($tvUa ? ' tv-ua' : '');
 $viewportContent = $tvUa
     ? 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'
     : 'width=device-width, initial-scale=1';
@@ -105,9 +104,6 @@ $viewportContent = $tvUa
 </head>
 <body class="min-h-screen bg-background text-on-surface selection:bg-primary/30">
 <?php if (Session::userId()): ?>
-<?php if ($tvMode): ?>
-<?php require putmio_base_path() . '/templates/partials/tv-header.php'; ?>
-<?php else: ?>
 <header class="fixed top-0 w-full z-50 flex justify-between items-center px-4 md:px-margin-desktop h-16 glass-header border-b border-outline-variant/30 shadow-sm">
   <div class="flex items-center gap-6 md:gap-8 min-w-0">
     <a href="<?= putmio_e($appUrl) ?>/" class="text-headline-md font-headline-md font-extrabold text-primary-fixed-dim shrink-0">PutMio</a>
@@ -155,7 +151,6 @@ $viewportContent = $tvUa
   </div>
 </header>
 <?php $mobileNavPart = 'drawer'; require putmio_base_path() . '/templates/partials/mobile-nav.php'; unset($mobileNavPart); ?>
-<?php endif; ?>
 <?php endif; ?>
 <?php
 $adminSection = putmio_admin_section();
@@ -207,13 +202,9 @@ $isAuthShell = !empty($authShell) && !Session::userId();
     'csrf' => Csrf::token(),
     'localeChangeError' => putmio_lang('locale_change_error'),
     'isTvDevice' => $tvUa,
-    'tvMode' => $tvMode,
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="<?= putmio_e(putmio_asset('public/assets/app.js')) ?>" defer></script>
-<?php if ($tvMode): ?>
-<script src="<?= putmio_e(putmio_asset('public/assets/tv-nav.js')) ?>" defer></script>
-<?php endif; ?>
 <?= $extraScripts ?? '' ?>
 </body>
 </html>

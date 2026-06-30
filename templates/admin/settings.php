@@ -6,7 +6,9 @@ use PutMio\PutIO\Client;
 $appUrl = rtrim(Config::get('app.url'), '/');
 $authUrl = (new Client())->authorizeUrl();
 $cronUrl = $appUrl . '/cron/sync?token=' . ($cronToken ?? '');
+$cronSubtitlesUrl = $appUrl . '/cron/sync-subtitles?token=' . ($cronToken ?? '');
 $cronCliCommand = './putmio/cron-sync.php';
+$cronSubtitlesCliCommand = './putmio/cron-sync-subtitles.php';
 $putioCallbackUrl = $appUrl . '/admin/oauth/putio/callback';
 
 $lastSyncLabel = '—';
@@ -372,6 +374,18 @@ require putmio_base_path() . '/templates/partials/admin-header.php';
       <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3">
         <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant truncate"><?= putmio_e($appUrl) ?>/cron/sync?token=*****</code>
         <button type="button" data-pm-copy="<?= putmio_e($cronUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="<?= putmio_e(putmio_lang('admin_copy_url')) ?>" aria-label="<?= putmio_e(putmio_lang('admin_copy_url')) ?>">
+          <span class="material-symbols-outlined text-[20px]">content_copy</span>
+        </button>
+      </div>
+    </div>
+    <div class="space-y-2">
+      <p class="text-label-md font-label-md text-on-surface"><?= putmio_e(putmio_lang('cron_sync_subtitles_url_label')) ?></p>
+      <p class="text-body-sm text-on-surface-variant max-w-2xl">
+        <?= putmio_e(putmio_lang('cron_sync_subtitles_desc')) ?>
+      </p>
+      <div class="flex items-center gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-high px-4 py-3">
+        <code class="flex-1 min-w-0 text-label-sm font-label-sm text-on-surface-variant truncate"><?= putmio_e($appUrl) ?>/cron/sync-subtitles?token=*****</code>
+        <button type="button" data-pm-copy="<?= putmio_e($cronSubtitlesUrl) ?>" class="shrink-0 p-2 rounded-lg text-outline hover:text-primary hover:bg-surface-variant/50 transition-colors" title="<?= putmio_e(putmio_lang('admin_copy_url')) ?>" aria-label="<?= putmio_e(putmio_lang('admin_copy_url')) ?>">
           <span class="material-symbols-outlined text-[20px]">content_copy</span>
         </button>
       </div>

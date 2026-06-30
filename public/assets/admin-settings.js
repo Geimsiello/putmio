@@ -114,6 +114,10 @@
           throw new Error(data.error || 'sync failed');
         }
 
+        if (data.skipped) {
+          throw new Error(data.error || settings.toastSyncSkipped || 'Sync skipped');
+        }
+
         if (window.pmToast) {
           window.pmToast(data.message || 'Sync completata', 'success', 5500);
         }

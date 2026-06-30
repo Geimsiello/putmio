@@ -249,8 +249,16 @@ final class AdminController
     {
         Session::requireAdmin();
         Csrf::requireValid($_POST['_csrf'] ?? null);
+        $userId = (int) Session::userId();
+        Session::release();
+
         try {
-            $result = (new SyncService(null, null, 'admin', (int) Session::userId()))->sync();
+            $result = (new SyncService(null, null, 'admin', $userId))->sync(\PutMio\PutIO\SyncOptions::admin());
+            if (!empty($result['skipped'])) {
+                $_SESSION['flash_error'] = putmio_lang('putio_sync_skipped_' . ($result['reason'] ?? 'unknown'));
+                putmio_redirect('admin/impostazioni');
+            }
+
             $msg = putmio_lang('putio_sync_toast', [
                 'imported' => (string) ($result['imported'] ?? 0),
                 'removed' => (string) ($result['removed'] ?? 0),

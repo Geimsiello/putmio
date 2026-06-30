@@ -75,6 +75,7 @@ final class Router
                 '/admin/oauth/putio/callback' => [AdminController::class, 'putioCallback'],
                 '/stream' => [PlayerController::class, 'stream'],
                 '/cron/sync' => [CronController::class, 'sync'],
+                '/cron/sync-subtitles' => [CronController::class, 'syncSubtitles'],
                 '/api/tmdb/search' => [ApiController::class, 'tmdbSearch'],
                 '/api/tmdb/details' => [ApiController::class, 'tmdbDetails'],
                 '/api/tmdb/classify-suggest' => [ApiController::class, 'tmdbClassifySuggest'],

@@ -2,9 +2,7 @@
 use PutMio\Config;
 
 $appUrl = rtrim(Config::get('app.url'), '/');
-$homeTvLimitClass = putmio_tv_mode() ? 'pm-home-tv-limit' : '';
 ?>
-<div class="<?= putmio_e($homeTvLimitClass) ?>">
 <?php if (!$putioConnected): ?>
 <section class="mt-2 md:mt-6" id="putio-banner">
   <div class="bg-warning/10 border border-warning/30 rounded-xl px-4 md:px-6 py-4 flex items-center justify-between group hover:bg-warning/15 transition-all">
@@ -112,4 +110,3 @@ $homeTvLimitClass = putmio_tv_mode() ? 'pm-home-tv-limit' : '';
   ?>
 </section>
 <?php endforeach; ?>
-</div>

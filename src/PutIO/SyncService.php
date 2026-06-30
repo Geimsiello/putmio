@@ -35,8 +35,53 @@ final class SyncService
         $this->logger = $logger ?? new SyncRunLogger($triggerSource, $triggeredByUserId);
     }
 
-    public function sync(): array
+    public function sync(?SyncOptions $options = null): array
     {
+        return $this->runCatalogSync($options ?? SyncOptions::admin());
+    }
+
+    public function syncSubtitlesOnly(?SyncOptions $options = null): array
+    {
+        $options = $options ?? SyncOptions::subtitlesCron();
+        $coordinator = new SyncCoordinator();
+        $skipped = $coordinator->preflight($options);
+        if ($skipped !== null) {
+            return $skipped;
+        }
+
+        $conn = $this->client->getConnection();
+        $this->logger->start($conn);
+
+        try {
+            if (!$conn || empty($conn['access_token_enc'])) {
+                throw new \RuntimeException('put.io non collegato');
+            }
+
+            $subtitleSync = (new SubtitleSync())->syncAll();
+            $this->logger->finishSuccess();
+
+            return [
+                'imported' => 0,
+                'removed' => 0,
+                'subtitles_imported' => $subtitleSync['imported'],
+                'subtitles_removed' => $subtitleSync['removed'],
+            ];
+        } catch (\Throwable $e) {
+            $this->logger->finishError($e);
+            throw $e;
+        } finally {
+            $coordinator->release();
+        }
+    }
+
+    private function runCatalogSync(SyncOptions $options): array
+    {
+        $coordinator = new SyncCoordinator();
+        $skipped = $coordinator->preflight($options);
+        if ($skipped !== null) {
+            return $skipped;
+        }
+
         $conn = $this->client->getConnection();
         $this->logger->start($conn);
 
@@ -71,7 +116,10 @@ final class SyncService
 
             $orphanSeries = (new MediaCleanupService())->pruneOrphanSeries();
 
-            $subtitleSync = (new SubtitleSync())->syncAll();
+            $subtitleSync = ['imported' => 0, 'removed' => 0];
+            if ($options->includeSubtitles) {
+                $subtitleSync = (new SubtitleSync())->syncAll();
+            }
 
             $counts = $this->logger->finishSuccess();
 
@@ -88,6 +136,8 @@ final class SyncService
         } catch (\Throwable $e) {
             $this->logger->finishError($e);
             throw $e;
+        } finally {
+            $coordinator->release();
         }
     }
 

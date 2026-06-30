@@ -294,9 +294,20 @@ final class ApiController
     {
         Session::requireAdmin();
         Csrf::requireValid($_POST['_csrf'] ?? null);
+        $userId = (int) Session::userId();
+        Session::release();
 
         try {
-            $result = (new \PutMio\PutIO\SyncService(null, null, 'admin', (int) Session::userId()))->sync();
+            $result = (new \PutMio\PutIO\SyncService(null, null, 'admin', $userId))->sync(\PutMio\PutIO\SyncOptions::admin());
+            if (!empty($result['skipped'])) {
+                putmio_json([
+                    'ok' => false,
+                    'skipped' => true,
+                    'reason' => (string) ($result['reason'] ?? 'unknown'),
+                    'error' => putmio_lang('putio_sync_skipped_' . ($result['reason'] ?? 'unknown')),
+                ], 409);
+            }
+
             $message = putmio_lang('putio_sync_toast', [
                 'imported' => (string) ($result['imported'] ?? 0),
                 'removed' => (string) ($result['removed'] ?? 0),

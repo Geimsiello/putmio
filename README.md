@@ -194,23 +194,37 @@ On a 500 error at startup, open `check.php` to verify PHP, extensions, and permi
 
 ## Automatic sync (cron)
 
-Sync refreshes the catalog from put.io and removes titles deleted in the cloud (including watch progress and linked metadata). Schedule it every 6–12 hours or use **Sync now** from the admin panel.
+Sync refreshes the catalog from put.io and removes titles deleted in the cloud (including watch progress and linked metadata). Schedule catalog sync every **4–12 hours** on shared hosting, or use **Sync now** from the admin panel.
 
-On SSH/VPS/NAS installs, see step 5 in the [Installation](#installation) guide. On shared hosting without shell access, use the HTTP URL below.
+**Shared hosting (HTTP cron):** the catalog sync is kept lightweight (no subtitle import by default). If someone is streaming, the cron **skips** the run instead of blocking the site. Overlapping runs are prevented by a database lock.
 
-**CLI** (recommended):
+On SSH/VPS/NAS installs, see step 5 in the [Installation](#installation) guide. On shared hosting without shell access, use the HTTP URLs below (shown in **Admin → Settings**).
+
+**Catalog — CLI** (recommended on VPS):
 
 ```bash
 /path/to/putmio/cron-sync.php
 ```
 
-**HTTP** (if your cron supports `wget`/`curl`):
+**Catalog — HTTP** (OVH shared hosting, `wget`/`curl`):
 
 ```
 https://yourdomain.example/cron/sync?token=YOUR_CRON_TOKEN
 ```
 
-The token is in **Admin → Settings** (generated at install). The CLI command is shown and copyable in the same panel.
+**Subtitles — HTTP** (optional, once daily during low traffic):
+
+```
+https://yourdomain.example/cron/sync-subtitles?token=YOUR_CRON_TOKEN
+```
+
+The token is in **Admin → Settings** (generated at install).
+
+Optional `config.php` keys (see `config.example.php`):
+
+- `sync_defer_when_streaming` — postpone cron sync while streams are active (default `true`)
+- `sync_subtitles_with_catalog` — include subtitle import in catalog sync (default `false`)
+- `sync_stale_run_minutes` — mark stuck sync logs as failed after N minutes (default `180`)
 
 ---
 

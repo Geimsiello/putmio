@@ -1,1 +1,6 @@
-{}
+{
+  "1.0.3": [
+    "public/assets/tv-nav.js",
+    "templates/partials/tv-header.php"
+  ]
+}

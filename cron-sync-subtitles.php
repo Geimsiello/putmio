@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 /**
- * Sync put.io catalog from hosting cron.
- * CLI only — path shown in Admin → Settings (e.g. ./putmio/cron-sync.php).
+ * Sync put.io subtitles from hosting cron (CLI).
+ * Pair with cron-sync.php — catalog sync is lighter without subtitles.
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -32,7 +32,9 @@ PutMio\Database\Migrator::runPending();
 date_default_timezone_set(PutMio\Config::get('app.timezone', 'Europe/Rome'));
 
 try {
-    $result = (new PutMio\PutIO\SyncService(null, null, 'cron_cli'))->sync(PutMio\PutIO\SyncOptions::cronCli());
+    $result = (new PutMio\PutIO\SyncService(null, null, 'cron_subtitles_cli'))->syncSubtitlesOnly(
+        PutMio\PutIO\SyncOptions::subtitlesCron()
+    );
     if (!empty($result['skipped'])) {
         echo json_encode([
             'ok' => true,
@@ -43,8 +45,8 @@ try {
     }
     echo json_encode([
         'ok' => true,
-        'imported' => $result['imported'],
-        'removed' => $result['removed'] ?? 0,
+        'subtitles_imported' => $result['subtitles_imported'] ?? 0,
+        'subtitles_removed' => $result['subtitles_removed'] ?? 0,
     ], JSON_UNESCAPED_UNICODE) . PHP_EOL;
     exit(0);
 } catch (Throwable $e) {
@@ -54,7 +56,7 @@ try {
     }
     @file_put_contents(
         $logDir . '/app.log',
-        '[' . date('Y-m-d H:i:s') . '] cron-sync: ' . $e->getMessage() . PHP_EOL,
+        '[' . date('Y-m-d H:i:s') . '] cron-sync-subtitles: ' . $e->getMessage() . PHP_EOL,
         FILE_APPEND | LOCK_EX
     );
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

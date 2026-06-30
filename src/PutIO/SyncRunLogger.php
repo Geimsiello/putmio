@@ -26,7 +26,7 @@ final class SyncRunLogger
 
     public function __construct(string $triggerSource = 'unknown', ?int $triggeredByUserId = null)
     {
-        $allowed = ['admin', 'cron_http', 'cron_cli', 'unknown'];
+        $allowed = ['admin', 'cron_http', 'cron_cli', 'cron_subtitles_http', 'cron_subtitles_cli', 'unknown'];
         $this->triggerSource = in_array($triggerSource, $allowed, true) ? $triggerSource : 'unknown';
         $this->triggeredByUserId = $triggeredByUserId;
     }

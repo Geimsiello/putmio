@@ -29,6 +29,7 @@ final class CoreManifest
         'front.php',
         'index.php',
         'cron-sync.php',
+        'cron-sync-subtitles.php',
         'sw.js',
         '.htaccess',
         'composer.json',
