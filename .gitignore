@@ -14,3 +14,10 @@ storage/updates/*
 storage/updates/github-release-*.json
 storage/backups/*
 !storage/backups/.gitkeep
+
+# Local-only Fire TV wrapper and installable artifacts.
+local-firetv-app/
+*.apk
+*.aab
+*.jks
+keystore.properties

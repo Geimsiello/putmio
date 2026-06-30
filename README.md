@@ -248,6 +248,23 @@ Optional `config.php` keys (see `config.example.php`):
 
 ---
 
+### Personal Fire TV APK
+
+For personal sideloading on a Fire Stick, you can keep an Android WebView wrapper outside Git in `local-firetv-app/` (ignored by `.gitignore`). The wrapper should hardcode your own PutMio URL, reuse the existing TV mode through its Fire TV user agent, and keep the APK keystore local so future APKs can update the installed app.
+
+The web/core updater in **Admin → Updates** remains the source of PutMio updates. Rebuild and reinstall the APK only when you change the local Android wrapper itself.
+
+Keep these files private and out of Git:
+
+```text
+local-firetv-app/
+*.apk
+*.jks
+keystore.properties
+```
+
+---
+
 ## Updates
 
 The installed version is in `VERSION`. In **Admin → Updates** you can compare your local release with the latest on GitHub.
