@@ -254,11 +254,19 @@ For personal sideloading on a Fire Stick, you can keep an Android WebView wrappe
 
 The web/core updater in **Admin → Updates** remains the source of PutMio updates. Rebuild and reinstall the APK only when you change the local Android wrapper itself.
 
+### Personal LG webOS IPK
+
+For personal installation on an LG TV in Developer Mode, you can keep a webOS wrapper outside Git in `local-webos-app/` (ignored by `.gitignore`). The wrapper should hardcode your own PutMio URL, redirect the app window to that URL, and rely on the existing `WebOS` user-agent detection for TV mode.
+
+Install or update the generated `.ipk` manually with the LG/webOS CLI (`ares-install`). In-app APK/IPK self-updates are intentionally out of scope for these local wrappers; the PutMio web/core updater still handles the server-side app.
+
 Keep these files private and out of Git:
 
 ```text
 local-firetv-app/
+local-webos-app/
 *.apk
+*.ipk
 *.jks
 keystore.properties
 ```
