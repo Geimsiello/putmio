@@ -118,6 +118,7 @@ return [
     'putio_friends_saved' => 'Friend options saved',
     'putio_friends_save_error' => 'Error saving options',
     'putio_sync_toast' => 'Sync complete: :imported items updated, :removed removed',
+    'putio_sync_subtitles_toast' => ':count put.io subtitles imported',
     'putio_sync_running' => 'Sync in progress…',
     'putio_sync_skipped_locked' => 'Sync already running. Try again in a few minutes.',
     'putio_sync_skipped_streams_active' => 'Sync postponed: someone is currently streaming.',

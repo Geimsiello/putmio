@@ -933,6 +933,8 @@ function putmio_putio_subtitle_label(array $subtitle): string
         $label .= ' (MKV)';
     } elseif ($source === 'folder') {
         $label .= ' (file)';
+    } elseif ($source === 'hls') {
+        $label .= ' (put.io)';
     }
 
     if (function_exists('mb_substr')) {

@@ -116,12 +116,12 @@ final class SyncService
 
             $orphanSeries = (new MediaCleanupService())->pruneOrphanSeries();
 
+            $counts = $this->logger->finishSuccess();
+
             $subtitleSync = ['imported' => 0, 'removed' => 0];
             if ($options->includeSubtitles) {
                 $subtitleSync = (new SubtitleSync())->syncAll();
             }
-
-            $counts = $this->logger->finishSuccess();
 
             return [
                 'imported' => $imported,

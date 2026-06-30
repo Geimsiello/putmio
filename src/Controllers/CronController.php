@@ -40,7 +40,20 @@ final class CronController
         @set_time_limit(0);
 
         try {
-            $result = (new SyncService(null, null, 'cron_http'))->sync(SyncOptions::cronHttp());
+            $options = SyncOptions::cronHttp();
+            $result = (new SyncService(null, null, 'cron_http'))->sync($options);
+            if (empty($result['skipped']) && !$options->includeSubtitles) {
+                $subtitleResult = (new SyncService(null, null, 'cron_subtitles_http'))->syncSubtitlesOnly(
+                    SyncOptions::subtitlesCron()
+                );
+                if (empty($subtitleResult['skipped'])) {
+                    $result['subtitles_imported'] = (int) ($subtitleResult['subtitles_imported'] ?? 0);
+                    $result['subtitles_removed'] = (int) ($subtitleResult['subtitles_removed'] ?? 0);
+                } else {
+                    $result['subtitles_skipped'] = true;
+                    $result['subtitles_skip_reason'] = (string) ($subtitleResult['reason'] ?? 'unknown');
+                }
+            }
             $this->jsonResult($result);
         } catch (\Throwable $e) {
             putmio_json(['ok' => false, 'error' => $e->getMessage()], 500);

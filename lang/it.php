@@ -118,6 +118,7 @@ return [
     'putio_friends_saved' => 'Opzioni amici salvate',
     'putio_friends_save_error' => 'Errore nel salvataggio opzioni',
     'putio_sync_toast' => 'Sync completata: :imported elementi aggiornati, :removed rimossi',
+    'putio_sync_subtitles_toast' => ':count sottotitoli put.io importati',
     'putio_sync_running' => 'Sincronizzazione in corso…',
     'putio_sync_skipped_locked' => 'Sincronizzazione già in corso. Riprova tra qualche minuto.',
     'putio_sync_skipped_streams_active' => 'Sincronizzazione rimandata: qualcuno sta guardando un contenuto.',

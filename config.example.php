@@ -19,7 +19,7 @@ return [
         'player_preload' => 'none',
         // Postpone HTTP/CLI catalog sync while someone is streaming (recommended on shared hosting).
         'sync_defer_when_streaming' => true,
-        // Import put.io subtitles during catalog sync (heavy). Use /cron/sync-subtitles instead.
+        // Import put.io subtitles during catalog sync (heavy). Cron runs a dedicated subtitle phase by default.
         'sync_subtitles_with_catalog' => false,
         // Mark stuck sync runs as failed after N minutes (orphaned PHP processes).
         'sync_stale_run_minutes' => 180,

@@ -180,6 +180,30 @@ final class Client
      */
     public function listSubtitles(int $fileId): array
     {
+        $fromApi = $this->listSubtitlesFromApi($fileId);
+        $fromHls = $this->listSubtitlesFromHlsManifest($fileId);
+
+        if ($fromApi === [] && $fromHls === []) {
+            return [];
+        }
+
+        $merged = [];
+        foreach (array_merge($fromApi, $fromHls) as $item) {
+            $key = (string) ($item['key'] ?? '');
+            if ($key === '' || isset($merged[$key])) {
+                continue;
+            }
+            $merged[$key] = $item;
+        }
+
+        return array_values($merged);
+    }
+
+    /**
+     * @return list<array{key: string, language?: string, name?: string, source?: string}>
+     */
+    private function listSubtitlesFromApi(int $fileId): array
+    {
         try {
             $data = $this->apiGet('/files/' . $fileId . '/subtitles');
         } catch (\RuntimeException $e) {
@@ -211,19 +235,101 @@ final class Client
         return $normalized;
     }
 
+    /**
+     * Fallback quando /subtitles restituisce lista vuota (lingue preferite put.io non configurate).
+     *
+     * @return list<array{key: string, language?: string, name?: string, source?: string}>
+     */
+    private function listSubtitlesFromHlsManifest(int $fileId): array
+    {
+        try {
+            $manifest = $this->getHlsManifest($fileId, 'all');
+        } catch (\Throwable $e) {
+            return [];
+        }
+
+        $tracks = [];
+        foreach (preg_split('/\r\n|\n|\r/', $manifest) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '' || stripos($line, '#EXT-X-MEDIA:') !== 0) {
+                continue;
+            }
+            if (stripos($line, 'TYPE=SUBTITLES') === false) {
+                continue;
+            }
+
+            $name = $this->parseHlsAttribute($line, 'NAME') ?? '';
+            $language = $this->parseHlsAttribute($line, 'LANGUAGE') ?? '';
+            $uri = $this->parseHlsAttribute($line, 'URI') ?? '';
+            $key = $this->extractSubtitleKeyFromUri($uri);
+            if ($key === '') {
+                continue;
+            }
+
+            $tracks[] = [
+                'key' => $key,
+                'language' => $language !== '' ? $language : $name,
+                'name' => $name,
+                'source' => 'hls',
+            ];
+        }
+
+        return $tracks;
+    }
+
+    private function parseHlsAttribute(string $line, string $attribute): ?string
+    {
+        $pattern = '/' . preg_quote($attribute, '/') . '="([^"]*)"/i';
+        if (preg_match($pattern, $line, $matches) !== 1) {
+            return null;
+        }
+
+        return $matches[1] !== '' ? $matches[1] : null;
+    }
+
+    private function extractSubtitleKeyFromUri(string $uri): string
+    {
+        if ($uri === '') {
+            return '';
+        }
+
+        if (preg_match('#/subtitles/([^/?]+)#i', $uri, $matches) === 1) {
+            return rawurldecode($matches[1]);
+        }
+        if (preg_match('#/sub/([^/?]+)#i', $uri, $matches) === 1) {
+            return rawurldecode($matches[1]);
+        }
+
+        return '';
+    }
+
     public function downloadSubtitle(int $fileId, string $key, string $format = 'webvtt'): string
     {
-        $token = $this->getAccessToken();
-        $url = self::API_BASE . '/files/' . $fileId . '/subtitles/' . rawurlencode($key) . '?' . http_build_query([
-            'format' => $format,
-        ]);
+        $path = '/files/' . $fileId . '/subtitles/' . rawurlencode($key);
+        $content = $this->fetchAuthedText($path, ['format' => $format]);
+        if ($content !== '') {
+            return $content;
+        }
 
+        throw new \RuntimeException('Sottotitolo put.io vuoto');
+    }
+
+    private function fetchAuthedText(string $path, array $query = []): string
+    {
+        $url = self::API_BASE . $path;
+        if ($query !== []) {
+            $url .= '?' . http_build_query($query);
+        }
+
+        $token = $this->getAccessToken();
         $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 5,
             CURLOPT_HTTPHEADER => [
                 'Authorization: Bearer ' . $token,
-                'Accept: text/plain, text/vtt, */*',
+                'Accept: text/plain, text/vtt, application/x-subrip, */*',
             ],
             CURLOPT_TIMEOUT => 120,
         ]);
@@ -239,12 +345,16 @@ final class Client
             throw new \RuntimeException('Download sottotitoli put.io non disponibile (HTTP ' . $code . ')');
         }
 
-        $content = trim((string) $body);
-        if ($content === '') {
-            throw new \RuntimeException('Sottotitolo put.io vuoto');
+        $trimmed = trim((string) $body);
+        if ($trimmed !== '' && ($trimmed[0] === '{' || $trimmed[0] === '[')) {
+            $decoded = json_decode($trimmed, true);
+            if (is_array($decoded)) {
+                $message = (string) ($decoded['error_message'] ?? $decoded['message'] ?? 'Risposta put.io non valida');
+                throw new \RuntimeException($message);
+            }
         }
 
-        return $content;
+        return $trimmed;
     }
 
     public function getHlsManifest(int $fileId, string $subtitleKey = 'all'): string

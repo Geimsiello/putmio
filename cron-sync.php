@@ -32,7 +32,8 @@ PutMio\Database\Migrator::runPending();
 date_default_timezone_set(PutMio\Config::get('app.timezone', 'Europe/Rome'));
 
 try {
-    $result = (new PutMio\PutIO\SyncService(null, null, 'cron_cli'))->sync(PutMio\PutIO\SyncOptions::cronCli());
+    $options = PutMio\PutIO\SyncOptions::cronCli();
+    $result = (new PutMio\PutIO\SyncService(null, null, 'cron_cli'))->sync($options);
     if (!empty($result['skipped'])) {
         echo json_encode([
             'ok' => true,
@@ -41,10 +42,27 @@ try {
         ], JSON_UNESCAPED_UNICODE) . PHP_EOL;
         exit(0);
     }
+
+    if (!$options->includeSubtitles) {
+        $subtitleResult = (new PutMio\PutIO\SyncService(null, null, 'cron_subtitles_cli'))->syncSubtitlesOnly(
+            PutMio\PutIO\SyncOptions::subtitlesCron()
+        );
+        if (!empty($subtitleResult['skipped'])) {
+            $result['subtitles_skipped'] = true;
+            $result['subtitles_skip_reason'] = $subtitleResult['reason'] ?? 'unknown';
+        } else {
+            $result['subtitles_imported'] = (int) ($subtitleResult['subtitles_imported'] ?? 0);
+            $result['subtitles_removed'] = (int) ($subtitleResult['subtitles_removed'] ?? 0);
+        }
+    }
+
     echo json_encode([
         'ok' => true,
         'imported' => $result['imported'],
         'removed' => $result['removed'] ?? 0,
+        'subtitles_imported' => (int) ($result['subtitles_imported'] ?? 0),
+        'subtitles_removed' => (int) ($result['subtitles_removed'] ?? 0),
+        'subtitles_skipped' => !empty($result['subtitles_skipped']),
     ], JSON_UNESCAPED_UNICODE) . PHP_EOL;
     exit(0);
 } catch (Throwable $e) {

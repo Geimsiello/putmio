@@ -263,6 +263,10 @@ final class AdminController
                 'imported' => (string) ($result['imported'] ?? 0),
                 'removed' => (string) ($result['removed'] ?? 0),
             ]);
+            $subCount = (int) ($result['subtitles_imported'] ?? 0);
+            if ($subCount > 0) {
+                $msg .= ' ' . putmio_lang('putio_sync_subtitles_toast', ['count' => (string) $subCount]);
+            }
             $_SESSION['flash_success'] = $msg;
         } catch (\Throwable $e) {
             $_SESSION['flash_error'] = $e->getMessage();

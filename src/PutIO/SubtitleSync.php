@@ -30,7 +30,7 @@ final class SubtitleSync
             'SELECT mi.id AS media_id, pf.putio_id
              FROM `' . $mediaTable . '` mi
              INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE pf.is_folder = 0
+             WHERE pf.is_folder = 0 AND ' . $this->videoSqlCondition('pf') . '
              ORDER BY mi.id ASC'
         );
         $rows = $stmt ? $stmt->fetchAll() : [];
@@ -75,12 +75,16 @@ final class SubtitleSync
                 continue;
             }
 
-            $vtt = $this->downloadAsVtt($putioFileId, $key);
-            $lang = putmio_putio_subtitle_language_code((string) ($item['language'] ?? ''));
-            $label = putmio_putio_subtitle_label($item);
+            try {
+                $vtt = $this->downloadAsVtt($putioFileId, $key);
+                $lang = putmio_putio_subtitle_language_code((string) ($item['language'] ?? ''));
+                $label = putmio_putio_subtitle_label($item);
 
-            $this->subtitles->storeVtt($mediaId, 'putio', $key, $vtt, $lang, $label, null);
-            $imported++;
+                $this->subtitles->storeVtt($mediaId, 'putio', $key, $vtt, $lang, $label, null);
+                $imported++;
+            } catch (\Throwable $e) {
+                $this->logError($mediaId, $putioFileId, $e);
+            }
         }
 
         return ['imported' => $imported, 'removed' => $removed];
@@ -100,6 +104,18 @@ final class SubtitleSync
         }
 
         return SrtToVtt::convert($raw);
+    }
+
+    private function videoSqlCondition(string $alias): string
+    {
+        $exts = putmio_video_extensions();
+        $parts = [];
+        foreach ($exts as $ext) {
+            $parts[] = "LOWER({$alias}.name) LIKE '%." . $ext . "'";
+        }
+        $parts[] = "{$alias}.mime LIKE 'video/%'";
+
+        return '(' . implode(' OR ', $parts) . ')';
     }
 
     private function logError(int $mediaId, int $putioFileId, \Throwable $e): void
