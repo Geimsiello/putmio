@@ -36,10 +36,13 @@ final class Client
         $query = array_filter([
             'tmdb_id' => $params['tmdb_id'] ?? null,
             'imdb_id' => $params['imdb_id'] ?? null,
+            'parent_tmdb_id' => $params['parent_tmdb_id'] ?? null,
+            'parent_imdb_id' => $params['parent_imdb_id'] ?? null,
             'query' => $params['query'] ?? null,
             'season_number' => $params['season_number'] ?? null,
             'episode_number' => $params['episode_number'] ?? null,
             'languages' => $params['languages'] ?? null,
+            'type' => $params['type'] ?? null,
         ], static fn ($v) => $v !== null && $v !== '');
 
         $response = $this->request('GET', '/subtitles?' . http_build_query($query));
@@ -98,7 +101,7 @@ final class Client
      * @param array<string, mixed>|null $body
      * @return array<string, mixed>
      */
-    private function request(string $method, string $path, ?array $body = null, bool $withAuth = true): array
+    private function request(string $method, string $path, ?array $body = null, bool $withAuth = true, bool $allowAuthRetry = true): array
     {
         $url = self::API_BASE . $path;
         $headers = [
@@ -143,6 +146,14 @@ final class Client
         $decoded = json_decode($raw, true);
         if (!is_array($decoded)) {
             throw new \RuntimeException('Risposta OpenSubtitles non valida');
+        }
+
+        if ($code === 401 && $withAuth && $allowAuthRetry) {
+            $this->token = null;
+            @unlink($this->tokenCachePath());
+            $this->login(true);
+
+            return $this->request($method, $path, $body, true, false);
         }
 
         if ($code >= 400) {

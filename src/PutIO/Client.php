@@ -175,6 +175,78 @@ final class Client
         return $this->getDownloadUrl($fileId);
     }
 
+    /**
+     * @return list<array{key: string, language?: string, name?: string, source?: string}>
+     */
+    public function listSubtitles(int $fileId): array
+    {
+        try {
+            $data = $this->apiGet('/files/' . $fileId . '/subtitles');
+        } catch (\RuntimeException $e) {
+            if (str_contains($e->getMessage(), 'HTTP 404')) {
+                return [];
+            }
+            throw $e;
+        }
+
+        $items = $data['subtitles'] ?? [];
+
+        if (!is_array($items)) {
+            return [];
+        }
+
+        $normalized = [];
+        foreach ($items as $item) {
+            if (!is_array($item) || empty($item['key'])) {
+                continue;
+            }
+            $normalized[] = [
+                'key' => (string) $item['key'],
+                'language' => isset($item['language']) ? (string) $item['language'] : '',
+                'name' => isset($item['name']) ? (string) $item['name'] : '',
+                'source' => isset($item['source']) ? (string) $item['source'] : '',
+            ];
+        }
+
+        return $normalized;
+    }
+
+    public function downloadSubtitle(int $fileId, string $key, string $format = 'webvtt'): string
+    {
+        $token = $this->getAccessToken();
+        $url = self::API_BASE . '/files/' . $fileId . '/subtitles/' . rawurlencode($key) . '?' . http_build_query([
+            'format' => $format,
+        ]);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER => [
+                'Authorization: Bearer ' . $token,
+                'Accept: text/plain, text/vtt, */*',
+            ],
+            CURLOPT_TIMEOUT => 120,
+        ]);
+        $body = curl_exec($ch);
+        $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($body === false) {
+            throw new \RuntimeException('Errore cURL sottotitoli put.io: ' . $err);
+        }
+        if ($code < 200 || $code >= 300) {
+            throw new \RuntimeException('Download sottotitoli put.io non disponibile (HTTP ' . $code . ')');
+        }
+
+        $content = trim((string) $body);
+        if ($content === '') {
+            throw new \RuntimeException('Sottotitolo put.io vuoto');
+        }
+
+        return $content;
+    }
+
     public function getHlsManifest(int $fileId, string $subtitleKey = 'all'): string
     {
         $token = $this->getAccessToken();

@@ -303,7 +303,7 @@ return [
     'subtitles_offset_label' => 'Sync',
     'subtitles_offset_reset' => 'Reset sync',
     'subtitles_offset_saved' => 'Offset saved',
-    'subtitles_attribution' => 'Subtitles provided by OpenSubtitles.com',
+    'subtitles_attribution' => 'Subtitles from put.io and OpenSubtitles.com',
     'subtitles_count' => ':count tracks available',
     'subtitles_count_none' => 'No subtitles downloaded',
     'subtitles_tmdb_hint' => 'Link TMDB metadata for better search results.',

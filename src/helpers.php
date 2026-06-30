@@ -872,6 +872,76 @@ function putmio_user_role_label(string $role): string
     return $role;
 }
 
+/** Normalizza la lingua restituita da put.io (nome o codice) in codice ISO 639-1. */
+function putmio_putio_subtitle_language_code(string $language): string
+{
+    $language = trim($language);
+    if ($language === '') {
+        return 'und';
+    }
+
+    if (preg_match('/^[a-z]{2,3}(-[a-z]{2})?$/i', $language) === 1) {
+        return strtolower($language);
+    }
+
+    $map = [
+        'italian' => 'it',
+        'english' => 'en',
+        'spanish' => 'es',
+        'french' => 'fr',
+        'german' => 'de',
+        'portuguese' => 'pt',
+        'russian' => 'ru',
+        'japanese' => 'ja',
+        'korean' => 'ko',
+        'chinese' => 'zh',
+        'arabic' => 'ar',
+        'dutch' => 'nl',
+        'polish' => 'pl',
+        'swedish' => 'sv',
+        'norwegian' => 'no',
+        'danish' => 'da',
+        'finnish' => 'fi',
+        'greek' => 'el',
+        'turkish' => 'tr',
+        'romanian' => 'ro',
+        'hungarian' => 'hu',
+        'czech' => 'cs',
+        'catalan' => 'ca',
+        'brazilian portuguese' => 'pt-br',
+    ];
+
+    $key = strtolower($language);
+
+    return $map[$key] ?? 'und';
+}
+
+/**
+ * @param array{language?: string, name?: string, source?: string} $subtitle
+ */
+function putmio_putio_subtitle_label(array $subtitle): string
+{
+    $lang = putmio_putio_subtitle_language_code((string) ($subtitle['language'] ?? ''));
+    $label = putmio_subtitle_language_label($lang);
+    $name = trim((string) ($subtitle['name'] ?? ''));
+    if ($name !== '' && stripos($label, $name) === false) {
+        $label .= ' · ' . $name;
+    }
+
+    $source = strtolower(trim((string) ($subtitle['source'] ?? '')));
+    if ($source === 'mkv') {
+        $label .= ' (MKV)';
+    } elseif ($source === 'folder') {
+        $label .= ' (file)';
+    }
+
+    if (function_exists('mb_substr')) {
+        return mb_substr($label, 0, 80);
+    }
+
+    return substr($label, 0, 80);
+}
+
 /** Etichetta lingua sottotitoli da codice ISO 639-1. */
 function putmio_subtitle_language_label(string $code): string
 {

@@ -290,7 +290,7 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}media_subtitles` (
   `media_id` INT UNSIGNED NOT NULL,
   `language` VARCHAR(10) NOT NULL,
   `label` VARCHAR(80) NOT NULL,
-  `source` ENUM('opensubtitles') NOT NULL DEFAULT 'opensubtitles',
+  `source` ENUM('opensubtitles', 'putio') NOT NULL DEFAULT 'opensubtitles',
   `source_file_id` VARCHAR(64) NOT NULL,
   `file_path` VARCHAR(255) NOT NULL,
   `downloaded_by` INT UNSIGNED NULL,

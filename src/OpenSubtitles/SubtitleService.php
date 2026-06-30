@@ -126,7 +126,7 @@ final class SubtitleService
             throw new \RuntimeException('ID file sottotitoli non valido');
         }
 
-        $existing = $this->findBySourceFileId($mediaId, $fileId);
+        $existing = $this->findBySourceFileId($mediaId, 'opensubtitles', $fileId);
         if ($existing !== null) {
             return $existing;
         }
@@ -137,12 +137,32 @@ final class SubtitleService
         $lang = $language !== null && $language !== '' ? $language : 'und';
         $displayLabel = $label !== null && $label !== '' ? $label : putmio_subtitle_language_label($lang);
 
+        return $this->storeVtt($mediaId, 'opensubtitles', $fileId, $vtt, $lang, $displayLabel, $userId > 0 ? $userId : null);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function storeVtt(
+        int $mediaId,
+        string $source,
+        string $sourceFileId,
+        string $vtt,
+        string $language,
+        string $label,
+        ?int $userId = null
+    ): array {
+        $existing = $this->findBySourceFileId($mediaId, $source, $sourceFileId);
+        if ($existing !== null) {
+            return $existing;
+        }
+
         $pdo = Database::pdo();
         $pdo->prepare(
             'INSERT INTO `' . Config::table('media_subtitles') . '`
              (media_id, language, label, source, source_file_id, file_path, downloaded_by)
-             VALUES (?, ?, ?, \'opensubtitles\', ?, \'\', ?)'
-        )->execute([$mediaId, $lang, $displayLabel, $fileId, $userId > 0 ? $userId : null]);
+             VALUES (?, ?, ?, ?, ?, \'\', ?)'
+        )->execute([$mediaId, $language, $label, $source, $sourceFileId, $userId]);
 
         $subtitleId = (int) $pdo->lastInsertId();
         $relativePath = 'subtitles/' . $mediaId . '/' . $subtitleId . '.vtt';
@@ -167,6 +187,28 @@ final class SubtitleService
         }
 
         return $row;
+    }
+
+    public function prunePutioNotInKeys(int $mediaId, array $keys): int
+    {
+        $keys = array_map(static fn ($key): string => (string) $key, $keys);
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT id, source_file_id FROM `' . Config::table('media_subtitles') . '`
+             WHERE media_id = ? AND source = \'putio\''
+        );
+        $stmt->execute([$mediaId]);
+
+        $removed = 0;
+        foreach ($stmt->fetchAll() ?: [] as $row) {
+            if (in_array((string) $row['source_file_id'], $keys, true)) {
+                continue;
+            }
+            $this->delete((int) $row['id']);
+            $removed++;
+        }
+
+        return $removed;
     }
 
     public function savePreference(int $userId, int $mediaId, ?int $subtitleId, int $offsetMs): void
@@ -219,6 +261,19 @@ final class SubtitleService
         $pdo->prepare('DELETE FROM `' . Config::table('media_subtitles') . '` WHERE id = ?')->execute([$id]);
     }
 
+    /** Rimuove tutte le tracce (put.io, OpenSubtitles) e la cartella locale del media. */
+    public function deleteAllForMedia(int $mediaId): void
+    {
+        foreach ($this->listForMedia($mediaId) as $row) {
+            $this->delete((int) $row['id']);
+        }
+
+        $dir = putmio_base_path() . '/storage/subtitles/' . $mediaId;
+        if (is_dir($dir)) {
+            @rmdir($dir);
+        }
+    }
+
     public function servePath(int $id): ?string
     {
         $row = $this->findById($id);
@@ -240,31 +295,129 @@ final class SubtitleService
      */
     private function buildSearchParams(array $media): array
     {
+        $season = !empty($media['season_number']) ? (int) $media['season_number'] : 0;
+        $episode = !empty($media['episode_number']) ? (int) $media['episode_number'] : 0;
+        $isTvEpisode = $season > 0 && $episode > 0 && !empty($media['series_id']);
+
+        $series = null;
+        if ($isTvEpisode) {
+            $series = $this->catalog->findMedia((int) $media['series_id']);
+        }
+
         $params = [];
 
-        if (!empty($media['tmdb_id'])) {
-            $params['tmdb_id'] = (int) $media['tmdb_id'];
+        if ($isTvEpisode) {
+            $params['season_number'] = $season;
+            $params['episode_number'] = $episode;
+            $params['type'] = 'episode';
+
+            $parentTmdbId = $this->seriesTmdbId($series, $media);
+            $parentImdbId = $this->seriesImdbId($series, $media);
+
+            if ($parentTmdbId !== null) {
+                $params['parent_tmdb_id'] = $parentTmdbId;
+            }
+            if ($parentImdbId !== null) {
+                $params['parent_imdb_id'] = $parentImdbId;
+            }
+        } else {
+            if (!empty($media['tmdb_id'])) {
+                $params['tmdb_id'] = (int) $media['tmdb_id'];
+            }
+
+            $imdbId = $this->normalizeImdbId(isset($media['imdb_id']) ? (string) $media['imdb_id'] : null);
+            if ($imdbId !== null) {
+                $params['imdb_id'] = $imdbId;
+            }
+
+            if ($season > 0) {
+                $params['season_number'] = $season;
+            }
+            if ($episode > 0) {
+                $params['episode_number'] = $episode;
+            }
+
+            if (!empty($media['tmdb_id']) || $imdbId !== null) {
+                $params['type'] = ($season > 0 || $episode > 0) ? 'episode' : 'movie';
+            }
         }
 
-        if (!empty($media['imdb_id'])) {
-            $params['imdb_id'] = (string) $media['imdb_id'];
-        }
+        $hasId = !empty($params['parent_tmdb_id'])
+            || !empty($params['parent_imdb_id'])
+            || !empty($params['tmdb_id'])
+            || !empty($params['imdb_id']);
 
-        if (!empty($media['season_number'])) {
-            $params['season_number'] = (int) $media['season_number'];
-        }
-        if (!empty($media['episode_number'])) {
-            $params['episode_number'] = (int) $media['episode_number'];
-        }
+        if (!$hasId) {
+            $queryTitle = (string) ($media['title'] ?? '');
+            if ($isTvEpisode && is_array($series) && !empty($series['title'])) {
+                $queryTitle = (string) $series['title'];
+            }
+            $params['query'] = $queryTitle;
 
-        if (empty($params['tmdb_id']) && empty($params['imdb_id'])) {
-            $params['query'] = (string) ($media['title'] ?? '');
+            $year = null;
             if (!empty($media['year'])) {
-                $params['query'] .= ' ' . (int) $media['year'];
+                $year = (int) $media['year'];
+            } elseif (is_array($series) && !empty($series['year'])) {
+                $year = (int) $series['year'];
+            }
+            if ($year !== null && $year > 0) {
+                $params['query'] .= ' ' . $year;
             }
         }
 
         return $params;
+    }
+
+    /**
+     * @param array<string, mixed>|null $series
+     * @param array<string, mixed> $media
+     */
+    private function seriesTmdbId(?array $series, array $media): ?int
+    {
+        if (is_array($series) && !empty($series['tmdb_id'])) {
+            return (int) $series['tmdb_id'];
+        }
+
+        if (!empty($media['tmdb_id']) && ($media['tmdb_type'] ?? '') === 'tv') {
+            return (int) $media['tmdb_id'];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array<string, mixed>|null $series
+     * @param array<string, mixed> $media
+     */
+    private function seriesImdbId(?array $series, array $media): ?string
+    {
+        if (is_array($series) && !empty($series['imdb_id'])) {
+            return $this->normalizeImdbId((string) $series['imdb_id']);
+        }
+
+        if (!empty($media['imdb_id'])) {
+            return $this->normalizeImdbId((string) $media['imdb_id']);
+        }
+
+        return null;
+    }
+
+    private function normalizeImdbId(?string $imdbId): ?string
+    {
+        if ($imdbId === null) {
+            return null;
+        }
+
+        $imdbId = trim($imdbId);
+        if ($imdbId === '') {
+            return null;
+        }
+
+        if (str_starts_with(strtolower($imdbId), 'tt')) {
+            $imdbId = substr($imdbId, 2);
+        }
+
+        return $imdbId !== '' ? $imdbId : null;
     }
 
     /**
@@ -274,7 +427,8 @@ final class SubtitleService
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
-            'SELECT source_file_id FROM `' . Config::table('media_subtitles') . '` WHERE media_id = ?'
+            'SELECT source_file_id FROM `' . Config::table('media_subtitles') . '`
+             WHERE media_id = ? AND source = \'opensubtitles\''
         );
         $stmt->execute([$mediaId]);
 
@@ -284,14 +438,14 @@ final class SubtitleService
     /**
      * @return array<string, mixed>|null
      */
-    private function findBySourceFileId(int $mediaId, string $fileId): ?array
+    public function findBySourceFileId(int $mediaId, string $source, string $fileId): ?array
     {
         $pdo = Database::pdo();
         $stmt = $pdo->prepare(
             'SELECT * FROM `' . Config::table('media_subtitles') . '`
-             WHERE media_id = ? AND source = \'opensubtitles\' AND source_file_id = ? LIMIT 1'
+             WHERE media_id = ? AND source = ? AND source_file_id = ? LIMIT 1'
         );
-        $stmt->execute([$mediaId, $fileId]);
+        $stmt->execute([$mediaId, $source, $fileId]);
         $row = $stmt->fetch();
 
         return $row ?: null;
@@ -337,8 +491,13 @@ final class SubtitleService
     private function extractFileId(array $item, array $attributes): ?string
     {
         $files = $attributes['files'] ?? null;
-        if (is_array($files) && isset($files[0]['file_id'])) {
-            return (string) $files[0]['file_id'];
+        if (is_array($files) && isset($files[0]) && is_array($files[0])) {
+            if (isset($files[0]['file_id'])) {
+                return (string) $files[0]['file_id'];
+            }
+            if (isset($files[0]['id'])) {
+                return (string) $files[0]['id'];
+            }
         }
 
         if (isset($attributes['file_id'])) {

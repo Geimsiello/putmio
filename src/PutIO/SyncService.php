@@ -6,6 +6,7 @@ namespace PutMio\PutIO;
 
 use PutMio\Config;
 use PutMio\Database;
+use PutMio\Media\MediaCleanupService;
 
 final class SyncService
 {
@@ -68,6 +69,10 @@ final class SyncService
             $this->ensureMediaStubs();
             (new \PutMio\Media\SeriesGrouper())->groupAll();
 
+            $orphanSeries = (new MediaCleanupService())->pruneOrphanSeries();
+
+            $subtitleSync = (new SubtitleSync())->syncAll();
+
             $counts = $this->logger->finishSuccess();
 
             return [
@@ -76,6 +81,9 @@ final class SyncService
                 'added' => $counts['added'],
                 'updated' => $counts['updated'],
                 'deleted' => $counts['removed'],
+                'subtitles_imported' => $subtitleSync['imported'],
+                'subtitles_removed' => $subtitleSync['removed'],
+                'orphan_series_removed' => $orphanSeries,
             ];
         } catch (\Throwable $e) {
             $this->logger->finishError($e);
@@ -310,46 +318,7 @@ final class SyncService
     /** @param list<int|string> $params */
     private function deleteMediaForPutioFiles(string $filesWhere, array $params): void
     {
-        $pdo = Database::pdo();
-        $filesTable = Config::table('putio_files');
-        $mediaTable = Config::table('media_items');
-        $watchTable = Config::table('watch_progress');
-        $genresTable = Config::table('media_genres');
-        $tagsTable = Config::table('media_tags');
-        $sessionsTable = Config::table('stream_sessions');
-
-        $pdo->prepare(
-            'DELETE wp FROM `' . $watchTable . '` wp
-             INNER JOIN `' . $mediaTable . '` mi ON mi.id = wp.media_id
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE ' . $filesWhere
-        )->execute($params);
-
-        $pdo->prepare(
-            'DELETE mg FROM `' . $genresTable . '` mg
-             INNER JOIN `' . $mediaTable . '` mi ON mi.id = mg.media_id
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE ' . $filesWhere
-        )->execute($params);
-
-        $pdo->prepare(
-            'DELETE mt FROM `' . $tagsTable . '` mt
-             INNER JOIN `' . $mediaTable . '` mi ON mi.id = mt.media_id
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE ' . $filesWhere
-        )->execute($params);
-
-        $pdo->prepare(
-            'DELETE ss FROM `' . $sessionsTable . '` ss
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = ss.putio_file_id
-             WHERE ' . $filesWhere
-        )->execute($params);
-
-        $pdo->prepare(
-            'DELETE mi FROM `' . $mediaTable . '` mi
-             INNER JOIN `' . $filesTable . '` pf ON pf.id = mi.putio_file_id
-             WHERE ' . $filesWhere
-        )->execute($params);
+        (new MediaCleanupService())->purgeForPutioFiles($filesWhere, $params);
     }
 
     private function upsertFile(array $file, bool $isShared, ?string $sharedBy): void

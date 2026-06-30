@@ -50,6 +50,7 @@ final class Migrator
             self::runLocaleMigration($pdo);
             self::runBackdropsMigration($pdo);
             self::runUserCatalogSourcesMigration($pdo);
+            self::runPutioSubtitleSourceMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
         }
@@ -78,7 +79,7 @@ final class Migrator
                     `media_id` INT UNSIGNED NOT NULL,
                     `language` VARCHAR(10) NOT NULL,
                     `label` VARCHAR(80) NOT NULL,
-                    `source` ENUM(\'opensubtitles\') NOT NULL DEFAULT \'opensubtitles\',
+                    `source` ENUM(\'opensubtitles\', \'putio\') NOT NULL DEFAULT \'opensubtitles\',
                     `source_file_id` VARCHAR(64) NOT NULL,
                     `file_path` VARCHAR(255) NOT NULL,
                     `downloaded_by` INT UNSIGNED NULL,
@@ -304,6 +305,30 @@ final class Migrator
         }
 
         self::runBackdropBackfill();
+    }
+
+    private static function runPutioSubtitleSourceMigration(\PDO $pdo): void
+    {
+        $table = Config::table('media_subtitles');
+        $stmt = $pdo->prepare(
+            'SELECT COUNT(*) FROM information_schema.TABLES
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?'
+        );
+        $stmt->execute([$table]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            return;
+        }
+
+        $column = $pdo->query('SHOW COLUMNS FROM `' . $table . '` LIKE \'source\'');
+        $row = $column ? $column->fetch() : false;
+        if (!$row || !is_string($row['Type'] ?? null) || str_contains($row['Type'], 'putio')) {
+            return;
+        }
+
+        $pdo->exec(
+            'ALTER TABLE `' . $table . '`
+             MODIFY `source` ENUM(\'opensubtitles\', \'putio\') NOT NULL DEFAULT \'opensubtitles\''
+        );
     }
 
     private static function runUserCatalogSourcesMigration(\PDO $pdo): void
