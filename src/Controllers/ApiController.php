@@ -82,6 +82,51 @@ final class ApiController
         putmio_json(['ok' => true]);
     }
 
+    public function watchlistToggle(): void
+    {
+        Session::requireAuth();
+        Csrf::requireValid($_POST['_csrf'] ?? null);
+
+        $mediaId = (int) ($_POST['media_id'] ?? 0);
+        $action = (string) ($_POST['action'] ?? 'toggle');
+        $catalog = new CatalogService();
+        $userId = (int) Session::userId();
+
+        $resolvedId = $catalog->resolveWatchlistMediaId($mediaId);
+        if ($resolvedId === null) {
+            putmio_json(['ok' => false, 'error' => 'invalid_media'], 400);
+        }
+
+        $media = $catalog->findMedia($resolvedId);
+        if (!$media || !$catalog->isMediaVisibleForUser($userId, $media)) {
+            putmio_json(['ok' => false], 404);
+        }
+
+        Session::release();
+
+        if ($action === 'add') {
+            $catalog->addToWatchlist($userId, $resolvedId);
+            $inWatchlist = $catalog->isInWatchlist($userId, $resolvedId);
+        } elseif ($action === 'remove') {
+            $catalog->removeFromWatchlist($userId, $resolvedId);
+            $inWatchlist = $catalog->isInWatchlist($userId, $resolvedId);
+        } else {
+            $inWatchlist = $catalog->toggleWatchlist($userId, $resolvedId);
+        }
+
+        if ($action === 'add' && !$inWatchlist) {
+            putmio_json(['ok' => false], 400);
+        }
+
+        putmio_json([
+            'ok' => true,
+            'in_watchlist' => $inWatchlist,
+            'message' => $inWatchlist
+                ? putmio_lang('watchlist_added_toast')
+                : putmio_lang('watchlist_removed_toast'),
+        ]);
+    }
+
     public function tmdbSearch(): void
     {
         Session::requireAuth();
@@ -343,11 +388,13 @@ final class ApiController
         $catalogReturnPath = putmio_sanitize_catalog_return($_GET['from'] ?? null)
             ?? putmio_catalog_path($filters, $page);
         $appUrl = rtrim(Config::get('app.url'), '/');
+        $watchlistIds = (new CatalogService())->watchlistIdsForUser((int) Session::userId());
         $html = View::capture('catalog/_grid-items', [
             'items' => $items,
             'catalog' => $catalog,
             'appUrl' => $appUrl,
             'catalogReturnPath' => $catalogReturnPath,
+            'watchlistIds' => $watchlistIds,
         ]);
         $loaded = $offset + count($items);
         putmio_json([

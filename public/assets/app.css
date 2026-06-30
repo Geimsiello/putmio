@@ -657,6 +657,82 @@ body.pm-mobile-nav-open {
   opacity: 1;
 }
 
+.pm-poster-bookmark {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(144, 143, 160, 0.35);
+  background: rgba(11, 19, 38, 0.72);
+  color: #dae2fd;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.group:hover .pm-poster-bookmark,
+.poster-hover:hover .pm-poster-bookmark,
+.pm-poster-bookmark.pm-watchlist-btn--active,
+.pm-poster-bookmark:focus-visible {
+  opacity: 1;
+}
+
+.pm-poster-bookmark:hover {
+  background: rgba(34, 42, 61, 0.92);
+  border-color: rgba(192, 193, 255, 0.45);
+  color: #c0c1ff;
+}
+
+.pm-poster-bookmark.pm-watchlist-btn--active {
+  background: rgba(128, 131, 255, 0.22);
+  border-color: rgba(192, 193, 255, 0.55);
+  color: #ffe083;
+}
+
+.pm-watchlist-btn--detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(144, 143, 160, 0.5);
+  color: #dae2fd;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.pm-watchlist-btn--detail:hover {
+  background: rgba(45, 52, 73, 0.45);
+}
+
+.pm-watchlist-btn--detail.pm-watchlist-btn--active {
+  border-color: rgba(192, 193, 255, 0.55);
+  color: #ffe083;
+}
+
+.pm-watchlist-btn--detail .pm-watchlist-btn__icon {
+  font-size: 1.25rem;
+}
+
+.pm-watchlist-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (hover: none) {
+  .pm-poster-bookmark {
+    opacity: 1;
+  }
+}
+
 .video-js {
   width: 100%;
 }

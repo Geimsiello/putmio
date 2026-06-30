@@ -50,6 +50,7 @@ final class Migrator
             self::runLocaleMigration($pdo);
             self::runBackdropsMigration($pdo);
             self::runUserCatalogSourcesMigration($pdo);
+            self::runUserWatchlistMigration($pdo);
             self::runPutioSubtitleSourceMigration($pdo);
         } catch (\Throwable $e) {
             self::logMigrationError($e);
@@ -340,6 +341,20 @@ final class Migrator
               `source_key` VARCHAR(120) NOT NULL,
               PRIMARY KEY (`user_id`, `source_key`),
               KEY `idx_user` (`user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
+        );
+    }
+
+    private static function runUserWatchlistMigration(\PDO $pdo): void
+    {
+        $table = Config::table('user_watchlist');
+        $pdo->exec(
+            'CREATE TABLE IF NOT EXISTS `' . $table . '` (
+              `user_id` INT UNSIGNED NOT NULL,
+              `media_id` INT UNSIGNED NOT NULL,
+              `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              PRIMARY KEY (`user_id`, `media_id`),
+              KEY `idx_user_created` (`user_id`, `created_at`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci'
         );
     }

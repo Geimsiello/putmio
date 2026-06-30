@@ -69,7 +69,34 @@ $appUrl = rtrim(Config::get('app.url'), '/');
 </section>
 <?php endif; ?>
 
-<section class="<?= !empty($inProgress) ? 'mt-10 md:mt-12' : 'mt-8 md:mt-10' ?>">
+<?php
+$homeHasPriorSection = !empty($inProgress);
+$homeSectionSpacing = $homeHasPriorSection ? 'mt-10 md:mt-12' : 'mt-8 md:mt-10';
+?>
+<?php if (!empty($watchlist)): ?>
+<section class="<?= $homeHasPriorSection ? 'mt-10 md:mt-12' : 'mt-8 md:mt-10' ?>">
+  <div class="flex justify-between items-end mb-6 gap-4">
+    <h2 class="text-headline-lg font-headline-lg text-on-surface"><?= putmio_lang('watchlist') ?></h2>
+    <a class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 shrink-0" href="<?= putmio_e($appUrl) ?>/watchlist">
+      <?= putmio_lang('view_all') ?> <span class="material-symbols-outlined text-sm">chevron_right</span>
+    </a>
+  </div>
+  <?php ob_start(); ?>
+    <?php foreach ($watchlist as $item): ?>
+      <?php require putmio_base_path() . '/templates/partials/home-catalog-poster.php'; ?>
+    <?php endforeach; ?>
+  <?php
+    $sliderInner = ob_get_clean();
+    $sliderId = 'home-watchlist';
+    require putmio_base_path() . '/templates/partials/pm-slider.php';
+  ?>
+</section>
+<?php
+  $homeHasPriorSection = true;
+  $homeSectionSpacing = 'mt-10 md:mt-12';
+endif; ?>
+
+<section class="<?= $homeSectionSpacing ?>">
   <div class="flex justify-between items-end mb-6 md:mb-8 gap-4">
     <h2 class="text-headline-lg font-headline-lg text-on-surface"><?= putmio_lang('recently_added') ?></h2>
     <a href="<?= putmio_e($appUrl) ?>/catalogo" class="text-primary font-label-md text-label-md hover:underline flex items-center gap-1 shrink-0">

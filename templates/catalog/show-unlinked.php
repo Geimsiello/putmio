@@ -8,6 +8,7 @@
 /** @var array{episode: array<string, mixed>, progress: ?array<string, mixed>, resume: bool}|null $seriesPlayTarget */
 /** @var \PutMio\CatalogService $catalog */
 /** @var string $catalogReturnUrl */
+/** @var bool $isInWatchlist */
 use PutMio\Config;
 $appUrl = rtrim(Config::get('app.url'), '/');
 $poster = $catalog->posterWebPath($media['poster_local_path'] ?? null, $media['poster_url'] ?? null);
@@ -17,6 +18,7 @@ $tmdbAutoOpen = false;
 $mediaId = (int) $media['id'];
 $typeLabel = putmio_lang((string) ($media['media_type'] ?? 'altro'));
 $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
+$isInWatchlist = $isInWatchlist ?? false;
 ?>
 <a href="<?= putmio_e($catalogReturnUrl) ?>" class="inline-flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md mb-8 group">
   <span class="material-symbols-outlined text-lg group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
@@ -43,7 +45,7 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
           ['code' => $seriesEpisodeCode]
       );
     ?>
-    <div class="mb-6">
+    <div class="mb-6 flex flex-wrap gap-3 items-center">
       <a
         href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $seriesEpisode['id'] ?>"
         class="pm-btn-primary inline-flex px-5 py-2.5"
@@ -51,6 +53,12 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
         <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
         <?= putmio_e($seriesPlayLabel) ?>
       </a>
+      <?php
+        $bookmarkMediaId = $mediaId;
+        $bookmarkVariant = 'detail';
+        $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+        require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+      ?>
     </div>
     <?php endif; ?>
 
@@ -64,6 +72,12 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
       <a href="<?= putmio_e($appUrl) ?>/play?id=<?= $mediaId ?>" class="pm-btn-primary px-5 py-2.5">
         <?= $hasProgress ? putmio_lang('resume') : putmio_lang('play') ?>
       </a>
+      <?php
+        $bookmarkMediaId = $mediaId;
+        $bookmarkVariant = 'detail';
+        $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+        require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+      ?>
       <?php if (\PutMio\Auth\Session::isAdmin()): ?>
         <?php
         $tmdbShowTrigger = true;
@@ -78,6 +92,12 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
       <p class="text-body-md text-warning/90">Collega la serie ai metadati TMDB per completare titolo, poster e descrizione.</p>
     </div>
     <div class="flex flex-wrap gap-3 items-center mb-8">
+      <?php
+        $bookmarkMediaId = $mediaId;
+        $bookmarkVariant = 'detail';
+        $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+        require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+      ?>
       <?php
       $tmdbShowTrigger = true;
       $tmdbCatalogMode = false;

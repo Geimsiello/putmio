@@ -113,6 +113,7 @@ $viewportContent = $tvUa
         ['/', putmio_lang('home')],
         ['/catalogo', putmio_lang('catalog')],
         ['/in-corso', putmio_lang('in_progress')],
+        ['/watchlist', putmio_lang('watchlist')],
       ];
       if (Session::isAdmin()) {
         $navItems[] = ['/admin', putmio_lang('admin')];
@@ -202,9 +203,15 @@ $isAuthShell = !empty($authShell) && !Session::userId();
     'csrf' => Csrf::token(),
     'localeChangeError' => putmio_lang('locale_change_error'),
     'isTvDevice' => $tvUa,
+    'watchlistAddLabel' => putmio_lang('watchlist_add'),
+    'watchlistRemoveLabel' => putmio_lang('watchlist_remove'),
+    'watchlistErrorLabel' => putmio_lang('watchlist_error'),
   ], $putmioExtra ?? []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 </script>
 <script src="<?= putmio_e(putmio_asset('public/assets/app.js')) ?>" defer></script>
+<?php if (Session::userId()): ?>
+<script src="<?= putmio_e(putmio_asset('public/assets/watchlist.js')) ?>" defer></script>
+<?php endif; ?>
 <?= $extraScripts ?? '' ?>
 </body>
 </html>

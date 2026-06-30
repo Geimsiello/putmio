@@ -708,6 +708,147 @@ final class CatalogService
         return $stmt->fetchAll();
     }
 
+    public function resolveWatchlistMediaId(int $mediaId): ?int
+    {
+        $media = $this->findMedia($mediaId);
+        if (!$media || !empty($media['series_id'])) {
+            return null;
+        }
+
+        return (int) $media['id'];
+    }
+
+    public function isInWatchlist(int $userId, int $mediaId): bool
+    {
+        $resolvedId = $this->resolveWatchlistMediaId($mediaId);
+        if ($resolvedId === null) {
+            return false;
+        }
+
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT 1 FROM `' . Config::table('user_watchlist') . '` WHERE user_id = ? AND media_id = ? LIMIT 1'
+        );
+        $stmt->execute([$userId, $resolvedId]);
+
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /** @return list<int> */
+    public function watchlistIdsForUser(int $userId): array
+    {
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'SELECT media_id FROM `' . Config::table('user_watchlist') . '` WHERE user_id = ?'
+        );
+        $stmt->execute([$userId]);
+
+        return array_map('intval', $stmt->fetchAll(\PDO::FETCH_COLUMN));
+    }
+
+    public function addToWatchlist(int $userId, int $mediaId): bool
+    {
+        $resolvedId = $this->resolveWatchlistMediaId($mediaId);
+        if ($resolvedId === null) {
+            return false;
+        }
+
+        $media = $this->findMedia($resolvedId);
+        if (!$media || !$this->isMediaVisibleForUser($userId, $media)) {
+            return false;
+        }
+
+        if ((string) ($media['classification_status'] ?? '') === 'ignored') {
+            return false;
+        }
+
+        $pdo = Database::pdo();
+        $pdo->prepare(
+            'INSERT IGNORE INTO `' . Config::table('user_watchlist') . '` (user_id, media_id) VALUES (?, ?)'
+        )->execute([$userId, $resolvedId]);
+
+        return true;
+    }
+
+    public function removeFromWatchlist(int $userId, int $mediaId): bool
+    {
+        $resolvedId = $this->resolveWatchlistMediaId($mediaId);
+        if ($resolvedId === null) {
+            return false;
+        }
+
+        $pdo = Database::pdo();
+        $stmt = $pdo->prepare(
+            'DELETE FROM `' . Config::table('user_watchlist') . '` WHERE user_id = ? AND media_id = ?'
+        );
+        $stmt->execute([$userId, $resolvedId]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    public function toggleWatchlist(int $userId, int $mediaId): bool
+    {
+        if ($this->isInWatchlist($userId, $mediaId)) {
+            $this->removeFromWatchlist($userId, $mediaId);
+
+            return false;
+        }
+
+        $this->addToWatchlist($userId, $mediaId);
+
+        return $this->isInWatchlist($userId, $mediaId);
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function watchlistForUser(int $userId, ?int $limit = null): array
+    {
+        $pdo = Database::pdo();
+        $mediaTable = Config::table('media_items');
+        $complete = (float) Config::get('app.stream_complete_ratio', 0.90);
+        $min = (float) Config::get('app.stream_min_progress_ratio', 0.05);
+
+        $sourceFilter = '';
+        $sourceParams = [];
+        if (!Session::isAdmin()) {
+            [$sourceClause, $sourceParams] = $this->userSourceVisibilityClause($userId);
+            if ($sourceClause === '0=1') {
+                return [];
+            }
+            if ($sourceClause !== '') {
+                $sourceFilter = ' AND ' . $sourceClause;
+            }
+        }
+
+        $sql = 'SELECT mi.*, pf.putio_id, pf.size,
+                       wp.position_sec, wp.duration_sec,
+                       uw.created_at AS watchlist_added_at,
+                       ' . $this->mediaOwnerSelectSql() . '
+                FROM `' . Config::table('user_watchlist') . '` uw
+                JOIN `' . $mediaTable . '` mi ON mi.id = uw.media_id
+                LEFT JOIN `' . Config::table('putio_files') . '` pf ON pf.id = mi.putio_file_id
+                LEFT JOIN `' . Config::table('watch_progress') . '` wp
+                  ON wp.user_id = uw.user_id
+                 AND wp.media_id = mi.id
+                 AND wp.completed = 0
+                 AND wp.position_sec > 0
+                 AND (wp.duration_sec = 0 OR (wp.position_sec / wp.duration_sec) >= ?)
+                 AND (wp.duration_sec = 0 OR (wp.position_sec / wp.duration_sec) < ?)
+                WHERE uw.user_id = ?
+                  AND mi.series_id IS NULL
+                  AND mi.classification_status != \'ignored\''
+            . $sourceFilter .
+            ' ORDER BY uw.created_at DESC';
+
+        if ($limit !== null && $limit > 0) {
+            $sql .= ' LIMIT ' . (int) $limit;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(array_merge([$min, $complete, $userId], $sourceParams));
+
+        return $stmt->fetchAll();
+    }
+
     /** Propaga locandina, classificazione e metadati TMDB dalla serie a tutti gli episodi. */
     public function syncSeriesMetadataToEpisodes(int $seriesId): void
     {

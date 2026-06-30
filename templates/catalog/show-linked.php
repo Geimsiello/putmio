@@ -8,6 +8,7 @@
 /** @var array{episode: array<string, mixed>, progress: ?array<string, mixed>, resume: bool}|null $seriesPlayTarget */
 /** @var \PutMio\CatalogService $catalog */
 /** @var string $catalogReturnUrl */
+/** @var bool $isInWatchlist */
 use PutMio\Config;
 $appUrl = rtrim(Config::get('app.url'), '/');
 $poster = $catalog->posterWebPath($media['poster_local_path'] ?? null, $media['poster_url'] ?? null);
@@ -26,6 +27,7 @@ $episodeCount = $isSeries ? $catalog->countSeriesEpisodes($mediaId) : 0;
 /** @var bool $subtitlesConfigured */
 $subtitleCount = $subtitleCount ?? 0;
 $subtitlesConfigured = $subtitlesConfigured ?? false;
+$isInWatchlist = $isInWatchlist ?? false;
 $resolutionLabel = null;
 if (!$isSeries) {
     $resolutionLabel = putmio_file_technical_labels($media['file_name'] ?? null)['resolution'] ?? null;
@@ -91,7 +93,7 @@ if (!$isSeries) {
           ['code' => $seriesEpisodeCode]
       );
     ?>
-    <div class="mb-8 max-w-xl">
+    <div class="mb-8 max-w-xl flex flex-col sm:flex-row gap-3">
       <a
         href="<?= putmio_e($appUrl) ?>/play?id=<?= (int) $seriesEpisode['id'] ?>"
         class="pm-btn-primary w-full sm:w-auto inline-flex justify-center px-6 py-3 text-base shadow-lg shadow-primary/20"
@@ -99,6 +101,23 @@ if (!$isSeries) {
         <span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
         <?= putmio_e($seriesPlayLabel) ?>
       </a>
+      <?php
+        $bookmarkMediaId = $mediaId;
+        $bookmarkVariant = 'detail';
+        $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+        require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+      ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($isSeries && $seriesPlayTarget === null): ?>
+    <div class="mb-8 max-w-xl">
+      <?php
+        $bookmarkMediaId = $mediaId;
+        $bookmarkVariant = 'detail';
+        $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+        require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+      ?>
     </div>
     <?php endif; ?>
 
@@ -164,6 +183,12 @@ if (!$isSeries) {
           <?= putmio_lang('mark_watched') ?>
         </button>
         <?php endif; ?>
+        <?php
+          $bookmarkMediaId = $mediaId;
+          $bookmarkVariant = 'detail';
+          $watchlistIds = $isInWatchlist ? [$mediaId] : [];
+          require putmio_base_path() . '/templates/partials/poster-bookmark-btn.php';
+        ?>
       </div>
       <?php if ($canRestart): ?>
       <button

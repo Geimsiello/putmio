@@ -316,3 +316,11 @@ CREATE TABLE IF NOT EXISTS `{{prefix}}user_catalog_hidden_sources` (
   PRIMARY KEY (`user_id`, `source_key`),
   KEY `idx_user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `{{prefix}}user_watchlist` (
+  `user_id` INT UNSIGNED NOT NULL,
+  `media_id` INT UNSIGNED NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`, `media_id`),
+  KEY `idx_user_created` (`user_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

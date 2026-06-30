@@ -55,6 +55,7 @@ final class UserService
             'watch_progress',
             'user_subtitle_prefs',
             'user_catalog_hidden_sources',
+            'user_watchlist',
             'stream_sessions',
         ];
 

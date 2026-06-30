@@ -37,6 +37,9 @@ final class CatalogController
         $items = $this->catalog->listMedia($activeFilters, $limit, 0);
         $total = $this->catalog->countMedia($activeFilters);
 
+        $userId = (int) Session::userId();
+        $watchlistIds = $this->catalog->watchlistIdsForUser($userId);
+
         View::render('catalog/index', [
             'title' => putmio_lang('catalog'),
             'items' => $items,
@@ -47,6 +50,7 @@ final class CatalogController
             'total' => $total,
             'hasMore' => $total > count($items),
             'catalog' => $this->catalog,
+            'watchlistIds' => $watchlistIds,
             'extraScripts' => '<script src="' . htmlspecialchars(
                 putmio_asset('public/assets/catalog.js'),
                 ENT_QUOTES,
@@ -102,6 +106,7 @@ final class CatalogController
             'media' => $media,
             'progress' => $progress,
             'catalog' => $this->catalog,
+            'isInWatchlist' => $this->catalog->isInWatchlist($userId, $id),
             'tmdbSuggestedQuery' => $tmdbSuggestedQuery,
             'isLinked' => $isLinked,
             'genres' => $genres,
@@ -157,6 +162,21 @@ final class CatalogController
             'title' => putmio_lang('in_progress'),
             'items' => $items,
             'catalog' => $this->catalog,
+        ]);
+    }
+
+    public function watchlist(): void
+    {
+        Session::requireAuth();
+        $userId = (int) Session::userId();
+        $items = $this->catalog->watchlistForUser($userId);
+        $watchlistIds = array_map(static fn (array $row): int => (int) $row['id'], $items);
+
+        View::render('catalog/watchlist', [
+            'title' => putmio_lang('watchlist'),
+            'items' => $items,
+            'catalog' => $this->catalog,
+            'watchlistIds' => $watchlistIds,
         ]);
     }
 

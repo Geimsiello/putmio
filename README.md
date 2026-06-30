@@ -40,6 +40,7 @@ Screenshots (enable when ready — see image creation guide)
 - **Multi-user** — separate accounts for the family, per-user content filters, invites and password reset via email
 - **Smart TV & remote** — 10-foot TV mode, QR login from your phone, installable PWA
 - **Resume playback** — “Continue watching” section synced across devices
+- **Watchlist** — save films and series with a bookmark; personal list at `/watchlist`, slider on home when not empty, toggle via `POST /api/watchlist` (top-level titles only, not individual episodes)
 - **Shared content** — selectively import files your put.io friends share with you
 - **In-panel updates** — version check and core updates from GitHub Releases without touching config or database
 

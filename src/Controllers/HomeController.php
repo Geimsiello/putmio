@@ -19,12 +19,16 @@ final class HomeController
         $catalog->backfillLinkedMediaTypes();
         $userId = (int) Session::userId();
         $inProgress = $catalog->inProgressForUser($userId);
+        $watchlist = $catalog->watchlistForUser($userId, 10);
+        $watchlistIds = $catalog->watchlistIdsForUser($userId);
         $recent = $catalog->listMedia(['classified' => true], 24);
         $putio = new Client();
 
         View::render('home', [
             'title' => putmio_lang('home'),
             'inProgress' => array_slice($inProgress, 0, 10),
+            'watchlist' => $watchlist,
+            'watchlistIds' => $watchlistIds,
             'recent' => $recent,
             'genreRows' => $catalog->homeGenresWithMedia(),
             'putioConnected' => $putio->isConnected(),

@@ -23,6 +23,7 @@ $navItems = [
     ['/', putmio_lang('home'), 'home'],
     ['/catalogo', putmio_lang('catalog'), 'video_library'],
     ['/in-corso', putmio_lang('in_progress'), 'play_circle'],
+    ['/watchlist', putmio_lang('watchlist'), 'bookmarks'],
 ];
 if (Session::isAdmin()) {
     $navItems[] = ['/admin', putmio_lang('admin'), 'admin_panel_settings'];
