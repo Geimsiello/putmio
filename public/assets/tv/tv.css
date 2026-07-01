@@ -28,8 +28,10 @@ html.tv-site body {
 }
 
 .tv-site--guest .tv-main {
-  padding: 2rem 3rem;
+  padding: 1.5rem 3rem;
   min-height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -247,22 +249,41 @@ html.tv-site body {
 /* Login */
 .tv-login {
   width: 100%;
-  max-width: 32rem;
-  text-align: center;
+  max-width: 56rem;
 }
 
 .tv-login__brand {
-  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.tv-login__brand > * {
+  margin-right: 1rem;
+}
+
+@supports (gap: 1rem) {
+  .tv-login__brand {
+    gap: 1rem;
+  }
+  .tv-login__brand > * {
+    margin-right: 0;
+  }
 }
 
 .tv-login__logo {
   display: block;
-  margin: 0 auto 1rem;
+  flex-shrink: 0;
+}
+
+.tv-login__brand-text {
+  text-align: left;
 }
 
 .tv-login__title {
-  margin: 0 0 0.5rem;
-  font-size: 2rem;
+  margin: 0 0 0.25rem;
+  font-size: 1.75rem;
   font-weight: 800;
   color: #c0c1ff;
 }
@@ -270,46 +291,100 @@ html.tv-site body {
 .tv-login__tagline {
   margin: 0;
   color: #c7c4d7;
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .tv-login__card {
   background: #171f33;
   border: 1px solid rgba(70, 69, 84, 0.4);
   border-radius: 1rem;
-  padding: 2rem;
-  text-align: center;
+  padding: 2rem 2.5rem;
+}
+
+.tv-login__columns {
+  display: flex;
+  align-items: center;
+}
+
+.tv-login__col--text {
+  flex: 1;
+  min-width: 0;
+  padding-right: 2rem;
+  text-align: left;
+}
+
+.tv-login__col--text > * {
+  margin-bottom: 1rem;
+}
+
+.tv-login__col--text > *:last-child {
+  margin-bottom: 0;
+}
+
+@supports (gap: 1rem) {
+  .tv-login__col--text {
+    gap: 1rem;
+    padding-right: 0;
+  }
+  .tv-login__col--text > * {
+    margin-bottom: 0;
+  }
+  .tv-login__columns {
+    gap: 2.5rem;
+  }
+}
+
+.tv-login__col--qr {
+  flex-shrink: 0;
 }
 
 .tv-login__heading {
-  margin: 0 0 0.5rem;
-  font-size: 1.5rem;
+  margin: 0;
+  font-size: 1.75rem;
 }
 
 .tv-login__desc {
-  margin: 0 0 1.5rem;
+  margin: 0;
+  color: #c7c4d7;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  max-width: 28rem;
+}
+
+.tv-login__status {
   color: #c7c4d7;
   font-size: 1rem;
 }
 
-.tv-login__loading,
-.tv-login__waiting {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  color: #c7c4d7;
-  padding: 1.5rem 0;
-}
-
-.tv-login__ready[hidden],
+.tv-login__text-ready[hidden],
+.tv-login__qr-ready[hidden],
 .tv-login__error[hidden],
-.tv-login__loading[hidden] {
+.tv-login__qr-loading[hidden],
+.tv-login__status[hidden] {
   display: none !important;
 }
 
+.tv-login__waiting {
+  display: flex;
+  align-items: center;
+  color: #c7c4d7;
+  font-size: 1rem;
+}
+
+.tv-login__waiting > * {
+  margin-right: 0.5rem;
+}
+
+@supports (gap: 0.5rem) {
+  .tv-login__waiting {
+    gap: 0.5rem;
+  }
+  .tv-login__waiting > * {
+    margin-right: 0;
+  }
+}
+
 .tv-login__error {
-  margin-bottom: 1rem;
   padding: 1rem;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.35);
@@ -318,13 +393,25 @@ html.tv-site body {
   font-size: 1rem;
 }
 
-.tv-login__qr-wrap {
-  display: inline-block;
-  padding: 1rem;
+.tv-login__qr-panel {
+  width: 280px;
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #131b2e;
   border-radius: 0.75rem;
   border: 1px solid rgba(70, 69, 84, 0.4);
-  margin-bottom: 1.5rem;
+}
+
+.tv-login__qr-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-login__qr-wrap {
+  padding: 0.5rem;
 }
 
 .tv-login__qr {
@@ -340,25 +427,33 @@ html.tv-site body {
 }
 
 .tv-login__code-label {
-  margin: 0 0 0.5rem;
+  margin: 0;
   font-size: 0.9rem;
   color: #c7c4d7;
   font-family: ui-monospace, monospace;
 }
 
 .tv-login__code {
-  margin: 0 0 1.5rem;
-  font-size: 2.25rem;
+  margin: 0;
+  font-size: 2rem;
   font-weight: 800;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   color: #c0c1ff;
   font-family: ui-monospace, "JetBrains Mono", monospace;
 }
 
 .tv-login__hint {
-  margin: 1rem 0 1.5rem;
+  margin: 0;
   font-size: 0.9rem;
   color: rgba(199, 196, 215, 0.75);
+  line-height: 1.45;
+  max-width: 26rem;
+}
+
+.tv-login__text-ready .tv-btn {
+  margin-top: 0.5rem;
+  width: auto;
+  min-width: 14rem;
 }
 
 .tv-login__spinner {

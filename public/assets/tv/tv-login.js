@@ -33,6 +33,8 @@
     show(box);
     hide($('device-login-loading'));
     hide($('device-login-ready'));
+    hide($('device-login-text-loading'));
+    show($('device-login-text-ready'));
   }
 
   function stopPolling() {
@@ -61,7 +63,9 @@
     deviceToken = null;
 
     show($('device-login-loading'));
+    show($('device-login-text-loading'));
     hide($('device-login-ready'));
+    hide($('device-login-text-ready'));
     hide($('device-login-error'));
 
     try {
@@ -79,7 +83,9 @@
       renderQr(data.authorize_url);
 
       hide($('device-login-loading'));
+      hide($('device-login-text-loading'));
       show($('device-login-ready'));
+      show($('device-login-text-ready'));
 
       pollTimer = setInterval(pollStatus, POLL_MS);
       pollStatus();
@@ -114,9 +120,9 @@
   }
 
   async function completeLogin() {
-    var waiting = $('device-login-waiting');
-    if (waiting) {
-      waiting.textContent = labels().completing || 'Accesso in corso…';
+    var waitingText = $('device-login-waiting-text');
+    if (waitingText) {
+      waitingText.textContent = labels().completing || 'Accesso in corso…';
     }
 
     try {
