@@ -240,6 +240,7 @@ Optional `config.php` keys (see `config.example.php`):
 - **Continue watching** section with resume playback
 - **Italian / English** UI; account settings (language, devices, content filter)
 - **TV mode** for Smart TV / remote: 10-foot layout, arrow-key navigation, fullscreen play on TV devices
+- **Dedicated TV site** at `/tv/` (QR login, self-hosted assets, spatial remote navigation) — open manually until UA redirect is enabled; LG IPK can point here when ready
 - Admin streaming dashboard (bandwidth, active sessions)
 - Sync logs with expandable detail of added/removed content
 - Selective sync of content shared by put.io friends
@@ -256,9 +257,11 @@ The web/core updater in **Admin → Updates** remains the source of PutMio updat
 
 ### Personal LG webOS IPK
 
-For personal installation on an LG TV in Developer Mode, you can keep a webOS wrapper outside Git in `local-webos-app/` (ignored by `.gitignore`). The wrapper should hardcode your own PutMio URL, redirect the app window to that URL, and rely on the existing `WebOS` user-agent detection for TV mode.
+For personal installation on an LG TV in Developer Mode, keep a **packaged TV app** in `local-webos-app/` (ignored by `.gitignore`). Version 2.x bundles fonts, SVG icon fallbacks, and TV-optimized CSS inside the IPK. A local HTTP proxy forwards to your PutMio URL and injects those assets into the remote HTML — **no changes required on the PutMio server**.
 
-Install or update the generated `.ipk` manually with the LG/webOS CLI (`ares-install`). In-app APK/IPK self-updates are intentionally out of scope for these local wrappers; the PutMio web/core updater still handles the server-side app.
+Configure `config.json` with your `putmio_url`, then run `.\build-ipk.ps1` (downloads fonts and `webOSTV.js`, builds the IPK). See `local-webos-app/README.md` for details.
+
+Install or update the generated `.ipk` manually with the LG/webOS CLI (`ares-install`). In-app APK/IPK self-updates are intentionally out of scope; the PutMio web/core updater still handles the server-side app.
 
 Keep these files private and out of Git:
 

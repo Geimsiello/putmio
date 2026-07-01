@@ -29,6 +29,8 @@ final class AuthController
             putmio_redirect('');
         }
 
+        unset($_SESSION['device_login_return']);
+
         $next = trim((string) ($_GET['next'] ?? ''));
         if ($next !== '' && str_starts_with($next, 'authorize-device')) {
             $_SESSION['login_next'] = '/' . ltrim($next, '/');

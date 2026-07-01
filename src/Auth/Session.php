@@ -106,6 +106,13 @@ final class Session
         }
     }
 
+    public static function requireTvAuth(): void
+    {
+        if (!self::userId()) {
+            putmio_redirect('tv/login');
+        }
+    }
+
     public static function release(): void
     {
         if (session_status() === PHP_SESSION_ACTIVE) {

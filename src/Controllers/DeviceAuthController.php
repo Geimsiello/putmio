@@ -74,7 +74,17 @@ final class DeviceAuthController
         $userLocale = $user['locale'] ?? putmio_locale();
         putmio_set_locale($userLocale);
 
-        putmio_json(['ok' => true, 'redirect' => rtrim(Config::get('app.url', putmio_detect_base_url()), '/') . '/']);
+        if (isset($_SESSION['device_login_return'])) {
+            $returnPath = putmio_sanitize_tv_return($_SESSION['device_login_return']);
+            unset($_SESSION['device_login_return']);
+        } else {
+            $returnPath = '/';
+        }
+
+        putmio_json([
+            'ok' => true,
+            'redirect' => rtrim(Config::get('app.url', putmio_detect_base_url()), '/') . $returnPath,
+        ]);
     }
 
     public function approve(): void

@@ -285,6 +285,102 @@ function putmio_tv_mode(): bool
     return $resolved = false;
 }
 
+function putmio_tv_url(string $path = '/'): string
+{
+    $base = rtrim(\PutMio\Config::get('app.url', putmio_detect_base_url()), '/');
+    $path = trim($path, '/');
+    if ($path === '' || $path === 'tv') {
+        return $base . '/tv/';
+    }
+    if (str_starts_with($path, 'tv/') || $path === 'tv') {
+        return $base . '/' . trim($path, '/');
+    }
+
+    return $base . '/tv/' . $path;
+}
+
+function putmio_is_tv_site_request(): bool
+{
+    $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+    $base = rtrim(parse_url(\PutMio\Config::get('app.url', putmio_detect_base_url()), PHP_URL_PATH) ?? '', '/');
+    if ($base !== '' && str_starts_with($uri, $base)) {
+        $uri = substr($uri, strlen($base)) ?: '/';
+    }
+    $uri = '/' . trim($uri, '/');
+    if ($uri === '//') {
+        $uri = '/';
+    }
+
+    return $uri === '/tv' || str_starts_with($uri, '/tv/');
+}
+
+/** Whitelist anti open-redirect per redirect post device login TV. */
+function putmio_sanitize_tv_return(?string $path): string
+{
+    $default = '/tv/';
+    if ($path === null || trim($path) === '') {
+        return $default;
+    }
+
+    $path = rawurldecode(trim($path));
+    if (str_contains($path, '://') || str_starts_with($path, '//')) {
+        return $default;
+    }
+
+    if (!str_starts_with($path, '/tv')) {
+        return $default;
+    }
+
+    $parts = parse_url($path);
+    if ($parts === false) {
+        return $default;
+    }
+
+    $pathname = (string) ($parts['path'] ?? '');
+    if ($pathname === '/tv') {
+        $pathname = '/tv/';
+    }
+    if ($pathname !== '/tv/' && !str_starts_with($pathname, '/tv/')) {
+        return $default;
+    }
+
+    $allowed = ['genre', 'type', 'page', 'id', 'from'];
+    parse_str((string) ($parts['query'] ?? ''), $query);
+    $clean = [];
+    foreach ($allowed as $key) {
+        if (!isset($query[$key]) || $query[$key] === '') {
+            continue;
+        }
+        $clean[$key] = (string) $query[$key];
+    }
+
+    $result = $pathname;
+    if ($clean !== []) {
+        $result .= '?' . http_build_query($clean);
+    }
+
+    return $result;
+}
+
+function putmio_tv_asset(string $relativePath): string
+{
+    return putmio_asset('public/assets/tv/' . ltrim($relativePath, '/'));
+}
+
+function putmio_tv_security_headers(bool $authenticated = false): void
+{
+    if (headers_sent()) {
+        return;
+    }
+
+    header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'");
+    header('X-Frame-Options: DENY');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    if ($authenticated) {
+        header('Cache-Control: no-store, private');
+    }
+}
+
 function putmio_admin_ui_enabled(): bool
 {
     return \PutMio\Auth\Session::isAdmin() && !putmio_tv_mode();

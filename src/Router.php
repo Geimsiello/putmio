@@ -49,6 +49,11 @@ final class Router
             return;
         }
 
+        if (str_starts_with($path, '/tv')) {
+            (new \PutMio\Router\TvRouter())->dispatch($path, $method);
+            return;
+        }
+
         $routes = [
             'GET' => [
                 '/login' => [AuthController::class, 'loginForm'],

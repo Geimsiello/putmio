@@ -1,0 +1,442 @@
+/* PutMio TV — sito /tv/ (10-foot, webOS-safe) */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html.tv-site {
+  font-size: 20px;
+  -webkit-text-size-adjust: 100%;
+}
+
+html.tv-site,
+html.tv-site body {
+  margin: 0;
+  padding: 0;
+  background: #0b1326;
+  color: #dae2fd;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.4;
+  min-height: 100vh;
+}
+
+.tv-main {
+  padding: 6rem 3rem 8rem;
+  max-width: 100%;
+}
+
+.tv-site--guest .tv-main {
+  padding: 2rem 3rem;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Header */
+.tv-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  padding: 1rem 3rem;
+  background: rgba(11, 19, 38, 0.92);
+  border-bottom: 1px solid rgba(70, 69, 84, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+.tv-header__brand {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #c0c1ff;
+  text-decoration: none;
+  margin-right: 2rem;
+}
+
+.tv-header__nav {
+  display: flex;
+  flex: 1;
+}
+
+.tv-header__nav > * {
+  margin-right: 0.5rem;
+}
+
+@supports (gap: 0.5rem) {
+  .tv-header__nav {
+    gap: 0.5rem;
+  }
+  .tv-header__nav > * {
+    margin-right: 0;
+  }
+}
+
+.tv-header__link,
+.tv-header__action {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  color: #c7c4d7;
+  text-decoration: none;
+  font-size: 1rem;
+  font-weight: 600;
+  border: 2px solid transparent;
+  outline: none;
+}
+
+.tv-header__link--active {
+  color: #dae2fd;
+  background: #222a3d;
+}
+
+.tv-header__action {
+  margin-left: auto;
+}
+
+/* Focus ring (virtual + native) */
+[data-tv-focus].tv-focused,
+[data-tv-focus]:focus-visible {
+  border-color: #c0c1ff;
+  box-shadow: 0 0 0 3px rgba(192, 193, 255, 0.35);
+  color: #dae2fd;
+}
+
+/* Rows */
+.tv-row {
+  margin-bottom: 2.5rem;
+}
+
+.tv-row__title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: #dae2fd;
+}
+
+.tv-row__viewport {
+  overflow: hidden;
+  margin: 0 -0.25rem;
+}
+
+.tv-row__track {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: auto;
+  padding: 0.5rem 0.25rem 1rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tv-row__track::-webkit-scrollbar {
+  display: none;
+}
+
+.tv-row__track > * {
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+@supports (gap: 1rem) {
+  .tv-row__track {
+    gap: 1rem;
+  }
+  .tv-row__track > * {
+    margin-right: 0;
+  }
+}
+
+/* Poster cards */
+.tv-poster {
+  display: block;
+  width: 200px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 0.75rem;
+  border: 3px solid transparent;
+  outline: none;
+  transition: transform 0.15s ease;
+}
+
+.tv-poster.tv-focused {
+  transform: scale(1.05);
+}
+
+.tv-poster__image-wrap {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: #171f33;
+}
+
+.tv-poster__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tv-poster__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: rgba(6, 14, 32, 0.8);
+}
+
+.tv-poster__progress-bar {
+  height: 100%;
+  background: #8083ff;
+  border-radius: 2px;
+}
+
+/* Info rail */
+.tv-info-rail {
+  position: fixed;
+  left: 3rem;
+  right: 3rem;
+  bottom: 1.5rem;
+  z-index: 90;
+  pointer-events: none;
+}
+
+.tv-info-rail[hidden] {
+  display: none !important;
+}
+
+.tv-info-rail__inner {
+  max-width: 48rem;
+  padding: 1rem 1.25rem;
+  background: rgba(23, 31, 51, 0.95);
+  border: 1px solid rgba(70, 69, 84, 0.5);
+  border-radius: 0.75rem;
+}
+
+.tv-info-rail__title {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #dae2fd;
+}
+
+.tv-info-rail__meta {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+  color: #c0c1ff;
+}
+
+.tv-info-rail__synopsis {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #c7c4d7;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Login */
+.tv-login {
+  width: 100%;
+  max-width: 32rem;
+  text-align: center;
+}
+
+.tv-login__brand {
+  margin-bottom: 2rem;
+}
+
+.tv-login__logo {
+  display: block;
+  margin: 0 auto 1rem;
+}
+
+.tv-login__title {
+  margin: 0 0 0.5rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #c0c1ff;
+}
+
+.tv-login__tagline {
+  margin: 0;
+  color: #c7c4d7;
+  font-size: 1rem;
+}
+
+.tv-login__card {
+  background: #171f33;
+  border: 1px solid rgba(70, 69, 84, 0.4);
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.tv-login__heading {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.tv-login__desc {
+  margin: 0 0 1.5rem;
+  color: #c7c4d7;
+  font-size: 1rem;
+}
+
+.tv-login__loading,
+.tv-login__waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  color: #c7c4d7;
+  padding: 1.5rem 0;
+}
+
+.tv-login__ready[hidden],
+.tv-login__error[hidden],
+.tv-login__loading[hidden] {
+  display: none !important;
+}
+
+.tv-login__error {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 0.5rem;
+  color: #ef4444;
+  font-size: 1rem;
+}
+
+.tv-login__qr-wrap {
+  display: inline-block;
+  padding: 1rem;
+  background: #131b2e;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(70, 69, 84, 0.4);
+  margin-bottom: 1.5rem;
+}
+
+.tv-login__qr {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-login__qr img {
+  display: block;
+}
+
+.tv-login__code-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: #c7c4d7;
+  font-family: ui-monospace, monospace;
+}
+
+.tv-login__code {
+  margin: 0 0 1.5rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: #c0c1ff;
+  font-family: ui-monospace, "JetBrains Mono", monospace;
+}
+
+.tv-login__hint {
+  margin: 1rem 0 1.5rem;
+  font-size: 0.9rem;
+  color: rgba(199, 196, 215, 0.75);
+}
+
+.tv-login__spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid rgba(192, 193, 255, 0.25);
+  border-top-color: #c0c1ff;
+  border-radius: 50%;
+  animation: tv-spin 0.8s linear infinite;
+}
+
+.tv-login__spinner--sm {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-width: 2px;
+}
+
+@keyframes tv-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Buttons */
+.tv-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.tv-btn--primary {
+  background: #8083ff;
+  color: #0d0096;
+}
+
+.tv-btn--secondary {
+  background: transparent;
+  color: #dae2fd;
+  border-color: rgba(144, 143, 160, 0.5);
+  width: 100%;
+}
+
+/* Home welcome */
+.tv-home__welcome {
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.tv-home__welcome-title {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+
+.tv-home__welcome-text {
+  color: #c7c4d7;
+  font-size: 1.2rem;
+}
+
+/* 404 */
+.tv-error-page {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.tv-error-page__title {
+  font-size: 2rem;
+  margin: 0 0 1rem;
+}
+
+.tv-error-page__text {
+  color: #c7c4d7;
+  font-size: 1.2rem;
+  margin: 0 0 2rem;
+}
